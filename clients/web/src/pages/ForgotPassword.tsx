@@ -64,15 +64,15 @@ const ForgotPassword: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#13131a] dark:bg-slate-50 text-white dark:text-gray-900 flex flex-col items-center justify-center p-6 font-sans transition-colors duration-300">
+    <div className="auth-page min-h-screen w-full bg-canvas dark:bg-canvas text-ink flex flex-col items-center justify-center p-6 font-sans transition-colors duration-300">
       <div className="mb-10 text-center">
         <div className="w-20 h-20 bg-linear-to-tr from-[#a855f7] to-[#ec4899] rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-purple-500/20">
           <KeyRound className="text-white" size={36} />
         </div>
-        <h1 className="text-4xl font-bold tracking-tight mb-2 text-white dark:text-gray-900">
+        <h1 className="page-title text-4xl font-bold tracking-tight mb-2 text-ink">
           {t("forgot_password_title", "Mot de passe oublié")}
         </h1>
-        <p className="text-gray-400 dark:text-gray-600 text-lg max-w-md mx-auto">
+        <p className="text-muted dark:text-muted text-lg max-w-md mx-auto">
           {phase === "request"
             ? t("forgot_password_subtitle", "Entre ton email, on t'envoie un code pour réinitialiser ton mot de passe.")
             : t("forgot_password_reset_subtitle", "Entre le code reçu par email et choisis un nouveau mot de passe.")}
@@ -128,7 +128,7 @@ const ForgotPassword: React.FC = () => {
                 onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
                 placeholder="123456"
                 required
-                className="w-full bg-[#1e1e2d] dark:bg-white border border-gray-700 dark:border-gray-300 rounded-xl px-4 py-3 text-center text-2xl tracking-[0.5em] font-bold outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/40 text-white dark:text-gray-900 transition-colors"
+                className="w-full bg-panel dark:bg-panel border border-line dark:border-line rounded-xl px-4 py-3 text-center text-2xl tracking-[0.5em] font-bold outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/40 text-ink transition-colors"
               />
             </div>
 
@@ -165,7 +165,7 @@ const ForgotPassword: React.FC = () => {
                   setError(null);
                   setInfo(null);
                 }}
-                className="text-gray-400 dark:text-gray-600 hover:underline cursor-pointer"
+                className="text-muted dark:text-muted hover:underline cursor-pointer"
               >
                 {t("forgot_password_resend_link", "Je n'ai pas reçu de code, recommencer")}
               </span>
@@ -173,7 +173,7 @@ const ForgotPassword: React.FC = () => {
           </form>
         )}
 
-        <p className="text-center text-gray-400 dark:text-gray-600 text-sm">
+        <p className="text-center text-muted dark:text-muted text-sm">
           <span
             onClick={() => navigate("/login")}
             className="text-blue-500 font-bold cursor-pointer hover:underline"

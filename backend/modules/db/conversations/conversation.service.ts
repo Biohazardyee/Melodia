@@ -14,9 +14,36 @@ import {
     Conversations,
     Prisma,
 } from "../../../generated/prisma/browser.js";
+import {assertParticipant, assertCanRespond} from "./conversation.policy.js";
+import {emitToUser} from "../../web_socket/socket.registry.js";
 import {conversationMapper} from "../../../mappers/conversations/conversations.mapper.js";
 
 export class ConversationService {
+    async requireParticipant(id: string, userId: string) {
+        const conversation = await PrismaDb.conversations.findUnique({where: {id}});
+        if (!conversation) throw new NotFound("Conversation not found");
+        assertParticipant(conversation, userId);
+        return conversation;
+    }
+
+    async respond(id: string, userId: string, action: string) {
+        if (action !== "accept" && action !== "decline") throw new BadRequest("Invalid request action");
+        const conversation = await PrismaDb.$transaction(async (tx) => {
+            await tx.$queryRaw`SELECT id FROM "Conversations" WHERE id = ${id} FOR UPDATE`;
+            const current = await tx.conversations.findUnique({where: {id}});
+            if (!current) throw new NotFound("Conversation not found");
+            assertCanRespond(current, userId);
+            if (current.status === "ACCEPTED") return current;
+            return tx.conversations.update({where: {id}, data: {
+                status: action === "accept" ? "ACCEPTED" : "DECLINED",
+            }});
+        });
+        for (const participant of [conversation.user1_id, conversation.user2_id]) {
+            emitToUser(participant, "conversation_updated", {conversation_id: id});
+        }
+        return {id: conversation.id, status: conversation.status};
+    }
+
     async create(data: ConversationAddDto): Promise<ConversationAddResponseDto> {
         if (isEmptyString(data.user1_id)) {
             throw new BadRequest("User1_id cannot be empty");
@@ -25,6 +52,8 @@ export class ConversationService {
         if (isEmptyString(data.user2_id)) {
             throw new BadRequest("User2_id cannot be empty");
         }
+
+        if (data.user1_id === data.user2_id) throw new BadRequest("You cannot message yourself");
 
         const user1: Users | null = await PrismaDb.users.findUnique({
             where: {
@@ -59,41 +88,32 @@ export class ConversationService {
             return conversationMapper.toAddDto(conversation);
         }
 
-        // Une conversation ne peut être créée qu'entre deux personnes qui se suivent mutuellement
-        const [aFollowsB, bFollowsA] = await Promise.all([
-            PrismaDb.follows.findUnique({
-                where: {
-                    user_id_follow_user_id: {
-                        user_id: data.user1_id,
-                        follow_user_id: data.user2_id,
-                    },
-                },
-            }),
-            PrismaDb.follows.findUnique({
-                where: {
-                    user_id_follow_user_id: {
-                        user_id: data.user2_id,
-                        follow_user_id: data.user1_id,
-                    },
-                },
-            }),
-        ]);
-
-        if (!aFollowsB || !bFollowsA) {
-            throw new BadRequest(
-                "Une conversation nécessite un abonnement mutuel entre les deux utilisateurs",
-            );
-        }
+        // Only the recipient following the sender grants direct inbox access.
+        const recipientFollowsSender = await PrismaDb.follows.findUnique({
+            where: {user_id_follow_user_id: {user_id: data.user2_id, follow_user_id: data.user1_id}},
+        });
 
         const [sortedUser1, sortedUser2] = [data.user1_id, data.user2_id].sort();
 
         const createData: Prisma.ConversationsUncheckedCreateInput = {
             user1_id: sortedUser1,
             user2_id: sortedUser2,
+            initiated_by: data.user1_id,
+            status: recipientFollowsSender ? "ACCEPTED" : "PENDING",
         };
 
-        const conversationToCreate = await PrismaDb.conversations.create({
-            data: createData,
+        const conversationToCreate = await PrismaDb.conversations.upsert({
+            where: {user1_id_user2_id: {user1_id: sortedUser1, user2_id: sortedUser2}},
+            create: createData,
+            update: {},
+        }).catch(async (error) => {
+            // Prisma can emulate an empty-update upsert: handle concurrent opens.
+            if (error?.code !== "P2002") throw error;
+            const existing = await PrismaDb.conversations.findUnique({
+                where: {user1_id_user2_id: {user1_id: sortedUser1, user2_id: sortedUser2}},
+            });
+            if (!existing) throw error;
+            return existing;
         });
 
         return conversationMapper.toAddDto(conversationToCreate);
@@ -130,17 +150,23 @@ export class ConversationService {
 
     async getUserConversations(
         userId: string,
+        includeId?: string,
     ): Promise<UserConversationResponseDto[]> {
         const conversations = await PrismaDb.conversations.findMany({
             where: {
-                OR: [{user1_id: userId}, {user2_id: userId}],
+                AND: [
+                    {OR: [{user1_id: userId}, {user2_id: userId}]},
+                    {OR: [{messages: {some: {}}}, {initiated_by: userId}, ...(includeId ? [{id: includeId}] : [])]},
+                ],
             },
             orderBy: {
                 created_at: "desc",
             },
-            take: 20,
             select: {
                 id: true,
+                status: true,
+                initiated_by: true,
+                invitation_sent: true,
                 user1: {
                     select: {
                         id: true,
@@ -180,8 +206,11 @@ export class ConversationService {
 
         return conversations.map((conv) => ({
             id: conv.id,
+            status: conv.status,
+            initiated_by: conv.initiated_by,
+            invitation_sent: conv.invitation_sent,
             messages: conv.messages,
-            _count: conv._count,
+            _count: conv.status === "DECLINED" ? {messages: 0} : conv._count,
             user1: {
                 id: conv.user1.id,
                 username: conv.user1.username,

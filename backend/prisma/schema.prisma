@@ -32,7 +32,7 @@ model Users {
   equipped_banner        String?
   equipped_pattern       String?
 
-  role            Roles   @default(BASIC)
+  role Roles @default(BASIC)
 
   provider    AuthProvider?
   provider_id String?
@@ -45,9 +45,9 @@ model Users {
 
   // Vérification d'email (comptes LOCAL uniquement — les comptes OAuth sont
   // considérés vérifiés par le fournisseur dès leur création)
-  email_verified              Boolean   @default(true)
-  email_verification_code     String?
-  email_verification_expires  DateTime?
+  email_verified             Boolean   @default(true)
+  email_verification_code    String?
+  email_verification_expires DateTime?
 
   // Réinitialisation de mot de passe
   password_reset_code    String?
@@ -68,24 +68,45 @@ model Users {
   playlist_collaborations PlaylistCollaborators[]
   follows                 Follows[]               @relation("following")
   followers               Follows[]               @relation("followers")
-  notifications        Notifications[]   @relation("user_notifications")
-  notificationsRelated Notifications[]   @relation("user_related_notifications")
-  user_media_status    UserMediaStatus[]
-  reporter_reports     Reports[]         @relation("reporter_reports")
-  profile_reports      Reports[]         @relation("profile_reports")
+  notifications           Notifications[]         @relation("user_notifications")
+  notificationsRelated    Notifications[]         @relation("user_related_notifications")
+  user_media_status       UserMediaStatus[]
+  reporter_reports        Reports[]               @relation("reporter_reports")
+  profile_reports         Reports[]               @relation("profile_reports")
 
   activities          Activities[]    @relation("user_activities")
   activities_targets  Activities[]    @relation("user_activities_targets")
   conversations_user1 Conversations[] @relation("conversation_user1")
   conversations_user2 Conversations[] @relation("conversation_user2")
   messages            Messages[]
+  journal_entries     JournalEntries[]
   commentLikes        CommentLikes[]
 
   expo_push_token String?
 
   spotify_account SpotifyAccounts?
 
+  rooms_hosted         Rooms[]            @relation("room_host")
+  room_participations  RoomParticipants[]
+  room_queue_additions RoomQueueItems[]
+
   @@unique([provider, provider_id])
+}
+
+model JournalEntries {
+  id String @id @default(uuid())
+  user_id String
+  user Users @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  title String @db.VarChar(200)
+  artist String @db.VarChar(200)
+  listened_on String @db.VarChar(10)
+  mood String @db.VarChar(20)
+  rating Int?
+  note String @db.VarChar(4000)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([user_id, listened_on, created_at])
 }
 
 enum AuthProvider {
@@ -109,6 +130,9 @@ model SpotifyAccounts {
   access_token  String
   refresh_token String
   expires_at    DateTime
+  product       String? // "premium" | "free" | "open" — from GET /v1/me, gates Listening Rooms access
+  scope         String? // space-separated granted OAuth scopes from the token response
+  country       String? // ISO 3166-1 alpha-2 from GET /v1/me — used as `market` for catalog search
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
 }
@@ -191,16 +215,16 @@ model ReviewLikes {
 }
 
 model Playlists {
-  id                 String   @id @default(uuid())
-  user               Users    @relation(fields: [user_id], references: [id])
-  user_id            String
-  name               String   @db.VarChar(30)
-  image_url          Bytes?
-  is_public          Boolean
-  is_collaborative   Boolean  @default(false)
+  id                  String   @id @default(uuid())
+  user                Users    @relation(fields: [user_id], references: [id])
+  user_id             String
+  name                String   @db.VarChar(30)
+  image_url           Bytes?
+  is_public           Boolean
+  is_collaborative    Boolean  @default(false)
   spotify_playlist_id String?
-  created_at         DateTime @default(now())
-  updated_at         DateTime @updatedAt
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
 
   items         PlaylistItems[]
   collaborators PlaylistCollaborators[]
@@ -336,6 +360,13 @@ enum NotificationActions {
   recommendation
   badge_earned
   playlist_collaborator_added
+  room_invited
+}
+
+enum ConversationStatus {
+  ACCEPTED
+  PENDING
+  DECLINED
 }
 
 model Conversations {
@@ -346,6 +377,10 @@ model Conversations {
   user2_id   String
   created_at DateTime   @default(now())
   messages   Messages[]
+  // Legacy conversations stay accepted. Following never changes this consent.
+  status ConversationStatus @default(ACCEPTED)
+  initiated_by String?
+  invitation_sent Boolean @default(false)
 
   @@unique([user1_id, user2_id])
 }
@@ -359,4 +394,58 @@ model Messages {
   content         String        @db.VarChar(1000)
   is_read         Boolean       @default(false)
   created_at      DateTime      @default(now())
+}
+
+// Listening Rooms — synchronized group Spotify playback (Premium-gated, see spotify.service.ts)
+model Rooms {
+  id      String @id @default(uuid())
+  host    Users  @relation("room_host", fields: [host_id], references: [id])
+  host_id String
+  name    String @db.VarChar(50)
+
+  is_public Boolean @default(true)
+  password  String? // hashé (bcrypt) — requis quand is_public = false, ignoré sinon
+
+  // Playback state anchor — lets late joiners / REST callers compute the live
+  // position without asking the host: is_playing ? position_ms + (now - position_updated_at) : position_ms
+  current_track_uri     String?
+  current_track_name    String?
+  current_artist_name   String?
+  current_album_art_url String?
+  current_duration_ms   Int?
+  position_ms           Int      @default(0)
+  is_playing            Boolean  @default(false)
+  position_updated_at   DateTime @default(now())
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  participants RoomParticipants[]
+  queue_items  RoomQueueItems[]
+}
+
+model RoomParticipants {
+  room      Rooms    @relation(fields: [room_id], references: [id], onDelete: Cascade)
+  room_id   String
+  user      Users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user_id   String
+  joined_at DateTime @default(now())
+
+  @@id([room_id, user_id])
+}
+
+model RoomQueueItems {
+  id            String  @id @default(uuid())
+  room          Rooms   @relation(fields: [room_id], references: [id], onDelete: Cascade)
+  room_id       String
+  added_by      Users   @relation(fields: [added_by_id], references: [id])
+  added_by_id   String
+  track_uri     String
+  track_name    String
+  artist_name   String
+  album_art_url String?
+  duration_ms   Int
+  position      Int
+
+  created_at DateTime @default(now())
 }

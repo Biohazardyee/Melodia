@@ -5,7 +5,7 @@ const ProtectedRoute = () => {
 
     if (!token) {
         return (
-            <div className="fixed inset-0 bg-[#13131A] z-9999 flex items-center justify-center">
+            <div className="fixed inset-0 bg-canvas z-9999 flex items-center justify-center">
                 <Navigate to="/auth-required" replace/>
             </div>
         );

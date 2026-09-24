@@ -87,9 +87,9 @@ const NowPlayingCard: React.FC<NowPlayingCardProps> = ({userId}) => {
             href={nowPlaying.spotifyUrl || undefined}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-3 bg-[#1a1d26] dark:bg-white border border-emerald-500/30 rounded-2xl p-3 max-w-md hover:border-emerald-500/60 transition-colors"
+            className="flex items-center gap-3 bg-panel dark:bg-panel border border-emerald-500/30 rounded-2xl p-3 max-w-md hover:border-emerald-500/60 transition-colors"
         >
-            <div className="w-12 h-12 rounded-lg overflow-hidden bg-[#0f1117] dark:bg-gray-100 flex items-center justify-center flex-shrink-0">
+            <div className="w-12 h-12 rounded-lg overflow-hidden bg-canvas dark:bg-raised flex items-center justify-center flex-shrink-0">
                 {nowPlaying.albumArt ? (
                     <img src={nowPlaying.albumArt} alt="" className="w-full h-full object-cover"/>
                 ) : (
@@ -106,8 +106,8 @@ const NowPlayingCard: React.FC<NowPlayingCardProps> = ({userId}) => {
                         {t("now_playing", "Écoute actuellement")}
                     </span>
                 </div>
-                <p className="text-sm font-bold text-white dark:text-gray-900 truncate">{nowPlaying.trackName}</p>
-                <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{nowPlaying.artist}</p>
+                <p className="text-sm font-bold text-ink truncate">{nowPlaying.trackName}</p>
+                <p className="text-xs text-muted dark:text-muted truncate">{nowPlaying.artist}</p>
                 <div className="h-1 rounded-full bg-gray-700 dark:bg-gray-200 mt-1.5 overflow-hidden">
                     <div
                         className="h-full rounded-full bg-emerald-500"

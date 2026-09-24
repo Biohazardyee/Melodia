@@ -11,6 +11,9 @@ import {
     MessageUpdateDto,
 } from "../../../types/messages/messages.dto.js";
 
+import {conversationService} from "../conversations/conversation.service.js";
+import {emitToUser} from "../../web_socket/socket.registry.js";
+
 class MessageController extends Controller {
     constructor(private readonly service: MessageService = messageService) {
         super();
@@ -20,13 +23,13 @@ class MessageController extends Controller {
         try {
             const creationData: MessageAddDto = {
                 conversation_id: req.body.conversation_id,
-                sender_id: req.body.sender_id,
+                sender_id: req.user!.id,
                 content: req.body.content,
             };
 
             if (
                 !creationData.conversation_id ||
-                !req.body.sender_id ||
+                !creationData.sender_id ||
                 !req.body.content
             ) {
                 throw new BadRequest(
@@ -37,6 +40,11 @@ class MessageController extends Controller {
             const message: MessageAddResponseDto =
                 await this.service.create(creationData);
 
+            const conversation = await conversationService.requireParticipant(creationData.conversation_id, req.user!.id);
+            for (const id of [conversation.user1_id, conversation.user2_id]) {
+                emitToUser(id, "receive_message", message);
+                emitToUser(id, "update_conversation_list", message);
+            }
             res.status(201).json({
                 message_text: "Message created successfully",
                 message,
@@ -93,6 +101,7 @@ class MessageController extends Controller {
                 throw new BadRequest("Conversation ID is required");
             }
 
+            await conversationService.requireParticipant(conversationId, req.user!.id);
             const messages: MessageResponseDto[] =
                 await this.service.getByConversationId(conversationId);
 

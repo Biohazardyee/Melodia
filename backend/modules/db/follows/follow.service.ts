@@ -9,10 +9,6 @@ import {
 import {followsMapper} from "../../../mappers/follows/follows.mapper.js";
 import {Follows, Users} from "../../../generated/prisma/client.js";
 import {bufferToImageDataUri} from "../../../utils/imageDataUri.js";
-import {
-    ensureConversation,
-    deleteByParticipants,
-} from "../conversations/conversation.helpers.js";
 import {notificationService} from "../notifications/notification.service.js";
 import {NotificationActions} from "../../../generated/prisma/enums.js";
 import {canSendNotification} from "../notifications/notification.helper.js";
@@ -86,19 +82,6 @@ export class FollowService {
                 },
             });
 
-            // La conversation n'est créée que si les deux personnes se suivent mutuellement
-            const reverseFollow = await tx.follows.findUnique({
-                where: {
-                    user_id_follow_user_id: {
-                        user_id: data.follow_user_id,
-                        follow_user_id: data.user_id,
-                    },
-                },
-            });
-
-            if (reverseFollow) {
-                await ensureConversation(data.user_id, data.follow_user_id, tx);
-            }
 
             const isAllowed: boolean = await canSendNotification(
                 data.follow_user_id,
@@ -163,7 +146,6 @@ export class FollowService {
                 },
             });
 
-            await deleteByParticipants(user_id, follow_user_id, tx);
 
             return followsMapper.toDto(followToDelete);
         });

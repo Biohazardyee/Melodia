@@ -59,8 +59,8 @@ const ACTION_CONFIG: Record<string, ActionConfig> = {
 
 const DEFAULT_CONFIG: ActionConfig = {
     Icon: Bell,
-    badgeBg: "bg-slate-500/15 dark:bg-slate-100",
-    iconColor: "text-slate-400 dark:text-slate-500",
+    badgeBg: "bg-slate-500/15 dark:bg-raised",
+    iconColor: "text-muted dark:text-muted",
     accent: "border-l-slate-600 dark:border-l-slate-400",
 };
 
@@ -68,11 +68,11 @@ const getConfig = (action: string): ActionConfig => ACTION_CONFIG[action] ?? DEF
 
 const SectionHeader: React.FC<{label: string; count: number}> = ({label, count}) => (
     <div className="flex items-center gap-3 mb-3 mt-8 first:mt-0">
-        <span className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 shrink-0">
+        <span className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-muted shrink-0">
             {label}
         </span>
-        <div className="flex-1 h-px bg-slate-800 dark:bg-slate-200"/>
-        <span className="text-xs font-medium text-slate-600 dark:text-slate-400 shrink-0 tabular-nums">{count}</span>
+        <div className="flex-1 h-px bg-raised dark:bg-slate-200"/>
+        <span className="text-xs font-medium text-slate-600 dark:text-muted shrink-0 tabular-nums">{count}</span>
     </div>
 );
 
@@ -112,17 +112,17 @@ const NotificationCard: React.FC<{
             className={`
                 relative flex items-center gap-4 p-4 rounded-xl cursor-pointer
                 border-l-4 ${config.accent}
-                border border-slate-800 dark:border-slate-200
+                border border-line dark:border-line
                 transition-all duration-200 group
                 ${notification.is_read
-                    ? "bg-[#16161f] dark:bg-white/60 hover:bg-[#1a1d26] dark:hover:bg-white"
-                    : "bg-[#1a1d26] dark:bg-white hover:bg-[#1e2130] dark:hover:bg-slate-50 shadow-sm"
+                    ? "bg-canvas dark:bg-panel/60 hover:bg-panel dark:hover:bg-white"
+                    : "bg-panel dark:bg-panel hover:bg-panel dark:hover:bg-slate-50 shadow-sm"
                 }
             `}
         >
             <div className="relative shrink-0" onClick={onAvatarClick}>
                 <AvatarBorder borderId={userBorder} compact>
-                    <div className="w-11 h-11 rounded-full overflow-hidden bg-slate-800 dark:bg-gray-100 flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity">
+                    <div className="w-11 h-11 rounded-full overflow-hidden bg-raised dark:bg-raised flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity">
                         {userPic ? (
                             <img src={userPic} alt={displayUser} className="w-full h-full object-cover"/>
                         ) : (
@@ -138,10 +138,10 @@ const NotificationCard: React.FC<{
             </div>
 
             <div className="flex-1 min-w-0">
-                <p className={`text-sm leading-relaxed truncate ${notification.is_read ? "text-slate-400 dark:text-gray-500" : "text-slate-100 dark:text-gray-900 font-medium"}`}>
+                <p className={`text-sm leading-relaxed truncate ${notification.is_read ? "text-muted dark:text-muted" : "text-slate-100 dark:text-gray-900 font-medium"}`}>
                     {text()}
                 </p>
-                <p className={`text-xs mt-0.5 ${notification.is_read ? "text-slate-600 dark:text-gray-400" : "text-blue-400 dark:text-blue-500 font-medium"}`}>
+                <p className={`text-xs mt-0.5 ${notification.is_read ? "text-slate-600 dark:text-muted" : "text-blue-400 dark:text-blue-500 font-medium"}`}>
                     {formatTime(notification.created_at)}
                 </p>
             </div>
@@ -261,14 +261,14 @@ const Notifications: React.FC = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-[#13131A] dark:bg-slate-50 transition-colors duration-300">
+            <div className="min-h-screen flex items-center justify-center bg-canvas dark:bg-canvas transition-colors duration-300">
                 <Loader2 className="animate-spin text-slate-500" size={40}/>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-[#13131A] dark:bg-slate-50 text-slate-50 dark:text-gray-900 font-sans transition-colors duration-300">
+        <div className="min-h-screen bg-canvas dark:bg-canvas text-ink font-sans transition-colors duration-300">
             <div className="max-w-2xl mx-auto px-4 py-10 md:py-14">
 
                 {/* Header */}
@@ -285,10 +285,10 @@ const Notifications: React.FC = () => {
                             )}
                         </div>
                         <div>
-                            <h1 className="text-2xl font-extrabold text-white dark:text-gray-900 tracking-tight">
+                            <h1 className="page-title text-2xl font-extrabold text-ink tracking-tight">
                                 {t("notifications_title", "Notifications")}
                             </h1>
-                            <p className="text-slate-500 dark:text-gray-400 text-sm mt-0.5">
+                            <p className="text-slate-500 dark:text-muted text-sm mt-0.5">
                                 {unreadCount > 0
                                     ? `${unreadCount} ${t("tab_unread").toLowerCase()}`
                                     : t("no_notifications", "Tout lu")}
@@ -301,8 +301,8 @@ const Notifications: React.FC = () => {
                         disabled={unreadCount === 0}
                         className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 ${
                             unreadCount > 0
-                                ? "bg-slate-800 dark:bg-white border border-slate-700 dark:border-gray-200 text-slate-200 dark:text-gray-700 hover:bg-slate-700 dark:hover:bg-gray-50 hover:border-slate-600"
-                                : "bg-slate-900 dark:bg-gray-100 border border-slate-800 dark:border-gray-200 text-slate-600 dark:text-gray-400 cursor-not-allowed"
+                                ? "bg-raised dark:bg-panel border border-line dark:border-line text-slate-200 dark:text-gray-700 hover:bg-slate-700 dark:hover:bg-gray-50 hover:border-slate-600"
+                                : "bg-panel dark:bg-raised border border-line dark:border-line text-slate-600 dark:text-muted cursor-not-allowed"
                         }`}
                     >
                         <CheckCheck size={15}/>
@@ -311,7 +311,7 @@ const Notifications: React.FC = () => {
                 </header>
 
                 {/* Tabs */}
-                <nav className="flex gap-0 border-b border-slate-800 dark:border-slate-200 mb-8">
+                <nav className="flex gap-0 border-b border-line dark:border-line mb-8">
                     {tabs.map(({key, label, count}) => (
                         <button
                             key={key}
@@ -319,7 +319,7 @@ const Notifications: React.FC = () => {
                             className={`relative px-5 py-3 text-sm font-semibold transition-colors duration-150 ${
                                 activeTab === key
                                     ? "text-blue-400 dark:text-blue-600"
-                                    : "text-slate-500 dark:text-slate-400 hover:text-slate-200 dark:hover:text-gray-700"
+                                    : "text-slate-500 dark:text-muted hover:text-slate-200 dark:hover:text-gray-700"
                             }`}
                         >
                             {label}
@@ -338,10 +338,10 @@ const Notifications: React.FC = () => {
                 {/* Content */}
                 {filteredNotifications.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
-                        <div className="w-16 h-16 rounded-full bg-slate-800 dark:bg-slate-100 border border-slate-700 dark:border-slate-200 flex items-center justify-center">
-                            <Bell size={28} className="text-slate-600 dark:text-slate-400"/>
+                        <div className="w-16 h-16 rounded-full bg-raised dark:bg-raised border border-line dark:border-line flex items-center justify-center">
+                            <Bell size={28} className="text-slate-600 dark:text-muted"/>
                         </div>
-                        <p className="text-sm text-slate-500 dark:text-gray-400 max-w-[200px] leading-relaxed">
+                        <p className="text-sm text-slate-500 dark:text-muted max-w-[200px] leading-relaxed">
                             {t("no_notifications")}
                         </p>
                     </div>

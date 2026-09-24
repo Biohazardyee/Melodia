@@ -10,6 +10,7 @@ import {
     KeyboardAvoidingView,
     Platform,
     StatusBar,
+    Alert,
 } from "react-native";
 import {Router, useLocalSearchParams, useRouter} from "expo-router";
 import {Ionicons} from "@expo/vector-icons";
@@ -32,6 +33,26 @@ const DetailsConversations = () => {
     const [loading, setLoading] = useState(true);
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
     const [avatarError, setAvatarError] = useState(false);
+    const [conversation, setConversation] = useState<any>(null);
+    const [sending, setSending] = useState(false);
+    const [responding, setResponding] = useState(false);
+    const incoming = conversation && conversation.status !== "ACCEPTED" && conversation.initiated_by !== currentUserId;
+    const blocked = !conversation || (conversation.status !== "ACCEPTED" && (incoming || conversation.invitation_sent || conversation.status === "DECLINED"));
+    const fetchConversation = async () => {
+        const res = await apiClient.get(`/conversations/${conversationId}`);
+        setConversation(res.data.conversation);
+    };
+    const respond = async (action: "accept" | "decline") => {
+        if (responding) return;
+        setResponding(true);
+        try {
+            await apiClient.patch(`/conversations/${conversationId}/request`, {action});
+            await fetchConversation();
+            if (action === "decline") router.back();
+            else socketRef.current?.emit("mark_as_read", {conversation_id: conversationId});
+        } catch { Alert.alert(t("dm_action_error")); }
+        finally { setResponding(false); }
+    };
 
     const flatListRef = useRef<FlatList>(null);
     const socketRef = useRef<Socket | null>(null);
@@ -95,7 +116,7 @@ const DetailsConversations = () => {
     };
 
     useEffect((): void => {
-        if (conversationId && currentUserId) fetchMessages();
+        if (conversationId && currentUserId) {fetchMessages(); void fetchConversation().catch(() => Alert.alert(t("dm_action_error")));}
     }, [conversationId, currentUserId]);
 
     useEffect((): (() => void) | undefined => {
@@ -112,15 +133,18 @@ const DetailsConversations = () => {
             });
 
             socketRef.current.on("connect", (): void => {
-                socketRef.current?.emit("join_conversation", {conversationId});
+                socketRef.current?.emit("join_conversation", {conversation_id: conversationId});
             });
 
             if (socketRef.current.connected) {
-                socketRef.current.emit("join_conversation", {conversationId});
+                socketRef.current.emit("join_conversation", {conversation_id: conversationId});
             }
 
+            socketRef.current.on("conversation_updated", () => {void fetchConversation().catch(() => {});});
             socketRef.current.on("receive_message", (message: any): void => {
                 if (message.conversation_id === conversationId) {
+                    void fetchConversation().catch(() => {});
+                    socketRef.current?.emit("mark_as_read", {conversation_id: conversationId});
                     const safeMessage = {
                         ...message,
                         id: message.id || `msg-live-${Date.now()}-${Math.random()}`,
@@ -143,19 +167,23 @@ const DetailsConversations = () => {
     }, [conversationId, currentUserId]);
 
     const sendMessage: () => Promise<void> = async (): Promise<void> => {
-        if (!newMessage.trim()) return;
+        if (!newMessage.trim() || blocked || sending) return;
 
         if (!socketRef.current || !socketRef.current.connected) {
             console.warn("Socket non connecté, impossible d'envoyer le message");
             return;
         }
 
-        socketRef.current.emit("send_message", {
+        setSending(true);
+        socketRef.current.timeout(10000).emit("send_message", {
             conversation_id: conversationId,
             content: newMessage.trim(),
+        }, (error: Error | null, result?: {ok: boolean}) => {
+            setSending(false);
+            if (error || !result?.ok) {Alert.alert(t("dm_send_error")); return;}
+            setNewMessage("");
+            void fetchConversation().catch(() => {});
         });
-
-        setNewMessage("");
     };
 
     const renderMessage = ({item, index}: { item: any, index: number }) => {
@@ -270,6 +298,15 @@ const DetailsConversations = () => {
                 />
             )}
 
+            {conversation && conversation.status !== "ACCEPTED" && (
+                <View style={{padding: 16, backgroundColor: theme.surface}}>
+                    <Text style={{color: theme.text}}>{t(incoming ? "dm_incoming" : blocked ? "dm_waiting" : "dm_invite_hint")}</Text>
+                    {incoming && <View style={{flexDirection: "row", gap: 24, marginTop: 12}}>
+                        <TouchableOpacity disabled={responding} onPress={() => respond("accept")}><Text style={{color: theme.text}}>{t("dm_accept")}</Text></TouchableOpacity>
+                        <TouchableOpacity disabled={responding} onPress={() => respond("decline")}><Text style={{color: theme.text}}>{t("dm_decline")}</Text></TouchableOpacity>
+                    </View>}
+                </View>
+            )}
             <View style={[styles.inputWrapper, {backgroundColor: theme.background}]}>
                 <View style={[styles.inputContainer, {backgroundColor: theme.surface, borderColor: theme.border}]}>
                     <TextInput
@@ -277,6 +314,8 @@ const DetailsConversations = () => {
                         placeholder={t("type_message_placeholder")}
                         placeholderTextColor={theme.placeholder}
                         value={newMessage}
+                        editable={!blocked && !sending}
+                        maxLength={1000}
                         onChangeText={setNewMessage}
                         multiline
                     />
@@ -286,7 +325,7 @@ const DetailsConversations = () => {
                             !newMessage.trim() && [styles.sendDisabled, {backgroundColor: theme.surface}],
                         ]}
                         onPress={sendMessage}
-                        disabled={!newMessage.trim()}
+                        disabled={!newMessage.trim() || blocked || sending}
                     >
                         <Ionicons name="send" size={18} color="#000"/>
                     </TouchableOpacity>

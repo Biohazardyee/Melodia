@@ -52,10 +52,10 @@ const ShareCardModal: React.FC<ShareCardModalProps> = ({data, onClose}) => {
         >
             <div
                 onClick={(e) => e.stopPropagation()}
-                className="bg-[#1a1d26] dark:bg-white border border-slate-800 dark:border-gray-200 rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden"
+                className="bg-panel dark:bg-panel border border-line dark:border-line rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden"
             >
-                <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800 dark:border-gray-200">
-                    <h3 className="font-bold text-white dark:text-gray-900">
+                <div className="flex items-center justify-between px-5 py-4 border-b border-line dark:border-line">
+                    <h3 className="font-bold text-ink">
                         {t("share_card_title", "Partager cette critique")}
                     </h3>
                     <button onClick={onClose} className="text-slate-500 hover:text-white dark:hover:text-gray-900 transition-colors">
@@ -64,7 +64,7 @@ const ShareCardModal: React.FC<ShareCardModalProps> = ({data, onClose}) => {
                 </div>
 
                 <div className="p-5 space-y-4">
-                    <div className="aspect-[4/5] rounded-xl overflow-hidden bg-slate-900 dark:bg-gray-100 flex items-center justify-center">
+                    <div className="aspect-[4/5] rounded-xl overflow-hidden bg-panel dark:bg-raised flex items-center justify-center">
                         {generating ? (
                             <Loader2 className="animate-spin text-indigo-400" size={32}/>
                         ) : imageUrl ? (

@@ -7,6 +7,7 @@ import {
     TextInput,
     RefreshControl,
     ActivityIndicator,
+    TouchableOpacity,
 } from "react-native";
 import {useNavigation, useFocusEffect} from "@react-navigation/native";
 import Header from "@/src/components/Header";
@@ -30,6 +31,8 @@ interface Message {
 }
 
 interface Conversation {
+    status?: string;
+    initiated_by?: string | null;
     id: string;
     user1_id?: string;
     user2_id?: string;
@@ -58,6 +61,8 @@ const Conversations = () => {
     const {t} = useTranslation();
     const {theme} = useTheme();
     const [conversations, setConversations] = useState<Conversation[]>([]);
+    const [tab, setTab] = useState<"inbox" | "requests">("inbox");
+    const [query, setQuery] = useState("");
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -124,9 +129,12 @@ const Conversations = () => {
                 transports: ["websocket"],
             });
 
+            socketRef.current.on("conversation_updated", fetchConversations);
+            socketRef.current.on("connect", fetchConversations);
             socketRef.current.on(
                 "update_conversation_list",
                 (newMessage: Message): void => {
+                    void fetchConversations();
                     setConversations((prev: Conversation[]): Conversation[] => {
                         const convIndex: number = prev.findIndex(
                             (c: Conversation): boolean => c.id === newMessage.conversation_id,
@@ -161,7 +169,7 @@ const Conversations = () => {
                 },
             );
 
-            socketRef.current.on("conversation_marked_read", ({conversationId}): void => {
+            socketRef.current.on("conversation_marked_read", ({conversation_id: conversationId}): void => {
                 setConversations((prev: Conversation[]): Conversation[] =>
                     prev.map(
                         (c: Conversation): Conversation =>
@@ -207,7 +215,14 @@ const Conversations = () => {
                     <Text style={[styles.glitchTitleSub, {color: theme.text}]}>{t("messages_title")}</Text>
                 </View>
 
+                <View style={{flexDirection: "row", gap: 24, marginBottom: 16}}>
+                    {(["inbox", "requests"] as const).map(value => <TouchableOpacity key={value} onPress={() => setTab(value)}>
+                        <Text style={{color: theme.text, fontWeight: tab === value ? "bold" : "normal"}}>{t(value === "inbox" ? "dm_inbox" : "dm_requests")}</Text>
+                    </TouchableOpacity>)}
+                </View>
                 <TextInput
+                    value={query}
+                    onChangeText={setQuery}
                     placeholder={t("search_conv_placeholder")}
                     placeholderTextColor={theme.placeholder}
                     style={[styles.searchInput, {
@@ -218,7 +233,7 @@ const Conversations = () => {
                 />
 
                 <View style={styles.chatList}>
-                    {conversations.map((conv: any) => {
+                    {conversations.filter(conv => conv.status !== "DECLINED" && ((!!conv.status && conv.status !== "ACCEPTED" && conv.initiated_by !== currentUserId) === (tab === "requests"))).map((conv: any) => {
                         const isCurrentUser1 =
                             (conv.user1_id &&
                                 String(conv.user1_id) === String(currentUserId)) ||
@@ -229,7 +244,7 @@ const Conversations = () => {
 
                         const otherUser = isCurrentUser1 ? conv.user2 : conv.user1;
 
-                        if (!otherUser || !otherUser.username) return null;
+                        if (!otherUser || !otherUser.username || !(otherUser.pseudo || otherUser.username).toLowerCase().includes(query.toLowerCase())) return null;
 
                         const lastMsg =
                             conv.messages && conv.messages.length > 0
@@ -270,11 +285,7 @@ const Conversations = () => {
                                         ),
                                     );
 
-                                    try {
-                                        await apiClient.patch(`/conversations/${conv.id}/read`);
-                                    } catch (e) {
-                                        console.log("Erreur de marquage de lecture en BD :", e);
-                                    }
+                                    socketRef.current?.emit("mark_as_read", {conversation_id: conv.id});
 
                                     navigation.navigate("detailsConversations", {
                                         conversationId: conv.id,

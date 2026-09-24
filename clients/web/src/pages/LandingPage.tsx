@@ -1,186 +1,77 @@
-import React, {useState, useEffect} from "react";
-import {useNavigate} from "react-router-dom";
+import {useEffect, useState} from "react";
+import {Link} from "react-router-dom";
 import {useTranslation} from "react-i18next";
-import {
-    FaBook,
-    FaStar,
-    FaUsers,
-    FaChartLine,
-    FaGlobe,
-    FaMusic,
-    FaArrowRight,
-    FaSearch,
-} from "react-icons/fa";
+import {ArrowUpRight, ArrowRight, Library, Star, Users, ChartNoAxesCombined, Globe, Radio, Music2} from "lucide-react";
 import {AlbumCard} from "../components/AlbumCard";
 import {Footer} from "../components/Footer";
-import {IconType} from "react-icons";
 import apiClient from "../api/client";
 
-export const LandingPage: React.FC = () => {
-    const navigate = useNavigate();
+export function LandingPage() {
     const {t} = useTranslation();
-
-    const [trendingAlbums, setTrendingAlbums] = useState<any[]>([]);
-    const [loading, setLoading] = useState<boolean>(true);
-
+    const [albums, setAlbums] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [failed, setFailed] = useState(false);
     useEffect(() => {
-        const fetchTrendingAlbums = async () => {
-            try {
-                setLoading(true);
-                const res = await apiClient.get("/medias/trending?limit=4");
-
-                const dataArray = res.data?.medias || [];
-
-                const formattedAlbums = dataArray.map((item: any) => ({
-                    id: item.id,
-                    title: item.name || "Sans titre",
-                    artist: item.artist || "Artiste inconnu",
-                    cover: item.cover || "",
-                    rating: item.rating || 0,
-                }));
-
-                setTrendingAlbums(formattedAlbums);
-            } catch (error) {
-                console.error("Erreur lors de la récupération des albums de la landing page:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchTrendingAlbums();
+        const controller = new AbortController();
+        apiClient.get("/medias/trending?limit=4", {signal: controller.signal}).then(({data}) => {
+            setAlbums((data.medias || []).map((a: any) => ({id: a.id, title: a.name, artist: a.artist, cover: a.cover, rating: Number(a.rating) || 0})));
+        }).catch(() => {if (!controller.signal.aborted) setFailed(true);})
+          .finally(() => {if (!controller.signal.aborted) setLoading(false);});
+        return () => controller.abort();
     }, []);
-
-    const FEATURES = [
-        {icon: FaBook, titre: t("feature_1_title"), description: t("feature_1_desc")},
-        {icon: FaStar, titre: t("feature_2_title"), description: t("feature_2_desc")},
-        {icon: FaUsers, titre: t("feature_3_title"), description: t("feature_3_desc")},
-        {icon: FaChartLine, titre: t("feature_4_title"), description: t("feature_4_desc")},
-        {icon: FaGlobe, titre: t("feature_5_title"), description: t("feature_5_desc")},
-        {icon: FaMusic, titre: t("feature_6_title"), description: t("feature_6_desc")},
-    ];
-
-    return (
-        <div className="min-h-screen bg-[#13131a] text-white font-sans selection:bg-purple-500/30">
-            <section className="h-screen w-full flex flex-col items-center justify-center relative overflow-hidden">
-                <div className="absolute inset-0 pointer-events-none">
-                    <div
-                        className="absolute w-125 h-125 bg-purple-600/10 rounded-full blur-[120px] -top-48 -left-48 animate-pulse"/>
-                    <div
-                        className="absolute w-125 h-125 bg-pink-600/10 rounded-full blur-[120px] -bottom-48 -right-48 animate-pulse"/>
+    const features = [Library, Star, Users, ChartNoAxesCombined, Globe, Radio];
+    return <div className="min-h-screen bg-canvas text-ink">
+        <header className="landing-nav">
+            <Link to="/" className="flex items-center gap-3"><img src="/logo.png" alt="" className="w-9 h-9 rounded-xl"/><span className="brand-word">melodia.</span></Link>
+            <nav className="flex items-center gap-4 sm:gap-8" aria-label={t("menu_title")}>
+                <Link to="/home" className="text-sm text-muted hover:text-accent hidden sm:block">{t("explore_title")}</Link>
+                <Link to="/login" className="secondary-action text-sm">{t("design_sign_in")}<ArrowUpRight size={15}/></Link>
+            </nav>
+        </header>
+        <main>
+            <section className="landing-hero">
+                <div><span className="eyebrow flex items-center gap-2"><Music2 size={14}/>{t("design_header_note")}</span>
+                    <h1>{t("design_landing_title")}<br/><em>{t("design_landing_emphasis")}</em></h1>
+                    <p>{t("landing_hero_subtitle")}</p>
+                    <div className="flex flex-wrap gap-3 mt-8">
+                        <Link to="/register" className="primary-action">{t("landing_btn_register")}<ArrowRight size={18}/></Link>
+                        <Link to="/home" className="secondary-action">{t("explore_title")}</Link>
+                    </div>
+                    <p className="text-xs mt-6">{t("design_landing_note")}</p>
                 </div>
-
-                <div className="relative z-10 max-w-10xl mx-auto px-6 text-center">
-                    <div className="w-25 h-20 flex items-center justify-center mx-auto mb-8 shadow-2xl">
-                        <img src="/logo.png" alt="Logo" className="w-50 h-50 object-contain"/>
+                <div className="landing-art">
+                    <div className="w-full text-xs text-muted"><span>MELODIA</span></div>
+                    <img src="/logo.png" alt="Melodia" className="w-56 sm:w-64 aspect-square rounded-[24%] object-cover"/>
+                    <div className="w-full border-t border-line pt-5 flex items-center justify-between gap-4">
+                        <div><span className="eyebrow">{t("design_your_space")}</span><p className="text-ink text-lg font-semibold mt-1">{t("design_record_caption")}</p></div>
+                        <Music2 className="text-accent" size={28}/>
                     </div>
-
-                    <h1
-                        style={{fontFamily: "'Michroma', sans-serif"}}
-                        className="text-5xl md:text-7xl font-black tracking-tighter uppercase bg-linear-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent mb-8"
-                    >
-                        MELODIA
-                    </h1>
-
-                    <p className="text-xl md:text-2xl text-gray-400 mb-10 max-w-2xl mx-auto">
-                        {t("landing_hero_subtitle")}
-                    </p>
-
-                    <div className="flex items-center justify-center gap-4 flex-wrap">
-                        <button
-                            onClick={() => navigate("/register")}
-                            className="bg-[#3b82f6] hover:bg-[#2563eb] text-white px-8 py-4 rounded-xl text-lg flex items-center shadow-lg transition-all hover:scale-105"
-                        >
-                            {t("landing_btn_register")} <FaArrowRight className="ml-2 w-5 h-5"/>
-                        </button>
-                        <button
-                            onClick={() => navigate("/home")}
-                            className="bg-[#1e1e26] border border-gray-800 hover:border-gray-600 text-white px-8 py-4 rounded-xl text-lg flex items-center transition-all"
-                        >
-                            {t("landing_btn_discover")} <FaSearch className="ml-2 w-5 h-5"/>
-                        </button>
-                    </div>
-
-                    <p className="mt-8 text-gray-500">
-                        {t("landing_already_account")}{" "}
-                        <span
-                            onClick={() => navigate("/login")}
-                            className="text-[#3b82f6] hover:underline cursor-pointer font-semibold"
-                        >
-              {t("landing_login_link")}
-            </span>
-                    </p>
                 </div>
             </section>
-
-            {/* Tendances actuelles (Dynamique) */}
-            <section className="max-w-7xl mx-auto px-6 py-20">
-                <div className="flex flex-col mb-12">
-                    <h2 className="text-3xl font-bold mb-2">{t("landing_trending_title")}</h2>
-                    <div className="h-1.5 w-20 bg-linear-to-r from-[#a855f7] to-[#ec4899] rounded-full"></div>
+            <section className="landing-section">
+                <div className="section-topline"><div><p className="eyebrow mb-3">{t("design_discovery_label")}</p><h2>{t("landing_trending_title")}</h2></div>
+                    <Link to="/home" className="flex items-center gap-2 text-sm text-accent">{t("explore_title")}<ArrowUpRight size={17}/></Link></div>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6" aria-busy={loading}>
+                    {loading ? Array.from({length: 4}, (_,i) => <div className="album-card" key={i} aria-hidden="true"><div className="skeleton aspect-square rounded-xl"/><div className="skeleton h-4 mt-5 mb-3 rounded w-3/4"/><div className="skeleton h-3 mb-4 rounded w-1/2"/></div>)
+                        : albums.map(album => <AlbumCard key={album.id} {...album}/>)}
                 </div>
-
-                {loading ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                        {[...Array(4)].map((_, i) => (
-                            <div key={i}
-                                 className="aspect-square bg-slate-800/40 rounded-2xl animate-pulse border border-gray-800"/>
-                        ))}
-                    </div>
-                ) : trendingAlbums.length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                        {trendingAlbums.map((album) => (
-                            <AlbumCard key={album.id} {...album} />
-                        ))}
-                    </div>
-                ) : (
-                    <p className="text-gray-500 italic">{t("no_albums_available") || "Aucun album disponible pour le moment."}</p>
-                )}
+                {!loading && !albums.length && <div className="empty-state"><Music2 className="mx-auto text-accent" size={28}/><p className="mt-4">{t(failed ? "design_trending_error" : "no_albums_available")}</p><Link to="/home" className="secondary-action mt-5">{t("explore_title")}</Link></div>}
             </section>
-
-            <section className="max-w-7xl mx-auto px-6 py-24 bg-white/2 rounded-[40px] border border-white/5">
-                <div className="text-center mb-16">
-                    <h2 className="text-3xl font-bold mb-4">{t("landing_features_title")}</h2>
-                    <p className="text-gray-400">{t("landing_features_subtitle")}</p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {FEATURES.map((feature, index: number) => {
-                        const Icon: IconType = feature.icon;
-                        return (
-                            <div
-                                key={index}
-                                className="bg-[#1e1e26] rounded-2xl border border-gray-800 p-8 hover:border-[#a855f7]/50 transition-all group"
-                            >
-                                <div
-                                    className="w-14 h-14 rounded-xl bg-[#a855f7]/10 flex items-center justify-center mb-6 group-hover:bg-[#a855f7]/20 transition-colors">
-                                    <Icon className="w-7 h-7 text-[#a855f7]"/>
-                                </div>
-                                <h3 className="font-bold text-xl mb-3 text-white">{feature.titre}</h3>
-                                <p className="text-gray-400 leading-relaxed">{feature.description}</p>
-                            </div>
-                        );
-                    })}
+            <section className="landing-section">
+                <div className="section-topline"><div><p className="eyebrow mb-3">{t("design_more_than_music")}</p><h2>{t("landing_features_title")}</h2></div><p className="text-muted text-sm max-w-md">{t("landing_features_subtitle")}</p></div>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {features.map((Icon,i) => <article key={i} className="bg-panel border border-line rounded-2xl p-7">
+                        <div className="flex justify-between items-center mb-8"><Icon className="text-accent" size={25}/><span className="eyebrow">0{i+1}</span></div>
+                        <h3 className="font-semibold text-lg mb-3">{t(`feature_${i+1}_title`)}</h3><p className="text-muted text-sm leading-relaxed">{t(`feature_${i+1}_desc`)}</p>
+                    </article>)}
                 </div>
             </section>
-
-            <section className="max-w-7xl mx-auto px-6 py-24">
-                <div
-                    className="bg-linear-to-b from-[#1e1e2e] to-[#13131a] rounded-[40px] border border-gray-800 p-12 md:p-20 text-center relative overflow-hidden shadow-2xl">
-                    <h2 className="text-4xl md:text-5xl font-bold mb-6 italic uppercase tracking-tighter">
-                        {t("landing_cta_title")}
-                    </h2>
-                    <p className="text-xl text-gray-400 mb-12 max-w-2xl mx-auto font-light leading-relaxed">
-                        {t("landing_cta_subtitle")}
-                    </p>
-                    <button
-                        onClick={() => navigate("/register")}
-                        className="bg-[#3b82f6] hover:bg-[#2563eb] text-white px-12 py-5 rounded-2xl font-bold text-xl transition-all hover:scale-105 shadow-xl shadow-blue-500/20"
-                    >
-                        {t("landing_cta_btn")}
-                    </button>
+            <section className="landing-section">
+                <div className="editorial-hero"><div><span className="eyebrow">{t("design_listen_together")}</span><h2 className="text-3xl sm:text-4xl font-semibold my-4">{t("landing_cta_title")}</h2><p>{t("landing_cta_subtitle")}</p></div>
+                    <Link to="/register" className="primary-action whitespace-nowrap">{t("landing_cta_btn")}<ArrowRight size={18}/></Link>
                 </div>
             </section>
-            <Footer/>
-        </div>
-    );
-};
+        </main>
+        <Footer/>
+    </div>;
+}

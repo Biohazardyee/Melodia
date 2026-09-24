@@ -35,6 +35,11 @@ export function generateNotificationContent(notif: any) {
                 title: "Playlist partagée",
                 body: `${sender} t'a ajouté comme collaborateur sur une playlist !`,
             };
+        case "room_invited":
+            return {
+                title: "Invitation à un salon d'écoute",
+                body: `${sender} t'invite à rejoindre un salon d'écoute !`,
+            };
         case "review_added":
             return {
                 title: "Nouvelle critique",

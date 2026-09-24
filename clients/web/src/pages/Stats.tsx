@@ -233,7 +233,7 @@ const Stats: React.FC = () => {
 
     if (loading) {
         return (
-            <div className="flex justify-center items-center min-h-screen text-white dark:text-gray-900">
+            <div className="flex justify-center items-center min-h-screen text-ink">
                 <p className="text-xl animate-pulse">
                     {t("loading_stats", "Chargement de vos statistiques...")}
                 </p>
@@ -251,12 +251,12 @@ const Stats: React.FC = () => {
 
     return (
         <div
-            className="p-8 max-w-512 mx-auto w-full space-y-6 min-h-screen bg-transparent dark:bg-slate-50 text-white dark:text-gray-900 transition-colors duration-300">
+            className="p-8 max-w-7xl mx-auto w-full space-y-6 min-h-screen bg-transparent dark:bg-canvas text-ink transition-colors duration-300">
             <div className="mb-8">
-                <h1 className="text-4xl font-bold mb-2 text-white dark:text-gray-900">
+                <h1 className="page-title text-4xl font-bold mb-2 text-ink">
                     {t("stats_title", "Statistiques")}
                 </h1>
-                <p className="text-gray-400 dark:text-gray-600 text-lg">
+                <p className="text-muted dark:text-muted text-lg">
                     {t("stats_subtitle", "Découvrez vos habitudes d'écoute")}
                 </p>
             </div>
@@ -265,18 +265,18 @@ const Stats: React.FC = () => {
                 {STATS_CARDS.map((stat: StatCardData) => (
                     <div
                         key={stat.id}
-                        className="bg-slate-900 dark:bg-white border border-slate-800 dark:border-gray-200 rounded-xl p-5 shadow-sm transition-colors"
+                        className="bg-panel dark:bg-panel border border-line dark:border-line rounded-xl p-5 shadow-sm transition-colors"
                     >
                         <div className="flex justify-between items-start mb-6">
                             <div className={stat.colorClass}>{stat.icon}</div>
-                            <div className="text-3xl font-bold text-white dark:text-gray-900">
+                            <div className="text-3xl font-bold text-ink">
                                 {stat.value}
                             </div>
                         </div>
-                        <div className="text-sm text-slate-400 dark:text-gray-500 mb-3">
+                        <div className="text-sm text-muted dark:text-muted mb-3">
                             {stat.label}
                         </div>
-                        <div className="w-full bg-slate-800 dark:bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                        <div className="w-full bg-raised dark:bg-raised rounded-full h-1.5 overflow-hidden">
                             <div
                                 className={`${stat.bgClass} h-full rounded-full`}
                                 style={{width: `${stat.progress}%`}}
@@ -287,10 +287,10 @@ const Stats: React.FC = () => {
             </div>
 
             <div
-                className="bg-slate-900 dark:bg-white border border-slate-800 dark:border-gray-200 rounded-xl p-6 shadow-sm transition-colors">
+                className="bg-panel dark:bg-panel border border-line dark:border-line rounded-xl p-6 shadow-sm transition-colors">
                 <h2
-                    className="text-lg font-bold flex items-center gap-2 mb-8 text-white dark:text-gray-900"
-                    style={{fontFamily: "'Orbitron', sans-serif"}}
+                    className="text-lg font-bold flex items-center gap-2 mb-8 text-ink"
+
                 >
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -340,7 +340,7 @@ const Stats: React.FC = () => {
 
                         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                             <div
-                                className="bg-slate-800 dark:bg-gray-100 p-4 rounded-full shadow-lg border border-slate-700 dark:border-gray-200 text-blue-500 dark:text-blue-600 transition-colors">
+                                className="bg-raised dark:bg-raised p-4 rounded-full shadow-lg border border-line dark:border-line text-blue-500 dark:text-blue-600 transition-colors">
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     className="h-8 w-8"
@@ -374,15 +374,15 @@ const Stats: React.FC = () => {
             </div>
 
             <div
-                className="flex flex-col sm:flex-row flex-wrap bg-slate-900 dark:bg-white rounded-xl p-1 border border-slate-800 dark:border-gray-200 shadow-sm transition-colors mb-6">
+                className="flex flex-col sm:flex-row flex-wrap bg-panel dark:bg-panel rounded-xl p-1 border border-line dark:border-line shadow-sm transition-colors mb-6">
                 {FILTERS.map((filter) => (
                     <button
                         key={filter.id}
                         onClick={() => setActiveFilter(filter.id)}
                         className={`flex-1 flex items-center justify-center gap-2 py-3 px-3 rounded-lg font-semibold text-sm transition-all ${
                             activeFilter === filter.id
-                                ? "bg-slate-800 dark:bg-gray-100 text-white dark:text-gray-900 shadow-md"
-                                : "text-slate-400 dark:text-gray-500 hover:text-white dark:hover:text-gray-900 hover:bg-slate-800/50 dark:hover:bg-gray-50"
+                                ? "bg-raised dark:bg-raised text-ink shadow-md"
+                                : "text-muted dark:text-muted hover:text-white dark:hover:text-gray-900 hover:bg-raised/50 dark:hover:bg-gray-50"
                         }`}
                     >
                         <span>{filter.icon}</span>

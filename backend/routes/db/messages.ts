@@ -3,9 +3,11 @@ import express, {NextFunction, Request, Response, Router} from "express";
 import {authGuard} from "../../middlewares/auth.js";
 import {checkResourceOwnerOrAdmin} from "../../middlewares/checkResourceOwnerOrAdmin.js";
 
+import {checkAdmin} from "../../middlewares/checkAdmin.js";
+
 const router: Router = express.Router();
 
-router.get('/', authGuard, function (req: Request, res: Response, next: NextFunction): void {
+router.get('/', authGuard, checkAdmin, function (req: Request, res: Response, next: NextFunction): void {
     messageController.getAll(req, res, next);
 })
 

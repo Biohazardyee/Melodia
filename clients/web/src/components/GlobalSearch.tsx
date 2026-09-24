@@ -1,9 +1,9 @@
-import React, {useState, useRef} from "react";
+import React, {useState, useRef, useEffect} from "react";
 import {Search, Loader2, Disc3} from "lucide-react";
 import {NavigateFunction, useNavigate} from "react-router-dom";
 import {useTranslation} from "react-i18next";
 import apiClient from "../api/client";
-import {AxiosResponse} from "axios";
+import {toImageDataUri} from "../utils/imageDataUri";
 
 const GlobalSearch: React.FC = () => {
     const navigate: NavigateFunction = useNavigate();
@@ -13,30 +13,25 @@ const GlobalSearch: React.FC = () => {
     const [query, setQuery] = useState("");
     const [users, setUsers] = useState<any[]>([]);
     const [searching, setSearching] = useState(false);
-    const searchTimeout = useRef<any>(null);
+    const trigger = useRef<HTMLButtonElement>(null);
 
-    const handleChange = (value: string): void => {
-        setQuery(value);
-
-        if (searchTimeout.current) clearTimeout(searchTimeout.current);
-
-        if (value.trim().length < 2) {
-            setUsers([]);
-            return;
-        }
-
-        searchTimeout.current = setTimeout(async (): Promise<void> => {
+    useEffect(() => {
+        setUsers([]);
+        if (!isOpen || query.trim().length < 2) {setSearching(false); return;}
+        const controller = new AbortController();
+        setSearching(true);
+        const timeout = setTimeout(async () => {
             try {
-                setSearching(true);
-                const res: AxiosResponse = await apiClient.get(`/users/search?q=${encodeURIComponent(value.trim())}`);
-                setUsers(res.data.users || []);
-            } catch (e) {
-                console.error("Erreur recherche globale:", e);
+                const {data} = await apiClient.get(`/users/search?q=${encodeURIComponent(query.trim())}`, {signal: controller.signal});
+                if (!controller.signal.aborted) setUsers(data.users || []);
+            } catch {
+                if (!controller.signal.aborted) setUsers([]);
             } finally {
-                setSearching(false);
+                if (!controller.signal.aborted) setSearching(false);
             }
         }, 300);
-    };
+        return () => {clearTimeout(timeout); controller.abort();};
+    }, [query, isOpen]);
 
     const goToUser = (userId: string): void => {
         setIsOpen(false);
@@ -58,10 +53,13 @@ const GlobalSearch: React.FC = () => {
     };
 
     return (
-        <div className="relative">
+        <div className="relative" onBlur={e => {if (!e.currentTarget.contains(e.relatedTarget)) setIsOpen(false);}} onKeyDown={e => {if (e.key === "Escape") {setIsOpen(false); trigger.current?.focus();}}}>
             <button
+                ref={trigger}
+                aria-expanded={isOpen}
+                aria-label={t("global_search_title")}
                 onClick={() => setIsOpen((prev) => !prev)}
-                className="hover:text-white dark:hover:text-gray-900 transition-colors cursor-pointer"
+                className="icon-button"
                 title={t("global_search_title", "Rechercher")}
             >
                 <Search size={22}/>
@@ -69,20 +67,21 @@ const GlobalSearch: React.FC = () => {
 
             {isOpen && (
                 <div
-                    className="absolute right-0 mt-3 w-80 bg-[#1C1C28] dark:bg-white border border-gray-800 dark:border-gray-200 rounded-xl shadow-2xl overflow-hidden z-50"
+                    className="fixed left-3 right-3 top-[64px] sm:absolute sm:left-auto sm:top-auto sm:w-80 sm:mt-3 bg-panel dark:bg-panel border border-line dark:border-line rounded-xl shadow-2xl overflow-hidden z-50"
                 >
-                    <div className="p-3 border-b border-gray-800 dark:border-gray-200">
-                        <div className="flex items-center bg-[#13131A] dark:bg-gray-50 rounded-lg px-3 py-2 border border-gray-800 dark:border-gray-200 focus-within:border-indigo-400 transition-colors">
+                    <div className="p-3 border-b border-line dark:border-line">
+                        <div className="flex items-center bg-canvas dark:bg-canvas rounded-lg px-3 py-2 border border-line dark:border-line focus-within:border-indigo-400 transition-colors">
                             <Search size={16} className="text-gray-500 shrink-0"/>
                             <input
                                 autoFocus
                                 type="text"
                                 value={query}
-                                onChange={(e) => handleChange(e.target.value)}
+                                aria-label={t("global_search_placeholder")}
+                                onChange={(e) => setQuery(e.target.value)}
                                 onKeyDown={(e) => e.key === "Enter" && goToAlbumSearch()}
-                                onBlur={() => setTimeout(() => setIsOpen(false), 200)}
+
                                 placeholder={t("global_search_placeholder", "Utilisateurs, albums...")}
-                                className="bg-transparent text-white dark:text-gray-900 outline-none w-full text-sm placeholder-gray-500 ml-2"
+                                className="bg-transparent text-ink outline-none w-full text-sm placeholder-gray-500 ml-2"
                             />
                         </div>
                     </div>
@@ -101,18 +100,18 @@ const GlobalSearch: React.FC = () => {
                                     <button
                                         key={u.id}
                                         type="button"
-                                        onMouseDown={() => goToUser(u.id)}
+                                        onClick={() => goToUser(u.id)}
                                         className="w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-white/5 dark:hover:bg-gray-100 transition-colors"
                                     >
                                         <div className="w-8 h-8 rounded-full bg-slate-700 dark:bg-slate-200 overflow-hidden flex items-center justify-center text-xs font-bold shrink-0">
                                             {u.profile_picture ? (
-                                                <img src={u.profile_picture} alt="" className="w-full h-full object-cover"/>
+                                                <img src={toImageDataUri(u.profile_picture) || undefined} alt="" className="w-full h-full object-cover"/>
                                             ) : (
                                                 u.pseudo?.substring(0, 1).toUpperCase() || "?"
                                             )}
                                         </div>
                                         <div className="min-w-0">
-                                            <p className="text-sm font-bold text-white dark:text-gray-900 truncate">{u.pseudo}</p>
+                                            <p className="text-sm font-bold text-ink truncate">{u.pseudo}</p>
                                             <p className="text-xs text-gray-500 truncate">@{u.username}</p>
                                         </div>
                                     </button>
@@ -126,8 +125,8 @@ const GlobalSearch: React.FC = () => {
 
                         <button
                             type="button"
-                            onMouseDown={goToAlbumSearch}
-                            className="w-full flex items-center gap-3 px-3 py-3 text-left border-t border-gray-800 dark:border-gray-200 hover:bg-white/5 dark:hover:bg-gray-100 transition-colors"
+                            onClick={goToAlbumSearch}
+                            className="w-full flex items-center gap-3 px-3 py-3 text-left border-t border-line dark:border-line hover:bg-white/5 dark:hover:bg-gray-100 transition-colors"
                         >
                             <div className="w-8 h-8 rounded-full bg-indigo-500/10 flex items-center justify-center shrink-0">
                                 <Disc3 size={16} className="text-indigo-400"/>

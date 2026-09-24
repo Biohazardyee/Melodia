@@ -13,6 +13,8 @@ export interface SpotifyTokenResponse {
 export interface SpotifyProfile {
     id: string;
     display_name: string | null;
+    product?: string | null; // "premium" | "free" | "open"
+    country?: string | null; // ISO 3166-1 alpha-2
 }
 
 // Response interfaces
@@ -53,4 +55,20 @@ export interface SpotifyNowPlaying {
     progressMs: number;
     durationMs: number;
     spotifyUrl: string | null;
+}
+
+export interface SpotifyStatusDto {
+    connected: boolean;
+    display_name?: string | null;
+    product?: string | null;
+    needs_relink?: boolean;
+}
+
+export interface SpotifyTrackSummary {
+    uri: string;
+    name: string;
+    artist: string;
+    album: string;
+    albumArt: string | null;
+    durationMs: number;
 }

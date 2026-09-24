@@ -21,6 +21,8 @@ import messageRouter from "./routes/db/messages.js";
 import conversationRouter from "./routes/db/conversations.js";
 import reviewCommentRouter from "./routes/db/reviews.comment.js";
 import badgeRouter from "./routes/db/badges.js";
+import roomRouter from "./routes/db/rooms.js";
+import journalRouter from "./routes/db/journal.js";
 
 // API Endpoints
 import albumsRouter from "./routes/api/albums.js";
@@ -91,6 +93,8 @@ app.use("/users", userRouter);
 app.use("/reviews", reviewRouter);
 app.use("/review-comments", reviewCommentRouter);
 app.use("/badges", badgeRouter);
+app.use("/rooms", roomRouter);
+app.use("/journal", journalRouter);
 
 // API routes
 app.use("/api/tracks", trackRouter);
@@ -145,32 +149,32 @@ app.use(function (
   // Log error to console for debugging (skip in test environment to keep output clean)
   if (process.env.NODE_ENV !== "test") {
     console.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    console.error(`❌ Error ${status}: ${message}`);
-    console.error(`📍 ${req.method} ${req.originalUrl}`);
-    if (req.body && Object.keys(req.body).length > 0) {
+    console.error(`❌ Error ${status}: ${req.path.startsWith("/journal") ? "Journal request failed" : message}`);
+    console.error(`📍 ${req.method} ${req.path.startsWith("/journal") ? req.path : req.originalUrl}`);
+    if (!req.path.startsWith("/journal") && req.body && Object.keys(req.body).length > 0) {
       console.error("📦 Request Body:", JSON.stringify(req.body, null, 2));
     }
     console.error("🔍 Stack Trace:");
-    console.error(err.stack || "No stack trace available");
+    if (!req.path.startsWith("/journal")) console.error(err.stack || "No stack trace available");
     console.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
   }
 
   // Build response object
   const errorResponse: any = {
     error: status,
-    message: message,
+    message: req.path.startsWith("/journal") && status >= 500 ? "Unable to process journal request" : message,
   };
 
   // In development mode, include stack trace in response
   const isDevelopment: boolean =
     process.env.NODE_ENV === "development" ||
     process.env.NODE_ENV !== "production";
-  if (isDevelopment && err.stack) {
+  if (isDevelopment && err.stack && !req.path.startsWith("/journal")) {
     errorResponse.stack = err.stack;
     errorResponse.details = {
       method: req.method,
       path: req.originalUrl,
-      body: req.body,
+      body: req.path.startsWith("/journal") ? undefined : req.body,
     };
   }
 

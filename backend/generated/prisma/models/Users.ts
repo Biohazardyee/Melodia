@@ -453,8 +453,12 @@ export type UsersWhereInput = {
   conversations_user1?: Prisma.ConversationsListRelationFilter
   conversations_user2?: Prisma.ConversationsListRelationFilter
   messages?: Prisma.MessagesListRelationFilter
+  journal_entries?: Prisma.JournalEntriesListRelationFilter
   commentLikes?: Prisma.CommentLikesListRelationFilter
   spotify_account?: Prisma.XOR<Prisma.SpotifyAccountsNullableScalarRelationFilter, Prisma.SpotifyAccountsWhereInput> | null
+  rooms_hosted?: Prisma.RoomsListRelationFilter
+  room_participations?: Prisma.RoomParticipantsListRelationFilter
+  room_queue_additions?: Prisma.RoomQueueItemsListRelationFilter
 }
 
 export type UsersOrderByWithRelationInput = {
@@ -509,8 +513,12 @@ export type UsersOrderByWithRelationInput = {
   conversations_user1?: Prisma.ConversationsOrderByRelationAggregateInput
   conversations_user2?: Prisma.ConversationsOrderByRelationAggregateInput
   messages?: Prisma.MessagesOrderByRelationAggregateInput
+  journal_entries?: Prisma.JournalEntriesOrderByRelationAggregateInput
   commentLikes?: Prisma.CommentLikesOrderByRelationAggregateInput
   spotify_account?: Prisma.SpotifyAccountsOrderByWithRelationInput
+  rooms_hosted?: Prisma.RoomsOrderByRelationAggregateInput
+  room_participations?: Prisma.RoomParticipantsOrderByRelationAggregateInput
+  room_queue_additions?: Prisma.RoomQueueItemsOrderByRelationAggregateInput
 }
 
 export type UsersWhereUniqueInput = Prisma.AtLeast<{
@@ -569,8 +577,12 @@ export type UsersWhereUniqueInput = Prisma.AtLeast<{
   conversations_user1?: Prisma.ConversationsListRelationFilter
   conversations_user2?: Prisma.ConversationsListRelationFilter
   messages?: Prisma.MessagesListRelationFilter
+  journal_entries?: Prisma.JournalEntriesListRelationFilter
   commentLikes?: Prisma.CommentLikesListRelationFilter
   spotify_account?: Prisma.XOR<Prisma.SpotifyAccountsNullableScalarRelationFilter, Prisma.SpotifyAccountsWhereInput> | null
+  rooms_hosted?: Prisma.RoomsListRelationFilter
+  room_participations?: Prisma.RoomParticipantsListRelationFilter
+  room_queue_additions?: Prisma.RoomQueueItemsListRelationFilter
 }, "id" | "username" | "email" | "provider_provider_id">
 
 export type UsersOrderByWithAggregationInput = {
@@ -707,8 +719,12 @@ export type UsersCreateInput = {
   conversations_user1?: Prisma.ConversationsCreateNestedManyWithoutUser1Input
   conversations_user2?: Prisma.ConversationsCreateNestedManyWithoutUser2Input
   messages?: Prisma.MessagesCreateNestedManyWithoutSenderInput
+  journal_entries?: Prisma.JournalEntriesCreateNestedManyWithoutUserInput
   commentLikes?: Prisma.CommentLikesCreateNestedManyWithoutUserInput
   spotify_account?: Prisma.SpotifyAccountsCreateNestedOneWithoutUserInput
+  rooms_hosted?: Prisma.RoomsCreateNestedManyWithoutHostInput
+  room_participations?: Prisma.RoomParticipantsCreateNestedManyWithoutUserInput
+  room_queue_additions?: Prisma.RoomQueueItemsCreateNestedManyWithoutAdded_byInput
 }
 
 export type UsersUncheckedCreateInput = {
@@ -763,8 +779,12 @@ export type UsersUncheckedCreateInput = {
   conversations_user1?: Prisma.ConversationsUncheckedCreateNestedManyWithoutUser1Input
   conversations_user2?: Prisma.ConversationsUncheckedCreateNestedManyWithoutUser2Input
   messages?: Prisma.MessagesUncheckedCreateNestedManyWithoutSenderInput
+  journal_entries?: Prisma.JournalEntriesUncheckedCreateNestedManyWithoutUserInput
   commentLikes?: Prisma.CommentLikesUncheckedCreateNestedManyWithoutUserInput
   spotify_account?: Prisma.SpotifyAccountsUncheckedCreateNestedOneWithoutUserInput
+  rooms_hosted?: Prisma.RoomsUncheckedCreateNestedManyWithoutHostInput
+  room_participations?: Prisma.RoomParticipantsUncheckedCreateNestedManyWithoutUserInput
+  room_queue_additions?: Prisma.RoomQueueItemsUncheckedCreateNestedManyWithoutAdded_byInput
 }
 
 export type UsersUpdateInput = {
@@ -819,8 +839,12 @@ export type UsersUpdateInput = {
   conversations_user1?: Prisma.ConversationsUpdateManyWithoutUser1NestedInput
   conversations_user2?: Prisma.ConversationsUpdateManyWithoutUser2NestedInput
   messages?: Prisma.MessagesUpdateManyWithoutSenderNestedInput
+  journal_entries?: Prisma.JournalEntriesUpdateManyWithoutUserNestedInput
   commentLikes?: Prisma.CommentLikesUpdateManyWithoutUserNestedInput
   spotify_account?: Prisma.SpotifyAccountsUpdateOneWithoutUserNestedInput
+  rooms_hosted?: Prisma.RoomsUpdateManyWithoutHostNestedInput
+  room_participations?: Prisma.RoomParticipantsUpdateManyWithoutUserNestedInput
+  room_queue_additions?: Prisma.RoomQueueItemsUpdateManyWithoutAdded_byNestedInput
 }
 
 export type UsersUncheckedUpdateInput = {
@@ -875,8 +899,12 @@ export type UsersUncheckedUpdateInput = {
   conversations_user1?: Prisma.ConversationsUncheckedUpdateManyWithoutUser1NestedInput
   conversations_user2?: Prisma.ConversationsUncheckedUpdateManyWithoutUser2NestedInput
   messages?: Prisma.MessagesUncheckedUpdateManyWithoutSenderNestedInput
+  journal_entries?: Prisma.JournalEntriesUncheckedUpdateManyWithoutUserNestedInput
   commentLikes?: Prisma.CommentLikesUncheckedUpdateManyWithoutUserNestedInput
   spotify_account?: Prisma.SpotifyAccountsUncheckedUpdateOneWithoutUserNestedInput
+  rooms_hosted?: Prisma.RoomsUncheckedUpdateManyWithoutHostNestedInput
+  room_participations?: Prisma.RoomParticipantsUncheckedUpdateManyWithoutUserNestedInput
+  room_queue_additions?: Prisma.RoomQueueItemsUncheckedUpdateManyWithoutAdded_byNestedInput
 }
 
 export type UsersCreateManyInput = {
@@ -1193,6 +1221,20 @@ export type UsersUpdateearned_badgesInput = {
   push?: string | string[]
 }
 
+export type UsersCreateNestedOneWithoutJournal_entriesInput = {
+  create?: Prisma.XOR<Prisma.UsersCreateWithoutJournal_entriesInput, Prisma.UsersUncheckedCreateWithoutJournal_entriesInput>
+  connectOrCreate?: Prisma.UsersCreateOrConnectWithoutJournal_entriesInput
+  connect?: Prisma.UsersWhereUniqueInput
+}
+
+export type UsersUpdateOneRequiredWithoutJournal_entriesNestedInput = {
+  create?: Prisma.XOR<Prisma.UsersCreateWithoutJournal_entriesInput, Prisma.UsersUncheckedCreateWithoutJournal_entriesInput>
+  connectOrCreate?: Prisma.UsersCreateOrConnectWithoutJournal_entriesInput
+  upsert?: Prisma.UsersUpsertWithoutJournal_entriesInput
+  connect?: Prisma.UsersWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UsersUpdateToOneWithWhereWithoutJournal_entriesInput, Prisma.UsersUpdateWithoutJournal_entriesInput>, Prisma.UsersUncheckedUpdateWithoutJournal_entriesInput>
+}
+
 export type UsersCreateNestedOneWithoutSpotify_accountInput = {
   create?: Prisma.XOR<Prisma.UsersCreateWithoutSpotify_accountInput, Prisma.UsersUncheckedCreateWithoutSpotify_accountInput>
   connectOrCreate?: Prisma.UsersCreateOrConnectWithoutSpotify_accountInput
@@ -1465,7 +1507,49 @@ export type UsersUpdateOneRequiredWithoutMessagesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UsersUpdateToOneWithWhereWithoutMessagesInput, Prisma.UsersUpdateWithoutMessagesInput>, Prisma.UsersUncheckedUpdateWithoutMessagesInput>
 }
 
-export type UsersCreateWithoutSpotify_accountInput = {
+export type UsersCreateNestedOneWithoutRooms_hostedInput = {
+  create?: Prisma.XOR<Prisma.UsersCreateWithoutRooms_hostedInput, Prisma.UsersUncheckedCreateWithoutRooms_hostedInput>
+  connectOrCreate?: Prisma.UsersCreateOrConnectWithoutRooms_hostedInput
+  connect?: Prisma.UsersWhereUniqueInput
+}
+
+export type UsersUpdateOneRequiredWithoutRooms_hostedNestedInput = {
+  create?: Prisma.XOR<Prisma.UsersCreateWithoutRooms_hostedInput, Prisma.UsersUncheckedCreateWithoutRooms_hostedInput>
+  connectOrCreate?: Prisma.UsersCreateOrConnectWithoutRooms_hostedInput
+  upsert?: Prisma.UsersUpsertWithoutRooms_hostedInput
+  connect?: Prisma.UsersWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UsersUpdateToOneWithWhereWithoutRooms_hostedInput, Prisma.UsersUpdateWithoutRooms_hostedInput>, Prisma.UsersUncheckedUpdateWithoutRooms_hostedInput>
+}
+
+export type UsersCreateNestedOneWithoutRoom_participationsInput = {
+  create?: Prisma.XOR<Prisma.UsersCreateWithoutRoom_participationsInput, Prisma.UsersUncheckedCreateWithoutRoom_participationsInput>
+  connectOrCreate?: Prisma.UsersCreateOrConnectWithoutRoom_participationsInput
+  connect?: Prisma.UsersWhereUniqueInput
+}
+
+export type UsersUpdateOneRequiredWithoutRoom_participationsNestedInput = {
+  create?: Prisma.XOR<Prisma.UsersCreateWithoutRoom_participationsInput, Prisma.UsersUncheckedCreateWithoutRoom_participationsInput>
+  connectOrCreate?: Prisma.UsersCreateOrConnectWithoutRoom_participationsInput
+  upsert?: Prisma.UsersUpsertWithoutRoom_participationsInput
+  connect?: Prisma.UsersWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UsersUpdateToOneWithWhereWithoutRoom_participationsInput, Prisma.UsersUpdateWithoutRoom_participationsInput>, Prisma.UsersUncheckedUpdateWithoutRoom_participationsInput>
+}
+
+export type UsersCreateNestedOneWithoutRoom_queue_additionsInput = {
+  create?: Prisma.XOR<Prisma.UsersCreateWithoutRoom_queue_additionsInput, Prisma.UsersUncheckedCreateWithoutRoom_queue_additionsInput>
+  connectOrCreate?: Prisma.UsersCreateOrConnectWithoutRoom_queue_additionsInput
+  connect?: Prisma.UsersWhereUniqueInput
+}
+
+export type UsersUpdateOneRequiredWithoutRoom_queue_additionsNestedInput = {
+  create?: Prisma.XOR<Prisma.UsersCreateWithoutRoom_queue_additionsInput, Prisma.UsersUncheckedCreateWithoutRoom_queue_additionsInput>
+  connectOrCreate?: Prisma.UsersCreateOrConnectWithoutRoom_queue_additionsInput
+  upsert?: Prisma.UsersUpsertWithoutRoom_queue_additionsInput
+  connect?: Prisma.UsersWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UsersUpdateToOneWithWhereWithoutRoom_queue_additionsInput, Prisma.UsersUpdateWithoutRoom_queue_additionsInput>, Prisma.UsersUncheckedUpdateWithoutRoom_queue_additionsInput>
+}
+
+export type UsersCreateWithoutJournal_entriesInput = {
   id?: string
   username: string
   pseudo: string
@@ -1518,6 +1602,262 @@ export type UsersCreateWithoutSpotify_accountInput = {
   conversations_user2?: Prisma.ConversationsCreateNestedManyWithoutUser2Input
   messages?: Prisma.MessagesCreateNestedManyWithoutSenderInput
   commentLikes?: Prisma.CommentLikesCreateNestedManyWithoutUserInput
+  spotify_account?: Prisma.SpotifyAccountsCreateNestedOneWithoutUserInput
+  rooms_hosted?: Prisma.RoomsCreateNestedManyWithoutHostInput
+  room_participations?: Prisma.RoomParticipantsCreateNestedManyWithoutUserInput
+  room_queue_additions?: Prisma.RoomQueueItemsCreateNestedManyWithoutAdded_byInput
+}
+
+export type UsersUncheckedCreateWithoutJournal_entriesInput = {
+  id?: string
+  username: string
+  pseudo: string
+  email: string
+  password?: string | null
+  favorite_band?: string | null
+  profile_picture?: runtime.Bytes | null
+  banner?: runtime.Bytes | null
+  shop_points?: number
+  owned_cosmetics?: Prisma.UsersCreateowned_cosmeticsInput | string[]
+  equipped_avatar_border?: string | null
+  equipped_font?: string | null
+  equipped_title?: string | null
+  equipped_text_effect?: string | null
+  equipped_banner?: string | null
+  equipped_pattern?: string | null
+  role?: $Enums.Roles
+  provider?: $Enums.AuthProvider | null
+  provider_id?: string | null
+  has_notifications?: boolean
+  phone_number?: string | null
+  biography?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  email_verified?: boolean
+  email_verification_code?: string | null
+  email_verification_expires?: Date | string | null
+  password_reset_code?: string | null
+  password_reset_expires?: Date | string | null
+  twofa_enabled?: boolean
+  twofa_secret?: string | null
+  twofa_backup_codes?: Prisma.UsersCreatetwofa_backup_codesInput | string[]
+  earned_badges?: Prisma.UsersCreateearned_badgesInput | string[]
+  expo_push_token?: string | null
+  reviews?: Prisma.ReviewsUncheckedCreateNestedManyWithoutUserInput
+  review_comments?: Prisma.ReviewCommentsUncheckedCreateNestedManyWithoutUserInput
+  review_likes?: Prisma.ReviewLikesUncheckedCreateNestedManyWithoutUserInput
+  playlists?: Prisma.PlaylistsUncheckedCreateNestedManyWithoutUserInput
+  playlist_collaborations?: Prisma.PlaylistCollaboratorsUncheckedCreateNestedManyWithoutUserInput
+  follows?: Prisma.FollowsUncheckedCreateNestedManyWithoutUserInput
+  followers?: Prisma.FollowsUncheckedCreateNestedManyWithoutFollow_userInput
+  notifications?: Prisma.NotificationsUncheckedCreateNestedManyWithoutUserInput
+  notificationsRelated?: Prisma.NotificationsUncheckedCreateNestedManyWithoutRelated_userInput
+  user_media_status?: Prisma.UserMediaStatusUncheckedCreateNestedManyWithoutUserInput
+  reporter_reports?: Prisma.ReportsUncheckedCreateNestedManyWithoutReporterInput
+  profile_reports?: Prisma.ReportsUncheckedCreateNestedManyWithoutProfileInput
+  activities?: Prisma.ActivitiesUncheckedCreateNestedManyWithoutUserInput
+  activities_targets?: Prisma.ActivitiesUncheckedCreateNestedManyWithoutTarget_userInput
+  conversations_user1?: Prisma.ConversationsUncheckedCreateNestedManyWithoutUser1Input
+  conversations_user2?: Prisma.ConversationsUncheckedCreateNestedManyWithoutUser2Input
+  messages?: Prisma.MessagesUncheckedCreateNestedManyWithoutSenderInput
+  commentLikes?: Prisma.CommentLikesUncheckedCreateNestedManyWithoutUserInput
+  spotify_account?: Prisma.SpotifyAccountsUncheckedCreateNestedOneWithoutUserInput
+  rooms_hosted?: Prisma.RoomsUncheckedCreateNestedManyWithoutHostInput
+  room_participations?: Prisma.RoomParticipantsUncheckedCreateNestedManyWithoutUserInput
+  room_queue_additions?: Prisma.RoomQueueItemsUncheckedCreateNestedManyWithoutAdded_byInput
+}
+
+export type UsersCreateOrConnectWithoutJournal_entriesInput = {
+  where: Prisma.UsersWhereUniqueInput
+  create: Prisma.XOR<Prisma.UsersCreateWithoutJournal_entriesInput, Prisma.UsersUncheckedCreateWithoutJournal_entriesInput>
+}
+
+export type UsersUpsertWithoutJournal_entriesInput = {
+  update: Prisma.XOR<Prisma.UsersUpdateWithoutJournal_entriesInput, Prisma.UsersUncheckedUpdateWithoutJournal_entriesInput>
+  create: Prisma.XOR<Prisma.UsersCreateWithoutJournal_entriesInput, Prisma.UsersUncheckedCreateWithoutJournal_entriesInput>
+  where?: Prisma.UsersWhereInput
+}
+
+export type UsersUpdateToOneWithWhereWithoutJournal_entriesInput = {
+  where?: Prisma.UsersWhereInput
+  data: Prisma.XOR<Prisma.UsersUpdateWithoutJournal_entriesInput, Prisma.UsersUncheckedUpdateWithoutJournal_entriesInput>
+}
+
+export type UsersUpdateWithoutJournal_entriesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.StringFieldUpdateOperationsInput | string
+  pseudo?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  favorite_band?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile_picture?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
+  banner?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
+  shop_points?: Prisma.IntFieldUpdateOperationsInput | number
+  owned_cosmetics?: Prisma.UsersUpdateowned_cosmeticsInput | string[]
+  equipped_avatar_border?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  equipped_font?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  equipped_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  equipped_text_effect?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  equipped_banner?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  equipped_pattern?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRolesFieldUpdateOperationsInput | $Enums.Roles
+  provider?: Prisma.NullableEnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider | null
+  provider_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  has_notifications?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  phone_number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  biography?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  email_verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  email_verification_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email_verification_expires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  password_reset_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  password_reset_expires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  twofa_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  twofa_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  twofa_backup_codes?: Prisma.UsersUpdatetwofa_backup_codesInput | string[]
+  earned_badges?: Prisma.UsersUpdateearned_badgesInput | string[]
+  expo_push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reviews?: Prisma.ReviewsUpdateManyWithoutUserNestedInput
+  review_comments?: Prisma.ReviewCommentsUpdateManyWithoutUserNestedInput
+  review_likes?: Prisma.ReviewLikesUpdateManyWithoutUserNestedInput
+  playlists?: Prisma.PlaylistsUpdateManyWithoutUserNestedInput
+  playlist_collaborations?: Prisma.PlaylistCollaboratorsUpdateManyWithoutUserNestedInput
+  follows?: Prisma.FollowsUpdateManyWithoutUserNestedInput
+  followers?: Prisma.FollowsUpdateManyWithoutFollow_userNestedInput
+  notifications?: Prisma.NotificationsUpdateManyWithoutUserNestedInput
+  notificationsRelated?: Prisma.NotificationsUpdateManyWithoutRelated_userNestedInput
+  user_media_status?: Prisma.UserMediaStatusUpdateManyWithoutUserNestedInput
+  reporter_reports?: Prisma.ReportsUpdateManyWithoutReporterNestedInput
+  profile_reports?: Prisma.ReportsUpdateManyWithoutProfileNestedInput
+  activities?: Prisma.ActivitiesUpdateManyWithoutUserNestedInput
+  activities_targets?: Prisma.ActivitiesUpdateManyWithoutTarget_userNestedInput
+  conversations_user1?: Prisma.ConversationsUpdateManyWithoutUser1NestedInput
+  conversations_user2?: Prisma.ConversationsUpdateManyWithoutUser2NestedInput
+  messages?: Prisma.MessagesUpdateManyWithoutSenderNestedInput
+  commentLikes?: Prisma.CommentLikesUpdateManyWithoutUserNestedInput
+  spotify_account?: Prisma.SpotifyAccountsUpdateOneWithoutUserNestedInput
+  rooms_hosted?: Prisma.RoomsUpdateManyWithoutHostNestedInput
+  room_participations?: Prisma.RoomParticipantsUpdateManyWithoutUserNestedInput
+  room_queue_additions?: Prisma.RoomQueueItemsUpdateManyWithoutAdded_byNestedInput
+}
+
+export type UsersUncheckedUpdateWithoutJournal_entriesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.StringFieldUpdateOperationsInput | string
+  pseudo?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  favorite_band?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile_picture?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
+  banner?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
+  shop_points?: Prisma.IntFieldUpdateOperationsInput | number
+  owned_cosmetics?: Prisma.UsersUpdateowned_cosmeticsInput | string[]
+  equipped_avatar_border?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  equipped_font?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  equipped_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  equipped_text_effect?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  equipped_banner?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  equipped_pattern?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRolesFieldUpdateOperationsInput | $Enums.Roles
+  provider?: Prisma.NullableEnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider | null
+  provider_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  has_notifications?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  phone_number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  biography?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  email_verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  email_verification_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email_verification_expires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  password_reset_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  password_reset_expires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  twofa_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  twofa_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  twofa_backup_codes?: Prisma.UsersUpdatetwofa_backup_codesInput | string[]
+  earned_badges?: Prisma.UsersUpdateearned_badgesInput | string[]
+  expo_push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reviews?: Prisma.ReviewsUncheckedUpdateManyWithoutUserNestedInput
+  review_comments?: Prisma.ReviewCommentsUncheckedUpdateManyWithoutUserNestedInput
+  review_likes?: Prisma.ReviewLikesUncheckedUpdateManyWithoutUserNestedInput
+  playlists?: Prisma.PlaylistsUncheckedUpdateManyWithoutUserNestedInput
+  playlist_collaborations?: Prisma.PlaylistCollaboratorsUncheckedUpdateManyWithoutUserNestedInput
+  follows?: Prisma.FollowsUncheckedUpdateManyWithoutUserNestedInput
+  followers?: Prisma.FollowsUncheckedUpdateManyWithoutFollow_userNestedInput
+  notifications?: Prisma.NotificationsUncheckedUpdateManyWithoutUserNestedInput
+  notificationsRelated?: Prisma.NotificationsUncheckedUpdateManyWithoutRelated_userNestedInput
+  user_media_status?: Prisma.UserMediaStatusUncheckedUpdateManyWithoutUserNestedInput
+  reporter_reports?: Prisma.ReportsUncheckedUpdateManyWithoutReporterNestedInput
+  profile_reports?: Prisma.ReportsUncheckedUpdateManyWithoutProfileNestedInput
+  activities?: Prisma.ActivitiesUncheckedUpdateManyWithoutUserNestedInput
+  activities_targets?: Prisma.ActivitiesUncheckedUpdateManyWithoutTarget_userNestedInput
+  conversations_user1?: Prisma.ConversationsUncheckedUpdateManyWithoutUser1NestedInput
+  conversations_user2?: Prisma.ConversationsUncheckedUpdateManyWithoutUser2NestedInput
+  messages?: Prisma.MessagesUncheckedUpdateManyWithoutSenderNestedInput
+  commentLikes?: Prisma.CommentLikesUncheckedUpdateManyWithoutUserNestedInput
+  spotify_account?: Prisma.SpotifyAccountsUncheckedUpdateOneWithoutUserNestedInput
+  rooms_hosted?: Prisma.RoomsUncheckedUpdateManyWithoutHostNestedInput
+  room_participations?: Prisma.RoomParticipantsUncheckedUpdateManyWithoutUserNestedInput
+  room_queue_additions?: Prisma.RoomQueueItemsUncheckedUpdateManyWithoutAdded_byNestedInput
+}
+
+export type UsersCreateWithoutSpotify_accountInput = {
+  id?: string
+  username: string
+  pseudo: string
+  email: string
+  password?: string | null
+  favorite_band?: string | null
+  profile_picture?: runtime.Bytes | null
+  banner?: runtime.Bytes | null
+  shop_points?: number
+  owned_cosmetics?: Prisma.UsersCreateowned_cosmeticsInput | string[]
+  equipped_avatar_border?: string | null
+  equipped_font?: string | null
+  equipped_title?: string | null
+  equipped_text_effect?: string | null
+  equipped_banner?: string | null
+  equipped_pattern?: string | null
+  role?: $Enums.Roles
+  provider?: $Enums.AuthProvider | null
+  provider_id?: string | null
+  has_notifications?: boolean
+  phone_number?: string | null
+  biography?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  email_verified?: boolean
+  email_verification_code?: string | null
+  email_verification_expires?: Date | string | null
+  password_reset_code?: string | null
+  password_reset_expires?: Date | string | null
+  twofa_enabled?: boolean
+  twofa_secret?: string | null
+  twofa_backup_codes?: Prisma.UsersCreatetwofa_backup_codesInput | string[]
+  earned_badges?: Prisma.UsersCreateearned_badgesInput | string[]
+  expo_push_token?: string | null
+  reviews?: Prisma.ReviewsCreateNestedManyWithoutUserInput
+  review_comments?: Prisma.ReviewCommentsCreateNestedManyWithoutUserInput
+  review_likes?: Prisma.ReviewLikesCreateNestedManyWithoutUserInput
+  playlists?: Prisma.PlaylistsCreateNestedManyWithoutUserInput
+  playlist_collaborations?: Prisma.PlaylistCollaboratorsCreateNestedManyWithoutUserInput
+  follows?: Prisma.FollowsCreateNestedManyWithoutUserInput
+  followers?: Prisma.FollowsCreateNestedManyWithoutFollow_userInput
+  notifications?: Prisma.NotificationsCreateNestedManyWithoutUserInput
+  notificationsRelated?: Prisma.NotificationsCreateNestedManyWithoutRelated_userInput
+  user_media_status?: Prisma.UserMediaStatusCreateNestedManyWithoutUserInput
+  reporter_reports?: Prisma.ReportsCreateNestedManyWithoutReporterInput
+  profile_reports?: Prisma.ReportsCreateNestedManyWithoutProfileInput
+  activities?: Prisma.ActivitiesCreateNestedManyWithoutUserInput
+  activities_targets?: Prisma.ActivitiesCreateNestedManyWithoutTarget_userInput
+  conversations_user1?: Prisma.ConversationsCreateNestedManyWithoutUser1Input
+  conversations_user2?: Prisma.ConversationsCreateNestedManyWithoutUser2Input
+  messages?: Prisma.MessagesCreateNestedManyWithoutSenderInput
+  journal_entries?: Prisma.JournalEntriesCreateNestedManyWithoutUserInput
+  commentLikes?: Prisma.CommentLikesCreateNestedManyWithoutUserInput
+  rooms_hosted?: Prisma.RoomsCreateNestedManyWithoutHostInput
+  room_participations?: Prisma.RoomParticipantsCreateNestedManyWithoutUserInput
+  room_queue_additions?: Prisma.RoomQueueItemsCreateNestedManyWithoutAdded_byInput
 }
 
 export type UsersUncheckedCreateWithoutSpotify_accountInput = {
@@ -1572,7 +1912,11 @@ export type UsersUncheckedCreateWithoutSpotify_accountInput = {
   conversations_user1?: Prisma.ConversationsUncheckedCreateNestedManyWithoutUser1Input
   conversations_user2?: Prisma.ConversationsUncheckedCreateNestedManyWithoutUser2Input
   messages?: Prisma.MessagesUncheckedCreateNestedManyWithoutSenderInput
+  journal_entries?: Prisma.JournalEntriesUncheckedCreateNestedManyWithoutUserInput
   commentLikes?: Prisma.CommentLikesUncheckedCreateNestedManyWithoutUserInput
+  rooms_hosted?: Prisma.RoomsUncheckedCreateNestedManyWithoutHostInput
+  room_participations?: Prisma.RoomParticipantsUncheckedCreateNestedManyWithoutUserInput
+  room_queue_additions?: Prisma.RoomQueueItemsUncheckedCreateNestedManyWithoutAdded_byInput
 }
 
 export type UsersCreateOrConnectWithoutSpotify_accountInput = {
@@ -1643,7 +1987,11 @@ export type UsersUpdateWithoutSpotify_accountInput = {
   conversations_user1?: Prisma.ConversationsUpdateManyWithoutUser1NestedInput
   conversations_user2?: Prisma.ConversationsUpdateManyWithoutUser2NestedInput
   messages?: Prisma.MessagesUpdateManyWithoutSenderNestedInput
+  journal_entries?: Prisma.JournalEntriesUpdateManyWithoutUserNestedInput
   commentLikes?: Prisma.CommentLikesUpdateManyWithoutUserNestedInput
+  rooms_hosted?: Prisma.RoomsUpdateManyWithoutHostNestedInput
+  room_participations?: Prisma.RoomParticipantsUpdateManyWithoutUserNestedInput
+  room_queue_additions?: Prisma.RoomQueueItemsUpdateManyWithoutAdded_byNestedInput
 }
 
 export type UsersUncheckedUpdateWithoutSpotify_accountInput = {
@@ -1698,7 +2046,11 @@ export type UsersUncheckedUpdateWithoutSpotify_accountInput = {
   conversations_user1?: Prisma.ConversationsUncheckedUpdateManyWithoutUser1NestedInput
   conversations_user2?: Prisma.ConversationsUncheckedUpdateManyWithoutUser2NestedInput
   messages?: Prisma.MessagesUncheckedUpdateManyWithoutSenderNestedInput
+  journal_entries?: Prisma.JournalEntriesUncheckedUpdateManyWithoutUserNestedInput
   commentLikes?: Prisma.CommentLikesUncheckedUpdateManyWithoutUserNestedInput
+  rooms_hosted?: Prisma.RoomsUncheckedUpdateManyWithoutHostNestedInput
+  room_participations?: Prisma.RoomParticipantsUncheckedUpdateManyWithoutUserNestedInput
+  room_queue_additions?: Prisma.RoomQueueItemsUncheckedUpdateManyWithoutAdded_byNestedInput
 }
 
 export type UsersCreateWithoutReviewsInput = {
@@ -1752,8 +2104,12 @@ export type UsersCreateWithoutReviewsInput = {
   conversations_user1?: Prisma.ConversationsCreateNestedManyWithoutUser1Input
   conversations_user2?: Prisma.ConversationsCreateNestedManyWithoutUser2Input
   messages?: Prisma.MessagesCreateNestedManyWithoutSenderInput
+  journal_entries?: Prisma.JournalEntriesCreateNestedManyWithoutUserInput
   commentLikes?: Prisma.CommentLikesCreateNestedManyWithoutUserInput
   spotify_account?: Prisma.SpotifyAccountsCreateNestedOneWithoutUserInput
+  rooms_hosted?: Prisma.RoomsCreateNestedManyWithoutHostInput
+  room_participations?: Prisma.RoomParticipantsCreateNestedManyWithoutUserInput
+  room_queue_additions?: Prisma.RoomQueueItemsCreateNestedManyWithoutAdded_byInput
 }
 
 export type UsersUncheckedCreateWithoutReviewsInput = {
@@ -1807,8 +2163,12 @@ export type UsersUncheckedCreateWithoutReviewsInput = {
   conversations_user1?: Prisma.ConversationsUncheckedCreateNestedManyWithoutUser1Input
   conversations_user2?: Prisma.ConversationsUncheckedCreateNestedManyWithoutUser2Input
   messages?: Prisma.MessagesUncheckedCreateNestedManyWithoutSenderInput
+  journal_entries?: Prisma.JournalEntriesUncheckedCreateNestedManyWithoutUserInput
   commentLikes?: Prisma.CommentLikesUncheckedCreateNestedManyWithoutUserInput
   spotify_account?: Prisma.SpotifyAccountsUncheckedCreateNestedOneWithoutUserInput
+  rooms_hosted?: Prisma.RoomsUncheckedCreateNestedManyWithoutHostInput
+  room_participations?: Prisma.RoomParticipantsUncheckedCreateNestedManyWithoutUserInput
+  room_queue_additions?: Prisma.RoomQueueItemsUncheckedCreateNestedManyWithoutAdded_byInput
 }
 
 export type UsersCreateOrConnectWithoutReviewsInput = {
@@ -1878,8 +2238,12 @@ export type UsersUpdateWithoutReviewsInput = {
   conversations_user1?: Prisma.ConversationsUpdateManyWithoutUser1NestedInput
   conversations_user2?: Prisma.ConversationsUpdateManyWithoutUser2NestedInput
   messages?: Prisma.MessagesUpdateManyWithoutSenderNestedInput
+  journal_entries?: Prisma.JournalEntriesUpdateManyWithoutUserNestedInput
   commentLikes?: Prisma.CommentLikesUpdateManyWithoutUserNestedInput
   spotify_account?: Prisma.SpotifyAccountsUpdateOneWithoutUserNestedInput
+  rooms_hosted?: Prisma.RoomsUpdateManyWithoutHostNestedInput
+  room_participations?: Prisma.RoomParticipantsUpdateManyWithoutUserNestedInput
+  room_queue_additions?: Prisma.RoomQueueItemsUpdateManyWithoutAdded_byNestedInput
 }
 
 export type UsersUncheckedUpdateWithoutReviewsInput = {
@@ -1933,8 +2297,12 @@ export type UsersUncheckedUpdateWithoutReviewsInput = {
   conversations_user1?: Prisma.ConversationsUncheckedUpdateManyWithoutUser1NestedInput
   conversations_user2?: Prisma.ConversationsUncheckedUpdateManyWithoutUser2NestedInput
   messages?: Prisma.MessagesUncheckedUpdateManyWithoutSenderNestedInput
+  journal_entries?: Prisma.JournalEntriesUncheckedUpdateManyWithoutUserNestedInput
   commentLikes?: Prisma.CommentLikesUncheckedUpdateManyWithoutUserNestedInput
   spotify_account?: Prisma.SpotifyAccountsUncheckedUpdateOneWithoutUserNestedInput
+  rooms_hosted?: Prisma.RoomsUncheckedUpdateManyWithoutHostNestedInput
+  room_participations?: Prisma.RoomParticipantsUncheckedUpdateManyWithoutUserNestedInput
+  room_queue_additions?: Prisma.RoomQueueItemsUncheckedUpdateManyWithoutAdded_byNestedInput
 }
 
 export type UsersCreateWithoutReview_commentsInput = {
@@ -1988,8 +2356,12 @@ export type UsersCreateWithoutReview_commentsInput = {
   conversations_user1?: Prisma.ConversationsCreateNestedManyWithoutUser1Input
   conversations_user2?: Prisma.ConversationsCreateNestedManyWithoutUser2Input
   messages?: Prisma.MessagesCreateNestedManyWithoutSenderInput
+  journal_entries?: Prisma.JournalEntriesCreateNestedManyWithoutUserInput
   commentLikes?: Prisma.CommentLikesCreateNestedManyWithoutUserInput
   spotify_account?: Prisma.SpotifyAccountsCreateNestedOneWithoutUserInput
+  rooms_hosted?: Prisma.RoomsCreateNestedManyWithoutHostInput
+  room_participations?: Prisma.RoomParticipantsCreateNestedManyWithoutUserInput
+  room_queue_additions?: Prisma.RoomQueueItemsCreateNestedManyWithoutAdded_byInput
 }
 
 export type UsersUncheckedCreateWithoutReview_commentsInput = {
@@ -2043,8 +2415,12 @@ export type UsersUncheckedCreateWithoutReview_commentsInput = {
   conversations_user1?: Prisma.ConversationsUncheckedCreateNestedManyWithoutUser1Input
   conversations_user2?: Prisma.ConversationsUncheckedCreateNestedManyWithoutUser2Input
   messages?: Prisma.MessagesUncheckedCreateNestedManyWithoutSenderInput
+  journal_entries?: Prisma.JournalEntriesUncheckedCreateNestedManyWithoutUserInput
   commentLikes?: Prisma.CommentLikesUncheckedCreateNestedManyWithoutUserInput
   spotify_account?: Prisma.SpotifyAccountsUncheckedCreateNestedOneWithoutUserInput
+  rooms_hosted?: Prisma.RoomsUncheckedCreateNestedManyWithoutHostInput
+  room_participations?: Prisma.RoomParticipantsUncheckedCreateNestedManyWithoutUserInput
+  room_queue_additions?: Prisma.RoomQueueItemsUncheckedCreateNestedManyWithoutAdded_byInput
 }
 
 export type UsersCreateOrConnectWithoutReview_commentsInput = {
@@ -2114,8 +2490,12 @@ export type UsersUpdateWithoutReview_commentsInput = {
   conversations_user1?: Prisma.ConversationsUpdateManyWithoutUser1NestedInput
   conversations_user2?: Prisma.ConversationsUpdateManyWithoutUser2NestedInput
   messages?: Prisma.MessagesUpdateManyWithoutSenderNestedInput
+  journal_entries?: Prisma.JournalEntriesUpdateManyWithoutUserNestedInput
   commentLikes?: Prisma.CommentLikesUpdateManyWithoutUserNestedInput
   spotify_account?: Prisma.SpotifyAccountsUpdateOneWithoutUserNestedInput
+  rooms_hosted?: Prisma.RoomsUpdateManyWithoutHostNestedInput
+  room_participations?: Prisma.RoomParticipantsUpdateManyWithoutUserNestedInput
+  room_queue_additions?: Prisma.RoomQueueItemsUpdateManyWithoutAdded_byNestedInput
 }
 
 export type UsersUncheckedUpdateWithoutReview_commentsInput = {
@@ -2169,8 +2549,12 @@ export type UsersUncheckedUpdateWithoutReview_commentsInput = {
   conversations_user1?: Prisma.ConversationsUncheckedUpdateManyWithoutUser1NestedInput
   conversations_user2?: Prisma.ConversationsUncheckedUpdateManyWithoutUser2NestedInput
   messages?: Prisma.MessagesUncheckedUpdateManyWithoutSenderNestedInput
+  journal_entries?: Prisma.JournalEntriesUncheckedUpdateManyWithoutUserNestedInput
   commentLikes?: Prisma.CommentLikesUncheckedUpdateManyWithoutUserNestedInput
   spotify_account?: Prisma.SpotifyAccountsUncheckedUpdateOneWithoutUserNestedInput
+  rooms_hosted?: Prisma.RoomsUncheckedUpdateManyWithoutHostNestedInput
+  room_participations?: Prisma.RoomParticipantsUncheckedUpdateManyWithoutUserNestedInput
+  room_queue_additions?: Prisma.RoomQueueItemsUncheckedUpdateManyWithoutAdded_byNestedInput
 }
 
 export type UsersCreateWithoutCommentLikesInput = {
@@ -2225,7 +2609,11 @@ export type UsersCreateWithoutCommentLikesInput = {
   conversations_user1?: Prisma.ConversationsCreateNestedManyWithoutUser1Input
   conversations_user2?: Prisma.ConversationsCreateNestedManyWithoutUser2Input
   messages?: Prisma.MessagesCreateNestedManyWithoutSenderInput
+  journal_entries?: Prisma.JournalEntriesCreateNestedManyWithoutUserInput
   spotify_account?: Prisma.SpotifyAccountsCreateNestedOneWithoutUserInput
+  rooms_hosted?: Prisma.RoomsCreateNestedManyWithoutHostInput
+  room_participations?: Prisma.RoomParticipantsCreateNestedManyWithoutUserInput
+  room_queue_additions?: Prisma.RoomQueueItemsCreateNestedManyWithoutAdded_byInput
 }
 
 export type UsersUncheckedCreateWithoutCommentLikesInput = {
@@ -2280,7 +2668,11 @@ export type UsersUncheckedCreateWithoutCommentLikesInput = {
   conversations_user1?: Prisma.ConversationsUncheckedCreateNestedManyWithoutUser1Input
   conversations_user2?: Prisma.ConversationsUncheckedCreateNestedManyWithoutUser2Input
   messages?: Prisma.MessagesUncheckedCreateNestedManyWithoutSenderInput
+  journal_entries?: Prisma.JournalEntriesUncheckedCreateNestedManyWithoutUserInput
   spotify_account?: Prisma.SpotifyAccountsUncheckedCreateNestedOneWithoutUserInput
+  rooms_hosted?: Prisma.RoomsUncheckedCreateNestedManyWithoutHostInput
+  room_participations?: Prisma.RoomParticipantsUncheckedCreateNestedManyWithoutUserInput
+  room_queue_additions?: Prisma.RoomQueueItemsUncheckedCreateNestedManyWithoutAdded_byInput
 }
 
 export type UsersCreateOrConnectWithoutCommentLikesInput = {
@@ -2351,7 +2743,11 @@ export type UsersUpdateWithoutCommentLikesInput = {
   conversations_user1?: Prisma.ConversationsUpdateManyWithoutUser1NestedInput
   conversations_user2?: Prisma.ConversationsUpdateManyWithoutUser2NestedInput
   messages?: Prisma.MessagesUpdateManyWithoutSenderNestedInput
+  journal_entries?: Prisma.JournalEntriesUpdateManyWithoutUserNestedInput
   spotify_account?: Prisma.SpotifyAccountsUpdateOneWithoutUserNestedInput
+  rooms_hosted?: Prisma.RoomsUpdateManyWithoutHostNestedInput
+  room_participations?: Prisma.RoomParticipantsUpdateManyWithoutUserNestedInput
+  room_queue_additions?: Prisma.RoomQueueItemsUpdateManyWithoutAdded_byNestedInput
 }
 
 export type UsersUncheckedUpdateWithoutCommentLikesInput = {
@@ -2406,7 +2802,11 @@ export type UsersUncheckedUpdateWithoutCommentLikesInput = {
   conversations_user1?: Prisma.ConversationsUncheckedUpdateManyWithoutUser1NestedInput
   conversations_user2?: Prisma.ConversationsUncheckedUpdateManyWithoutUser2NestedInput
   messages?: Prisma.MessagesUncheckedUpdateManyWithoutSenderNestedInput
+  journal_entries?: Prisma.JournalEntriesUncheckedUpdateManyWithoutUserNestedInput
   spotify_account?: Prisma.SpotifyAccountsUncheckedUpdateOneWithoutUserNestedInput
+  rooms_hosted?: Prisma.RoomsUncheckedUpdateManyWithoutHostNestedInput
+  room_participations?: Prisma.RoomParticipantsUncheckedUpdateManyWithoutUserNestedInput
+  room_queue_additions?: Prisma.RoomQueueItemsUncheckedUpdateManyWithoutAdded_byNestedInput
 }
 
 export type UsersCreateWithoutReview_likesInput = {
@@ -2460,8 +2860,12 @@ export type UsersCreateWithoutReview_likesInput = {
   conversations_user1?: Prisma.ConversationsCreateNestedManyWithoutUser1Input
   conversations_user2?: Prisma.ConversationsCreateNestedManyWithoutUser2Input
   messages?: Prisma.MessagesCreateNestedManyWithoutSenderInput
+  journal_entries?: Prisma.JournalEntriesCreateNestedManyWithoutUserInput
   commentLikes?: Prisma.CommentLikesCreateNestedManyWithoutUserInput
   spotify_account?: Prisma.SpotifyAccountsCreateNestedOneWithoutUserInput
+  rooms_hosted?: Prisma.RoomsCreateNestedManyWithoutHostInput
+  room_participations?: Prisma.RoomParticipantsCreateNestedManyWithoutUserInput
+  room_queue_additions?: Prisma.RoomQueueItemsCreateNestedManyWithoutAdded_byInput
 }
 
 export type UsersUncheckedCreateWithoutReview_likesInput = {
@@ -2515,8 +2919,12 @@ export type UsersUncheckedCreateWithoutReview_likesInput = {
   conversations_user1?: Prisma.ConversationsUncheckedCreateNestedManyWithoutUser1Input
   conversations_user2?: Prisma.ConversationsUncheckedCreateNestedManyWithoutUser2Input
   messages?: Prisma.MessagesUncheckedCreateNestedManyWithoutSenderInput
+  journal_entries?: Prisma.JournalEntriesUncheckedCreateNestedManyWithoutUserInput
   commentLikes?: Prisma.CommentLikesUncheckedCreateNestedManyWithoutUserInput
   spotify_account?: Prisma.SpotifyAccountsUncheckedCreateNestedOneWithoutUserInput
+  rooms_hosted?: Prisma.RoomsUncheckedCreateNestedManyWithoutHostInput
+  room_participations?: Prisma.RoomParticipantsUncheckedCreateNestedManyWithoutUserInput
+  room_queue_additions?: Prisma.RoomQueueItemsUncheckedCreateNestedManyWithoutAdded_byInput
 }
 
 export type UsersCreateOrConnectWithoutReview_likesInput = {
@@ -2586,8 +2994,12 @@ export type UsersUpdateWithoutReview_likesInput = {
   conversations_user1?: Prisma.ConversationsUpdateManyWithoutUser1NestedInput
   conversations_user2?: Prisma.ConversationsUpdateManyWithoutUser2NestedInput
   messages?: Prisma.MessagesUpdateManyWithoutSenderNestedInput
+  journal_entries?: Prisma.JournalEntriesUpdateManyWithoutUserNestedInput
   commentLikes?: Prisma.CommentLikesUpdateManyWithoutUserNestedInput
   spotify_account?: Prisma.SpotifyAccountsUpdateOneWithoutUserNestedInput
+  rooms_hosted?: Prisma.RoomsUpdateManyWithoutHostNestedInput
+  room_participations?: Prisma.RoomParticipantsUpdateManyWithoutUserNestedInput
+  room_queue_additions?: Prisma.RoomQueueItemsUpdateManyWithoutAdded_byNestedInput
 }
 
 export type UsersUncheckedUpdateWithoutReview_likesInput = {
@@ -2641,8 +3053,12 @@ export type UsersUncheckedUpdateWithoutReview_likesInput = {
   conversations_user1?: Prisma.ConversationsUncheckedUpdateManyWithoutUser1NestedInput
   conversations_user2?: Prisma.ConversationsUncheckedUpdateManyWithoutUser2NestedInput
   messages?: Prisma.MessagesUncheckedUpdateManyWithoutSenderNestedInput
+  journal_entries?: Prisma.JournalEntriesUncheckedUpdateManyWithoutUserNestedInput
   commentLikes?: Prisma.CommentLikesUncheckedUpdateManyWithoutUserNestedInput
   spotify_account?: Prisma.SpotifyAccountsUncheckedUpdateOneWithoutUserNestedInput
+  rooms_hosted?: Prisma.RoomsUncheckedUpdateManyWithoutHostNestedInput
+  room_participations?: Prisma.RoomParticipantsUncheckedUpdateManyWithoutUserNestedInput
+  room_queue_additions?: Prisma.RoomQueueItemsUncheckedUpdateManyWithoutAdded_byNestedInput
 }
 
 export type UsersCreateWithoutPlaylistsInput = {
@@ -2696,8 +3112,12 @@ export type UsersCreateWithoutPlaylistsInput = {
   conversations_user1?: Prisma.ConversationsCreateNestedManyWithoutUser1Input
   conversations_user2?: Prisma.ConversationsCreateNestedManyWithoutUser2Input
   messages?: Prisma.MessagesCreateNestedManyWithoutSenderInput
+  journal_entries?: Prisma.JournalEntriesCreateNestedManyWithoutUserInput
   commentLikes?: Prisma.CommentLikesCreateNestedManyWithoutUserInput
   spotify_account?: Prisma.SpotifyAccountsCreateNestedOneWithoutUserInput
+  rooms_hosted?: Prisma.RoomsCreateNestedManyWithoutHostInput
+  room_participations?: Prisma.RoomParticipantsCreateNestedManyWithoutUserInput
+  room_queue_additions?: Prisma.RoomQueueItemsCreateNestedManyWithoutAdded_byInput
 }
 
 export type UsersUncheckedCreateWithoutPlaylistsInput = {
@@ -2751,8 +3171,12 @@ export type UsersUncheckedCreateWithoutPlaylistsInput = {
   conversations_user1?: Prisma.ConversationsUncheckedCreateNestedManyWithoutUser1Input
   conversations_user2?: Prisma.ConversationsUncheckedCreateNestedManyWithoutUser2Input
   messages?: Prisma.MessagesUncheckedCreateNestedManyWithoutSenderInput
+  journal_entries?: Prisma.JournalEntriesUncheckedCreateNestedManyWithoutUserInput
   commentLikes?: Prisma.CommentLikesUncheckedCreateNestedManyWithoutUserInput
   spotify_account?: Prisma.SpotifyAccountsUncheckedCreateNestedOneWithoutUserInput
+  rooms_hosted?: Prisma.RoomsUncheckedCreateNestedManyWithoutHostInput
+  room_participations?: Prisma.RoomParticipantsUncheckedCreateNestedManyWithoutUserInput
+  room_queue_additions?: Prisma.RoomQueueItemsUncheckedCreateNestedManyWithoutAdded_byInput
 }
 
 export type UsersCreateOrConnectWithoutPlaylistsInput = {
@@ -2822,8 +3246,12 @@ export type UsersUpdateWithoutPlaylistsInput = {
   conversations_user1?: Prisma.ConversationsUpdateManyWithoutUser1NestedInput
   conversations_user2?: Prisma.ConversationsUpdateManyWithoutUser2NestedInput
   messages?: Prisma.MessagesUpdateManyWithoutSenderNestedInput
+  journal_entries?: Prisma.JournalEntriesUpdateManyWithoutUserNestedInput
   commentLikes?: Prisma.CommentLikesUpdateManyWithoutUserNestedInput
   spotify_account?: Prisma.SpotifyAccountsUpdateOneWithoutUserNestedInput
+  rooms_hosted?: Prisma.RoomsUpdateManyWithoutHostNestedInput
+  room_participations?: Prisma.RoomParticipantsUpdateManyWithoutUserNestedInput
+  room_queue_additions?: Prisma.RoomQueueItemsUpdateManyWithoutAdded_byNestedInput
 }
 
 export type UsersUncheckedUpdateWithoutPlaylistsInput = {
@@ -2877,8 +3305,12 @@ export type UsersUncheckedUpdateWithoutPlaylistsInput = {
   conversations_user1?: Prisma.ConversationsUncheckedUpdateManyWithoutUser1NestedInput
   conversations_user2?: Prisma.ConversationsUncheckedUpdateManyWithoutUser2NestedInput
   messages?: Prisma.MessagesUncheckedUpdateManyWithoutSenderNestedInput
+  journal_entries?: Prisma.JournalEntriesUncheckedUpdateManyWithoutUserNestedInput
   commentLikes?: Prisma.CommentLikesUncheckedUpdateManyWithoutUserNestedInput
   spotify_account?: Prisma.SpotifyAccountsUncheckedUpdateOneWithoutUserNestedInput
+  rooms_hosted?: Prisma.RoomsUncheckedUpdateManyWithoutHostNestedInput
+  room_participations?: Prisma.RoomParticipantsUncheckedUpdateManyWithoutUserNestedInput
+  room_queue_additions?: Prisma.RoomQueueItemsUncheckedUpdateManyWithoutAdded_byNestedInput
 }
 
 export type UsersCreateWithoutPlaylist_collaborationsInput = {
@@ -2932,8 +3364,12 @@ export type UsersCreateWithoutPlaylist_collaborationsInput = {
   conversations_user1?: Prisma.ConversationsCreateNestedManyWithoutUser1Input
   conversations_user2?: Prisma.ConversationsCreateNestedManyWithoutUser2Input
   messages?: Prisma.MessagesCreateNestedManyWithoutSenderInput
+  journal_entries?: Prisma.JournalEntriesCreateNestedManyWithoutUserInput
   commentLikes?: Prisma.CommentLikesCreateNestedManyWithoutUserInput
   spotify_account?: Prisma.SpotifyAccountsCreateNestedOneWithoutUserInput
+  rooms_hosted?: Prisma.RoomsCreateNestedManyWithoutHostInput
+  room_participations?: Prisma.RoomParticipantsCreateNestedManyWithoutUserInput
+  room_queue_additions?: Prisma.RoomQueueItemsCreateNestedManyWithoutAdded_byInput
 }
 
 export type UsersUncheckedCreateWithoutPlaylist_collaborationsInput = {
@@ -2987,8 +3423,12 @@ export type UsersUncheckedCreateWithoutPlaylist_collaborationsInput = {
   conversations_user1?: Prisma.ConversationsUncheckedCreateNestedManyWithoutUser1Input
   conversations_user2?: Prisma.ConversationsUncheckedCreateNestedManyWithoutUser2Input
   messages?: Prisma.MessagesUncheckedCreateNestedManyWithoutSenderInput
+  journal_entries?: Prisma.JournalEntriesUncheckedCreateNestedManyWithoutUserInput
   commentLikes?: Prisma.CommentLikesUncheckedCreateNestedManyWithoutUserInput
   spotify_account?: Prisma.SpotifyAccountsUncheckedCreateNestedOneWithoutUserInput
+  rooms_hosted?: Prisma.RoomsUncheckedCreateNestedManyWithoutHostInput
+  room_participations?: Prisma.RoomParticipantsUncheckedCreateNestedManyWithoutUserInput
+  room_queue_additions?: Prisma.RoomQueueItemsUncheckedCreateNestedManyWithoutAdded_byInput
 }
 
 export type UsersCreateOrConnectWithoutPlaylist_collaborationsInput = {
@@ -3058,8 +3498,12 @@ export type UsersUpdateWithoutPlaylist_collaborationsInput = {
   conversations_user1?: Prisma.ConversationsUpdateManyWithoutUser1NestedInput
   conversations_user2?: Prisma.ConversationsUpdateManyWithoutUser2NestedInput
   messages?: Prisma.MessagesUpdateManyWithoutSenderNestedInput
+  journal_entries?: Prisma.JournalEntriesUpdateManyWithoutUserNestedInput
   commentLikes?: Prisma.CommentLikesUpdateManyWithoutUserNestedInput
   spotify_account?: Prisma.SpotifyAccountsUpdateOneWithoutUserNestedInput
+  rooms_hosted?: Prisma.RoomsUpdateManyWithoutHostNestedInput
+  room_participations?: Prisma.RoomParticipantsUpdateManyWithoutUserNestedInput
+  room_queue_additions?: Prisma.RoomQueueItemsUpdateManyWithoutAdded_byNestedInput
 }
 
 export type UsersUncheckedUpdateWithoutPlaylist_collaborationsInput = {
@@ -3113,8 +3557,12 @@ export type UsersUncheckedUpdateWithoutPlaylist_collaborationsInput = {
   conversations_user1?: Prisma.ConversationsUncheckedUpdateManyWithoutUser1NestedInput
   conversations_user2?: Prisma.ConversationsUncheckedUpdateManyWithoutUser2NestedInput
   messages?: Prisma.MessagesUncheckedUpdateManyWithoutSenderNestedInput
+  journal_entries?: Prisma.JournalEntriesUncheckedUpdateManyWithoutUserNestedInput
   commentLikes?: Prisma.CommentLikesUncheckedUpdateManyWithoutUserNestedInput
   spotify_account?: Prisma.SpotifyAccountsUncheckedUpdateOneWithoutUserNestedInput
+  rooms_hosted?: Prisma.RoomsUncheckedUpdateManyWithoutHostNestedInput
+  room_participations?: Prisma.RoomParticipantsUncheckedUpdateManyWithoutUserNestedInput
+  room_queue_additions?: Prisma.RoomQueueItemsUncheckedUpdateManyWithoutAdded_byNestedInput
 }
 
 export type UsersCreateWithoutUser_media_statusInput = {
@@ -3168,8 +3616,12 @@ export type UsersCreateWithoutUser_media_statusInput = {
   conversations_user1?: Prisma.ConversationsCreateNestedManyWithoutUser1Input
   conversations_user2?: Prisma.ConversationsCreateNestedManyWithoutUser2Input
   messages?: Prisma.MessagesCreateNestedManyWithoutSenderInput
+  journal_entries?: Prisma.JournalEntriesCreateNestedManyWithoutUserInput
   commentLikes?: Prisma.CommentLikesCreateNestedManyWithoutUserInput
   spotify_account?: Prisma.SpotifyAccountsCreateNestedOneWithoutUserInput
+  rooms_hosted?: Prisma.RoomsCreateNestedManyWithoutHostInput
+  room_participations?: Prisma.RoomParticipantsCreateNestedManyWithoutUserInput
+  room_queue_additions?: Prisma.RoomQueueItemsCreateNestedManyWithoutAdded_byInput
 }
 
 export type UsersUncheckedCreateWithoutUser_media_statusInput = {
@@ -3223,8 +3675,12 @@ export type UsersUncheckedCreateWithoutUser_media_statusInput = {
   conversations_user1?: Prisma.ConversationsUncheckedCreateNestedManyWithoutUser1Input
   conversations_user2?: Prisma.ConversationsUncheckedCreateNestedManyWithoutUser2Input
   messages?: Prisma.MessagesUncheckedCreateNestedManyWithoutSenderInput
+  journal_entries?: Prisma.JournalEntriesUncheckedCreateNestedManyWithoutUserInput
   commentLikes?: Prisma.CommentLikesUncheckedCreateNestedManyWithoutUserInput
   spotify_account?: Prisma.SpotifyAccountsUncheckedCreateNestedOneWithoutUserInput
+  rooms_hosted?: Prisma.RoomsUncheckedCreateNestedManyWithoutHostInput
+  room_participations?: Prisma.RoomParticipantsUncheckedCreateNestedManyWithoutUserInput
+  room_queue_additions?: Prisma.RoomQueueItemsUncheckedCreateNestedManyWithoutAdded_byInput
 }
 
 export type UsersCreateOrConnectWithoutUser_media_statusInput = {
@@ -3294,8 +3750,12 @@ export type UsersUpdateWithoutUser_media_statusInput = {
   conversations_user1?: Prisma.ConversationsUpdateManyWithoutUser1NestedInput
   conversations_user2?: Prisma.ConversationsUpdateManyWithoutUser2NestedInput
   messages?: Prisma.MessagesUpdateManyWithoutSenderNestedInput
+  journal_entries?: Prisma.JournalEntriesUpdateManyWithoutUserNestedInput
   commentLikes?: Prisma.CommentLikesUpdateManyWithoutUserNestedInput
   spotify_account?: Prisma.SpotifyAccountsUpdateOneWithoutUserNestedInput
+  rooms_hosted?: Prisma.RoomsUpdateManyWithoutHostNestedInput
+  room_participations?: Prisma.RoomParticipantsUpdateManyWithoutUserNestedInput
+  room_queue_additions?: Prisma.RoomQueueItemsUpdateManyWithoutAdded_byNestedInput
 }
 
 export type UsersUncheckedUpdateWithoutUser_media_statusInput = {
@@ -3349,8 +3809,12 @@ export type UsersUncheckedUpdateWithoutUser_media_statusInput = {
   conversations_user1?: Prisma.ConversationsUncheckedUpdateManyWithoutUser1NestedInput
   conversations_user2?: Prisma.ConversationsUncheckedUpdateManyWithoutUser2NestedInput
   messages?: Prisma.MessagesUncheckedUpdateManyWithoutSenderNestedInput
+  journal_entries?: Prisma.JournalEntriesUncheckedUpdateManyWithoutUserNestedInput
   commentLikes?: Prisma.CommentLikesUncheckedUpdateManyWithoutUserNestedInput
   spotify_account?: Prisma.SpotifyAccountsUncheckedUpdateOneWithoutUserNestedInput
+  rooms_hosted?: Prisma.RoomsUncheckedUpdateManyWithoutHostNestedInput
+  room_participations?: Prisma.RoomParticipantsUncheckedUpdateManyWithoutUserNestedInput
+  room_queue_additions?: Prisma.RoomQueueItemsUncheckedUpdateManyWithoutAdded_byNestedInput
 }
 
 export type UsersCreateWithoutActivitiesInput = {
@@ -3404,8 +3868,12 @@ export type UsersCreateWithoutActivitiesInput = {
   conversations_user1?: Prisma.ConversationsCreateNestedManyWithoutUser1Input
   conversations_user2?: Prisma.ConversationsCreateNestedManyWithoutUser2Input
   messages?: Prisma.MessagesCreateNestedManyWithoutSenderInput
+  journal_entries?: Prisma.JournalEntriesCreateNestedManyWithoutUserInput
   commentLikes?: Prisma.CommentLikesCreateNestedManyWithoutUserInput
   spotify_account?: Prisma.SpotifyAccountsCreateNestedOneWithoutUserInput
+  rooms_hosted?: Prisma.RoomsCreateNestedManyWithoutHostInput
+  room_participations?: Prisma.RoomParticipantsCreateNestedManyWithoutUserInput
+  room_queue_additions?: Prisma.RoomQueueItemsCreateNestedManyWithoutAdded_byInput
 }
 
 export type UsersUncheckedCreateWithoutActivitiesInput = {
@@ -3459,8 +3927,12 @@ export type UsersUncheckedCreateWithoutActivitiesInput = {
   conversations_user1?: Prisma.ConversationsUncheckedCreateNestedManyWithoutUser1Input
   conversations_user2?: Prisma.ConversationsUncheckedCreateNestedManyWithoutUser2Input
   messages?: Prisma.MessagesUncheckedCreateNestedManyWithoutSenderInput
+  journal_entries?: Prisma.JournalEntriesUncheckedCreateNestedManyWithoutUserInput
   commentLikes?: Prisma.CommentLikesUncheckedCreateNestedManyWithoutUserInput
   spotify_account?: Prisma.SpotifyAccountsUncheckedCreateNestedOneWithoutUserInput
+  rooms_hosted?: Prisma.RoomsUncheckedCreateNestedManyWithoutHostInput
+  room_participations?: Prisma.RoomParticipantsUncheckedCreateNestedManyWithoutUserInput
+  room_queue_additions?: Prisma.RoomQueueItemsUncheckedCreateNestedManyWithoutAdded_byInput
 }
 
 export type UsersCreateOrConnectWithoutActivitiesInput = {
@@ -3519,8 +3991,12 @@ export type UsersCreateWithoutActivities_targetsInput = {
   conversations_user1?: Prisma.ConversationsCreateNestedManyWithoutUser1Input
   conversations_user2?: Prisma.ConversationsCreateNestedManyWithoutUser2Input
   messages?: Prisma.MessagesCreateNestedManyWithoutSenderInput
+  journal_entries?: Prisma.JournalEntriesCreateNestedManyWithoutUserInput
   commentLikes?: Prisma.CommentLikesCreateNestedManyWithoutUserInput
   spotify_account?: Prisma.SpotifyAccountsCreateNestedOneWithoutUserInput
+  rooms_hosted?: Prisma.RoomsCreateNestedManyWithoutHostInput
+  room_participations?: Prisma.RoomParticipantsCreateNestedManyWithoutUserInput
+  room_queue_additions?: Prisma.RoomQueueItemsCreateNestedManyWithoutAdded_byInput
 }
 
 export type UsersUncheckedCreateWithoutActivities_targetsInput = {
@@ -3574,8 +4050,12 @@ export type UsersUncheckedCreateWithoutActivities_targetsInput = {
   conversations_user1?: Prisma.ConversationsUncheckedCreateNestedManyWithoutUser1Input
   conversations_user2?: Prisma.ConversationsUncheckedCreateNestedManyWithoutUser2Input
   messages?: Prisma.MessagesUncheckedCreateNestedManyWithoutSenderInput
+  journal_entries?: Prisma.JournalEntriesUncheckedCreateNestedManyWithoutUserInput
   commentLikes?: Prisma.CommentLikesUncheckedCreateNestedManyWithoutUserInput
   spotify_account?: Prisma.SpotifyAccountsUncheckedCreateNestedOneWithoutUserInput
+  rooms_hosted?: Prisma.RoomsUncheckedCreateNestedManyWithoutHostInput
+  room_participations?: Prisma.RoomParticipantsUncheckedCreateNestedManyWithoutUserInput
+  room_queue_additions?: Prisma.RoomQueueItemsUncheckedCreateNestedManyWithoutAdded_byInput
 }
 
 export type UsersCreateOrConnectWithoutActivities_targetsInput = {
@@ -3645,8 +4125,12 @@ export type UsersUpdateWithoutActivitiesInput = {
   conversations_user1?: Prisma.ConversationsUpdateManyWithoutUser1NestedInput
   conversations_user2?: Prisma.ConversationsUpdateManyWithoutUser2NestedInput
   messages?: Prisma.MessagesUpdateManyWithoutSenderNestedInput
+  journal_entries?: Prisma.JournalEntriesUpdateManyWithoutUserNestedInput
   commentLikes?: Prisma.CommentLikesUpdateManyWithoutUserNestedInput
   spotify_account?: Prisma.SpotifyAccountsUpdateOneWithoutUserNestedInput
+  rooms_hosted?: Prisma.RoomsUpdateManyWithoutHostNestedInput
+  room_participations?: Prisma.RoomParticipantsUpdateManyWithoutUserNestedInput
+  room_queue_additions?: Prisma.RoomQueueItemsUpdateManyWithoutAdded_byNestedInput
 }
 
 export type UsersUncheckedUpdateWithoutActivitiesInput = {
@@ -3700,8 +4184,12 @@ export type UsersUncheckedUpdateWithoutActivitiesInput = {
   conversations_user1?: Prisma.ConversationsUncheckedUpdateManyWithoutUser1NestedInput
   conversations_user2?: Prisma.ConversationsUncheckedUpdateManyWithoutUser2NestedInput
   messages?: Prisma.MessagesUncheckedUpdateManyWithoutSenderNestedInput
+  journal_entries?: Prisma.JournalEntriesUncheckedUpdateManyWithoutUserNestedInput
   commentLikes?: Prisma.CommentLikesUncheckedUpdateManyWithoutUserNestedInput
   spotify_account?: Prisma.SpotifyAccountsUncheckedUpdateOneWithoutUserNestedInput
+  rooms_hosted?: Prisma.RoomsUncheckedUpdateManyWithoutHostNestedInput
+  room_participations?: Prisma.RoomParticipantsUncheckedUpdateManyWithoutUserNestedInput
+  room_queue_additions?: Prisma.RoomQueueItemsUncheckedUpdateManyWithoutAdded_byNestedInput
 }
 
 export type UsersUpsertWithoutActivities_targetsInput = {
@@ -3766,8 +4254,12 @@ export type UsersUpdateWithoutActivities_targetsInput = {
   conversations_user1?: Prisma.ConversationsUpdateManyWithoutUser1NestedInput
   conversations_user2?: Prisma.ConversationsUpdateManyWithoutUser2NestedInput
   messages?: Prisma.MessagesUpdateManyWithoutSenderNestedInput
+  journal_entries?: Prisma.JournalEntriesUpdateManyWithoutUserNestedInput
   commentLikes?: Prisma.CommentLikesUpdateManyWithoutUserNestedInput
   spotify_account?: Prisma.SpotifyAccountsUpdateOneWithoutUserNestedInput
+  rooms_hosted?: Prisma.RoomsUpdateManyWithoutHostNestedInput
+  room_participations?: Prisma.RoomParticipantsUpdateManyWithoutUserNestedInput
+  room_queue_additions?: Prisma.RoomQueueItemsUpdateManyWithoutAdded_byNestedInput
 }
 
 export type UsersUncheckedUpdateWithoutActivities_targetsInput = {
@@ -3821,8 +4313,12 @@ export type UsersUncheckedUpdateWithoutActivities_targetsInput = {
   conversations_user1?: Prisma.ConversationsUncheckedUpdateManyWithoutUser1NestedInput
   conversations_user2?: Prisma.ConversationsUncheckedUpdateManyWithoutUser2NestedInput
   messages?: Prisma.MessagesUncheckedUpdateManyWithoutSenderNestedInput
+  journal_entries?: Prisma.JournalEntriesUncheckedUpdateManyWithoutUserNestedInput
   commentLikes?: Prisma.CommentLikesUncheckedUpdateManyWithoutUserNestedInput
   spotify_account?: Prisma.SpotifyAccountsUncheckedUpdateOneWithoutUserNestedInput
+  rooms_hosted?: Prisma.RoomsUncheckedUpdateManyWithoutHostNestedInput
+  room_participations?: Prisma.RoomParticipantsUncheckedUpdateManyWithoutUserNestedInput
+  room_queue_additions?: Prisma.RoomQueueItemsUncheckedUpdateManyWithoutAdded_byNestedInput
 }
 
 export type UsersCreateWithoutFollowsInput = {
@@ -3876,8 +4372,12 @@ export type UsersCreateWithoutFollowsInput = {
   conversations_user1?: Prisma.ConversationsCreateNestedManyWithoutUser1Input
   conversations_user2?: Prisma.ConversationsCreateNestedManyWithoutUser2Input
   messages?: Prisma.MessagesCreateNestedManyWithoutSenderInput
+  journal_entries?: Prisma.JournalEntriesCreateNestedManyWithoutUserInput
   commentLikes?: Prisma.CommentLikesCreateNestedManyWithoutUserInput
   spotify_account?: Prisma.SpotifyAccountsCreateNestedOneWithoutUserInput
+  rooms_hosted?: Prisma.RoomsCreateNestedManyWithoutHostInput
+  room_participations?: Prisma.RoomParticipantsCreateNestedManyWithoutUserInput
+  room_queue_additions?: Prisma.RoomQueueItemsCreateNestedManyWithoutAdded_byInput
 }
 
 export type UsersUncheckedCreateWithoutFollowsInput = {
@@ -3931,8 +4431,12 @@ export type UsersUncheckedCreateWithoutFollowsInput = {
   conversations_user1?: Prisma.ConversationsUncheckedCreateNestedManyWithoutUser1Input
   conversations_user2?: Prisma.ConversationsUncheckedCreateNestedManyWithoutUser2Input
   messages?: Prisma.MessagesUncheckedCreateNestedManyWithoutSenderInput
+  journal_entries?: Prisma.JournalEntriesUncheckedCreateNestedManyWithoutUserInput
   commentLikes?: Prisma.CommentLikesUncheckedCreateNestedManyWithoutUserInput
   spotify_account?: Prisma.SpotifyAccountsUncheckedCreateNestedOneWithoutUserInput
+  rooms_hosted?: Prisma.RoomsUncheckedCreateNestedManyWithoutHostInput
+  room_participations?: Prisma.RoomParticipantsUncheckedCreateNestedManyWithoutUserInput
+  room_queue_additions?: Prisma.RoomQueueItemsUncheckedCreateNestedManyWithoutAdded_byInput
 }
 
 export type UsersCreateOrConnectWithoutFollowsInput = {
@@ -3991,8 +4495,12 @@ export type UsersCreateWithoutFollowersInput = {
   conversations_user1?: Prisma.ConversationsCreateNestedManyWithoutUser1Input
   conversations_user2?: Prisma.ConversationsCreateNestedManyWithoutUser2Input
   messages?: Prisma.MessagesCreateNestedManyWithoutSenderInput
+  journal_entries?: Prisma.JournalEntriesCreateNestedManyWithoutUserInput
   commentLikes?: Prisma.CommentLikesCreateNestedManyWithoutUserInput
   spotify_account?: Prisma.SpotifyAccountsCreateNestedOneWithoutUserInput
+  rooms_hosted?: Prisma.RoomsCreateNestedManyWithoutHostInput
+  room_participations?: Prisma.RoomParticipantsCreateNestedManyWithoutUserInput
+  room_queue_additions?: Prisma.RoomQueueItemsCreateNestedManyWithoutAdded_byInput
 }
 
 export type UsersUncheckedCreateWithoutFollowersInput = {
@@ -4046,8 +4554,12 @@ export type UsersUncheckedCreateWithoutFollowersInput = {
   conversations_user1?: Prisma.ConversationsUncheckedCreateNestedManyWithoutUser1Input
   conversations_user2?: Prisma.ConversationsUncheckedCreateNestedManyWithoutUser2Input
   messages?: Prisma.MessagesUncheckedCreateNestedManyWithoutSenderInput
+  journal_entries?: Prisma.JournalEntriesUncheckedCreateNestedManyWithoutUserInput
   commentLikes?: Prisma.CommentLikesUncheckedCreateNestedManyWithoutUserInput
   spotify_account?: Prisma.SpotifyAccountsUncheckedCreateNestedOneWithoutUserInput
+  rooms_hosted?: Prisma.RoomsUncheckedCreateNestedManyWithoutHostInput
+  room_participations?: Prisma.RoomParticipantsUncheckedCreateNestedManyWithoutUserInput
+  room_queue_additions?: Prisma.RoomQueueItemsUncheckedCreateNestedManyWithoutAdded_byInput
 }
 
 export type UsersCreateOrConnectWithoutFollowersInput = {
@@ -4117,8 +4629,12 @@ export type UsersUpdateWithoutFollowsInput = {
   conversations_user1?: Prisma.ConversationsUpdateManyWithoutUser1NestedInput
   conversations_user2?: Prisma.ConversationsUpdateManyWithoutUser2NestedInput
   messages?: Prisma.MessagesUpdateManyWithoutSenderNestedInput
+  journal_entries?: Prisma.JournalEntriesUpdateManyWithoutUserNestedInput
   commentLikes?: Prisma.CommentLikesUpdateManyWithoutUserNestedInput
   spotify_account?: Prisma.SpotifyAccountsUpdateOneWithoutUserNestedInput
+  rooms_hosted?: Prisma.RoomsUpdateManyWithoutHostNestedInput
+  room_participations?: Prisma.RoomParticipantsUpdateManyWithoutUserNestedInput
+  room_queue_additions?: Prisma.RoomQueueItemsUpdateManyWithoutAdded_byNestedInput
 }
 
 export type UsersUncheckedUpdateWithoutFollowsInput = {
@@ -4172,8 +4688,12 @@ export type UsersUncheckedUpdateWithoutFollowsInput = {
   conversations_user1?: Prisma.ConversationsUncheckedUpdateManyWithoutUser1NestedInput
   conversations_user2?: Prisma.ConversationsUncheckedUpdateManyWithoutUser2NestedInput
   messages?: Prisma.MessagesUncheckedUpdateManyWithoutSenderNestedInput
+  journal_entries?: Prisma.JournalEntriesUncheckedUpdateManyWithoutUserNestedInput
   commentLikes?: Prisma.CommentLikesUncheckedUpdateManyWithoutUserNestedInput
   spotify_account?: Prisma.SpotifyAccountsUncheckedUpdateOneWithoutUserNestedInput
+  rooms_hosted?: Prisma.RoomsUncheckedUpdateManyWithoutHostNestedInput
+  room_participations?: Prisma.RoomParticipantsUncheckedUpdateManyWithoutUserNestedInput
+  room_queue_additions?: Prisma.RoomQueueItemsUncheckedUpdateManyWithoutAdded_byNestedInput
 }
 
 export type UsersUpsertWithoutFollowersInput = {
@@ -4238,8 +4758,12 @@ export type UsersUpdateWithoutFollowersInput = {
   conversations_user1?: Prisma.ConversationsUpdateManyWithoutUser1NestedInput
   conversations_user2?: Prisma.ConversationsUpdateManyWithoutUser2NestedInput
   messages?: Prisma.MessagesUpdateManyWithoutSenderNestedInput
+  journal_entries?: Prisma.JournalEntriesUpdateManyWithoutUserNestedInput
   commentLikes?: Prisma.CommentLikesUpdateManyWithoutUserNestedInput
   spotify_account?: Prisma.SpotifyAccountsUpdateOneWithoutUserNestedInput
+  rooms_hosted?: Prisma.RoomsUpdateManyWithoutHostNestedInput
+  room_participations?: Prisma.RoomParticipantsUpdateManyWithoutUserNestedInput
+  room_queue_additions?: Prisma.RoomQueueItemsUpdateManyWithoutAdded_byNestedInput
 }
 
 export type UsersUncheckedUpdateWithoutFollowersInput = {
@@ -4293,8 +4817,12 @@ export type UsersUncheckedUpdateWithoutFollowersInput = {
   conversations_user1?: Prisma.ConversationsUncheckedUpdateManyWithoutUser1NestedInput
   conversations_user2?: Prisma.ConversationsUncheckedUpdateManyWithoutUser2NestedInput
   messages?: Prisma.MessagesUncheckedUpdateManyWithoutSenderNestedInput
+  journal_entries?: Prisma.JournalEntriesUncheckedUpdateManyWithoutUserNestedInput
   commentLikes?: Prisma.CommentLikesUncheckedUpdateManyWithoutUserNestedInput
   spotify_account?: Prisma.SpotifyAccountsUncheckedUpdateOneWithoutUserNestedInput
+  rooms_hosted?: Prisma.RoomsUncheckedUpdateManyWithoutHostNestedInput
+  room_participations?: Prisma.RoomParticipantsUncheckedUpdateManyWithoutUserNestedInput
+  room_queue_additions?: Prisma.RoomQueueItemsUncheckedUpdateManyWithoutAdded_byNestedInput
 }
 
 export type UsersCreateWithoutReporter_reportsInput = {
@@ -4348,8 +4876,12 @@ export type UsersCreateWithoutReporter_reportsInput = {
   conversations_user1?: Prisma.ConversationsCreateNestedManyWithoutUser1Input
   conversations_user2?: Prisma.ConversationsCreateNestedManyWithoutUser2Input
   messages?: Prisma.MessagesCreateNestedManyWithoutSenderInput
+  journal_entries?: Prisma.JournalEntriesCreateNestedManyWithoutUserInput
   commentLikes?: Prisma.CommentLikesCreateNestedManyWithoutUserInput
   spotify_account?: Prisma.SpotifyAccountsCreateNestedOneWithoutUserInput
+  rooms_hosted?: Prisma.RoomsCreateNestedManyWithoutHostInput
+  room_participations?: Prisma.RoomParticipantsCreateNestedManyWithoutUserInput
+  room_queue_additions?: Prisma.RoomQueueItemsCreateNestedManyWithoutAdded_byInput
 }
 
 export type UsersUncheckedCreateWithoutReporter_reportsInput = {
@@ -4403,8 +4935,12 @@ export type UsersUncheckedCreateWithoutReporter_reportsInput = {
   conversations_user1?: Prisma.ConversationsUncheckedCreateNestedManyWithoutUser1Input
   conversations_user2?: Prisma.ConversationsUncheckedCreateNestedManyWithoutUser2Input
   messages?: Prisma.MessagesUncheckedCreateNestedManyWithoutSenderInput
+  journal_entries?: Prisma.JournalEntriesUncheckedCreateNestedManyWithoutUserInput
   commentLikes?: Prisma.CommentLikesUncheckedCreateNestedManyWithoutUserInput
   spotify_account?: Prisma.SpotifyAccountsUncheckedCreateNestedOneWithoutUserInput
+  rooms_hosted?: Prisma.RoomsUncheckedCreateNestedManyWithoutHostInput
+  room_participations?: Prisma.RoomParticipantsUncheckedCreateNestedManyWithoutUserInput
+  room_queue_additions?: Prisma.RoomQueueItemsUncheckedCreateNestedManyWithoutAdded_byInput
 }
 
 export type UsersCreateOrConnectWithoutReporter_reportsInput = {
@@ -4463,8 +4999,12 @@ export type UsersCreateWithoutProfile_reportsInput = {
   conversations_user1?: Prisma.ConversationsCreateNestedManyWithoutUser1Input
   conversations_user2?: Prisma.ConversationsCreateNestedManyWithoutUser2Input
   messages?: Prisma.MessagesCreateNestedManyWithoutSenderInput
+  journal_entries?: Prisma.JournalEntriesCreateNestedManyWithoutUserInput
   commentLikes?: Prisma.CommentLikesCreateNestedManyWithoutUserInput
   spotify_account?: Prisma.SpotifyAccountsCreateNestedOneWithoutUserInput
+  rooms_hosted?: Prisma.RoomsCreateNestedManyWithoutHostInput
+  room_participations?: Prisma.RoomParticipantsCreateNestedManyWithoutUserInput
+  room_queue_additions?: Prisma.RoomQueueItemsCreateNestedManyWithoutAdded_byInput
 }
 
 export type UsersUncheckedCreateWithoutProfile_reportsInput = {
@@ -4518,8 +5058,12 @@ export type UsersUncheckedCreateWithoutProfile_reportsInput = {
   conversations_user1?: Prisma.ConversationsUncheckedCreateNestedManyWithoutUser1Input
   conversations_user2?: Prisma.ConversationsUncheckedCreateNestedManyWithoutUser2Input
   messages?: Prisma.MessagesUncheckedCreateNestedManyWithoutSenderInput
+  journal_entries?: Prisma.JournalEntriesUncheckedCreateNestedManyWithoutUserInput
   commentLikes?: Prisma.CommentLikesUncheckedCreateNestedManyWithoutUserInput
   spotify_account?: Prisma.SpotifyAccountsUncheckedCreateNestedOneWithoutUserInput
+  rooms_hosted?: Prisma.RoomsUncheckedCreateNestedManyWithoutHostInput
+  room_participations?: Prisma.RoomParticipantsUncheckedCreateNestedManyWithoutUserInput
+  room_queue_additions?: Prisma.RoomQueueItemsUncheckedCreateNestedManyWithoutAdded_byInput
 }
 
 export type UsersCreateOrConnectWithoutProfile_reportsInput = {
@@ -4589,8 +5133,12 @@ export type UsersUpdateWithoutReporter_reportsInput = {
   conversations_user1?: Prisma.ConversationsUpdateManyWithoutUser1NestedInput
   conversations_user2?: Prisma.ConversationsUpdateManyWithoutUser2NestedInput
   messages?: Prisma.MessagesUpdateManyWithoutSenderNestedInput
+  journal_entries?: Prisma.JournalEntriesUpdateManyWithoutUserNestedInput
   commentLikes?: Prisma.CommentLikesUpdateManyWithoutUserNestedInput
   spotify_account?: Prisma.SpotifyAccountsUpdateOneWithoutUserNestedInput
+  rooms_hosted?: Prisma.RoomsUpdateManyWithoutHostNestedInput
+  room_participations?: Prisma.RoomParticipantsUpdateManyWithoutUserNestedInput
+  room_queue_additions?: Prisma.RoomQueueItemsUpdateManyWithoutAdded_byNestedInput
 }
 
 export type UsersUncheckedUpdateWithoutReporter_reportsInput = {
@@ -4644,8 +5192,12 @@ export type UsersUncheckedUpdateWithoutReporter_reportsInput = {
   conversations_user1?: Prisma.ConversationsUncheckedUpdateManyWithoutUser1NestedInput
   conversations_user2?: Prisma.ConversationsUncheckedUpdateManyWithoutUser2NestedInput
   messages?: Prisma.MessagesUncheckedUpdateManyWithoutSenderNestedInput
+  journal_entries?: Prisma.JournalEntriesUncheckedUpdateManyWithoutUserNestedInput
   commentLikes?: Prisma.CommentLikesUncheckedUpdateManyWithoutUserNestedInput
   spotify_account?: Prisma.SpotifyAccountsUncheckedUpdateOneWithoutUserNestedInput
+  rooms_hosted?: Prisma.RoomsUncheckedUpdateManyWithoutHostNestedInput
+  room_participations?: Prisma.RoomParticipantsUncheckedUpdateManyWithoutUserNestedInput
+  room_queue_additions?: Prisma.RoomQueueItemsUncheckedUpdateManyWithoutAdded_byNestedInput
 }
 
 export type UsersUpsertWithoutProfile_reportsInput = {
@@ -4710,8 +5262,12 @@ export type UsersUpdateWithoutProfile_reportsInput = {
   conversations_user1?: Prisma.ConversationsUpdateManyWithoutUser1NestedInput
   conversations_user2?: Prisma.ConversationsUpdateManyWithoutUser2NestedInput
   messages?: Prisma.MessagesUpdateManyWithoutSenderNestedInput
+  journal_entries?: Prisma.JournalEntriesUpdateManyWithoutUserNestedInput
   commentLikes?: Prisma.CommentLikesUpdateManyWithoutUserNestedInput
   spotify_account?: Prisma.SpotifyAccountsUpdateOneWithoutUserNestedInput
+  rooms_hosted?: Prisma.RoomsUpdateManyWithoutHostNestedInput
+  room_participations?: Prisma.RoomParticipantsUpdateManyWithoutUserNestedInput
+  room_queue_additions?: Prisma.RoomQueueItemsUpdateManyWithoutAdded_byNestedInput
 }
 
 export type UsersUncheckedUpdateWithoutProfile_reportsInput = {
@@ -4765,8 +5321,12 @@ export type UsersUncheckedUpdateWithoutProfile_reportsInput = {
   conversations_user1?: Prisma.ConversationsUncheckedUpdateManyWithoutUser1NestedInput
   conversations_user2?: Prisma.ConversationsUncheckedUpdateManyWithoutUser2NestedInput
   messages?: Prisma.MessagesUncheckedUpdateManyWithoutSenderNestedInput
+  journal_entries?: Prisma.JournalEntriesUncheckedUpdateManyWithoutUserNestedInput
   commentLikes?: Prisma.CommentLikesUncheckedUpdateManyWithoutUserNestedInput
   spotify_account?: Prisma.SpotifyAccountsUncheckedUpdateOneWithoutUserNestedInput
+  rooms_hosted?: Prisma.RoomsUncheckedUpdateManyWithoutHostNestedInput
+  room_participations?: Prisma.RoomParticipantsUncheckedUpdateManyWithoutUserNestedInput
+  room_queue_additions?: Prisma.RoomQueueItemsUncheckedUpdateManyWithoutAdded_byNestedInput
 }
 
 export type UsersCreateWithoutNotificationsInput = {
@@ -4820,8 +5380,12 @@ export type UsersCreateWithoutNotificationsInput = {
   conversations_user1?: Prisma.ConversationsCreateNestedManyWithoutUser1Input
   conversations_user2?: Prisma.ConversationsCreateNestedManyWithoutUser2Input
   messages?: Prisma.MessagesCreateNestedManyWithoutSenderInput
+  journal_entries?: Prisma.JournalEntriesCreateNestedManyWithoutUserInput
   commentLikes?: Prisma.CommentLikesCreateNestedManyWithoutUserInput
   spotify_account?: Prisma.SpotifyAccountsCreateNestedOneWithoutUserInput
+  rooms_hosted?: Prisma.RoomsCreateNestedManyWithoutHostInput
+  room_participations?: Prisma.RoomParticipantsCreateNestedManyWithoutUserInput
+  room_queue_additions?: Prisma.RoomQueueItemsCreateNestedManyWithoutAdded_byInput
 }
 
 export type UsersUncheckedCreateWithoutNotificationsInput = {
@@ -4875,8 +5439,12 @@ export type UsersUncheckedCreateWithoutNotificationsInput = {
   conversations_user1?: Prisma.ConversationsUncheckedCreateNestedManyWithoutUser1Input
   conversations_user2?: Prisma.ConversationsUncheckedCreateNestedManyWithoutUser2Input
   messages?: Prisma.MessagesUncheckedCreateNestedManyWithoutSenderInput
+  journal_entries?: Prisma.JournalEntriesUncheckedCreateNestedManyWithoutUserInput
   commentLikes?: Prisma.CommentLikesUncheckedCreateNestedManyWithoutUserInput
   spotify_account?: Prisma.SpotifyAccountsUncheckedCreateNestedOneWithoutUserInput
+  rooms_hosted?: Prisma.RoomsUncheckedCreateNestedManyWithoutHostInput
+  room_participations?: Prisma.RoomParticipantsUncheckedCreateNestedManyWithoutUserInput
+  room_queue_additions?: Prisma.RoomQueueItemsUncheckedCreateNestedManyWithoutAdded_byInput
 }
 
 export type UsersCreateOrConnectWithoutNotificationsInput = {
@@ -4935,8 +5503,12 @@ export type UsersCreateWithoutNotificationsRelatedInput = {
   conversations_user1?: Prisma.ConversationsCreateNestedManyWithoutUser1Input
   conversations_user2?: Prisma.ConversationsCreateNestedManyWithoutUser2Input
   messages?: Prisma.MessagesCreateNestedManyWithoutSenderInput
+  journal_entries?: Prisma.JournalEntriesCreateNestedManyWithoutUserInput
   commentLikes?: Prisma.CommentLikesCreateNestedManyWithoutUserInput
   spotify_account?: Prisma.SpotifyAccountsCreateNestedOneWithoutUserInput
+  rooms_hosted?: Prisma.RoomsCreateNestedManyWithoutHostInput
+  room_participations?: Prisma.RoomParticipantsCreateNestedManyWithoutUserInput
+  room_queue_additions?: Prisma.RoomQueueItemsCreateNestedManyWithoutAdded_byInput
 }
 
 export type UsersUncheckedCreateWithoutNotificationsRelatedInput = {
@@ -4990,8 +5562,12 @@ export type UsersUncheckedCreateWithoutNotificationsRelatedInput = {
   conversations_user1?: Prisma.ConversationsUncheckedCreateNestedManyWithoutUser1Input
   conversations_user2?: Prisma.ConversationsUncheckedCreateNestedManyWithoutUser2Input
   messages?: Prisma.MessagesUncheckedCreateNestedManyWithoutSenderInput
+  journal_entries?: Prisma.JournalEntriesUncheckedCreateNestedManyWithoutUserInput
   commentLikes?: Prisma.CommentLikesUncheckedCreateNestedManyWithoutUserInput
   spotify_account?: Prisma.SpotifyAccountsUncheckedCreateNestedOneWithoutUserInput
+  rooms_hosted?: Prisma.RoomsUncheckedCreateNestedManyWithoutHostInput
+  room_participations?: Prisma.RoomParticipantsUncheckedCreateNestedManyWithoutUserInput
+  room_queue_additions?: Prisma.RoomQueueItemsUncheckedCreateNestedManyWithoutAdded_byInput
 }
 
 export type UsersCreateOrConnectWithoutNotificationsRelatedInput = {
@@ -5061,8 +5637,12 @@ export type UsersUpdateWithoutNotificationsInput = {
   conversations_user1?: Prisma.ConversationsUpdateManyWithoutUser1NestedInput
   conversations_user2?: Prisma.ConversationsUpdateManyWithoutUser2NestedInput
   messages?: Prisma.MessagesUpdateManyWithoutSenderNestedInput
+  journal_entries?: Prisma.JournalEntriesUpdateManyWithoutUserNestedInput
   commentLikes?: Prisma.CommentLikesUpdateManyWithoutUserNestedInput
   spotify_account?: Prisma.SpotifyAccountsUpdateOneWithoutUserNestedInput
+  rooms_hosted?: Prisma.RoomsUpdateManyWithoutHostNestedInput
+  room_participations?: Prisma.RoomParticipantsUpdateManyWithoutUserNestedInput
+  room_queue_additions?: Prisma.RoomQueueItemsUpdateManyWithoutAdded_byNestedInput
 }
 
 export type UsersUncheckedUpdateWithoutNotificationsInput = {
@@ -5116,8 +5696,12 @@ export type UsersUncheckedUpdateWithoutNotificationsInput = {
   conversations_user1?: Prisma.ConversationsUncheckedUpdateManyWithoutUser1NestedInput
   conversations_user2?: Prisma.ConversationsUncheckedUpdateManyWithoutUser2NestedInput
   messages?: Prisma.MessagesUncheckedUpdateManyWithoutSenderNestedInput
+  journal_entries?: Prisma.JournalEntriesUncheckedUpdateManyWithoutUserNestedInput
   commentLikes?: Prisma.CommentLikesUncheckedUpdateManyWithoutUserNestedInput
   spotify_account?: Prisma.SpotifyAccountsUncheckedUpdateOneWithoutUserNestedInput
+  rooms_hosted?: Prisma.RoomsUncheckedUpdateManyWithoutHostNestedInput
+  room_participations?: Prisma.RoomParticipantsUncheckedUpdateManyWithoutUserNestedInput
+  room_queue_additions?: Prisma.RoomQueueItemsUncheckedUpdateManyWithoutAdded_byNestedInput
 }
 
 export type UsersUpsertWithoutNotificationsRelatedInput = {
@@ -5182,8 +5766,12 @@ export type UsersUpdateWithoutNotificationsRelatedInput = {
   conversations_user1?: Prisma.ConversationsUpdateManyWithoutUser1NestedInput
   conversations_user2?: Prisma.ConversationsUpdateManyWithoutUser2NestedInput
   messages?: Prisma.MessagesUpdateManyWithoutSenderNestedInput
+  journal_entries?: Prisma.JournalEntriesUpdateManyWithoutUserNestedInput
   commentLikes?: Prisma.CommentLikesUpdateManyWithoutUserNestedInput
   spotify_account?: Prisma.SpotifyAccountsUpdateOneWithoutUserNestedInput
+  rooms_hosted?: Prisma.RoomsUpdateManyWithoutHostNestedInput
+  room_participations?: Prisma.RoomParticipantsUpdateManyWithoutUserNestedInput
+  room_queue_additions?: Prisma.RoomQueueItemsUpdateManyWithoutAdded_byNestedInput
 }
 
 export type UsersUncheckedUpdateWithoutNotificationsRelatedInput = {
@@ -5237,8 +5825,12 @@ export type UsersUncheckedUpdateWithoutNotificationsRelatedInput = {
   conversations_user1?: Prisma.ConversationsUncheckedUpdateManyWithoutUser1NestedInput
   conversations_user2?: Prisma.ConversationsUncheckedUpdateManyWithoutUser2NestedInput
   messages?: Prisma.MessagesUncheckedUpdateManyWithoutSenderNestedInput
+  journal_entries?: Prisma.JournalEntriesUncheckedUpdateManyWithoutUserNestedInput
   commentLikes?: Prisma.CommentLikesUncheckedUpdateManyWithoutUserNestedInput
   spotify_account?: Prisma.SpotifyAccountsUncheckedUpdateOneWithoutUserNestedInput
+  rooms_hosted?: Prisma.RoomsUncheckedUpdateManyWithoutHostNestedInput
+  room_participations?: Prisma.RoomParticipantsUncheckedUpdateManyWithoutUserNestedInput
+  room_queue_additions?: Prisma.RoomQueueItemsUncheckedUpdateManyWithoutAdded_byNestedInput
 }
 
 export type UsersCreateWithoutConversations_user1Input = {
@@ -5292,8 +5884,12 @@ export type UsersCreateWithoutConversations_user1Input = {
   activities_targets?: Prisma.ActivitiesCreateNestedManyWithoutTarget_userInput
   conversations_user2?: Prisma.ConversationsCreateNestedManyWithoutUser2Input
   messages?: Prisma.MessagesCreateNestedManyWithoutSenderInput
+  journal_entries?: Prisma.JournalEntriesCreateNestedManyWithoutUserInput
   commentLikes?: Prisma.CommentLikesCreateNestedManyWithoutUserInput
   spotify_account?: Prisma.SpotifyAccountsCreateNestedOneWithoutUserInput
+  rooms_hosted?: Prisma.RoomsCreateNestedManyWithoutHostInput
+  room_participations?: Prisma.RoomParticipantsCreateNestedManyWithoutUserInput
+  room_queue_additions?: Prisma.RoomQueueItemsCreateNestedManyWithoutAdded_byInput
 }
 
 export type UsersUncheckedCreateWithoutConversations_user1Input = {
@@ -5347,8 +5943,12 @@ export type UsersUncheckedCreateWithoutConversations_user1Input = {
   activities_targets?: Prisma.ActivitiesUncheckedCreateNestedManyWithoutTarget_userInput
   conversations_user2?: Prisma.ConversationsUncheckedCreateNestedManyWithoutUser2Input
   messages?: Prisma.MessagesUncheckedCreateNestedManyWithoutSenderInput
+  journal_entries?: Prisma.JournalEntriesUncheckedCreateNestedManyWithoutUserInput
   commentLikes?: Prisma.CommentLikesUncheckedCreateNestedManyWithoutUserInput
   spotify_account?: Prisma.SpotifyAccountsUncheckedCreateNestedOneWithoutUserInput
+  rooms_hosted?: Prisma.RoomsUncheckedCreateNestedManyWithoutHostInput
+  room_participations?: Prisma.RoomParticipantsUncheckedCreateNestedManyWithoutUserInput
+  room_queue_additions?: Prisma.RoomQueueItemsUncheckedCreateNestedManyWithoutAdded_byInput
 }
 
 export type UsersCreateOrConnectWithoutConversations_user1Input = {
@@ -5407,8 +6007,12 @@ export type UsersCreateWithoutConversations_user2Input = {
   activities_targets?: Prisma.ActivitiesCreateNestedManyWithoutTarget_userInput
   conversations_user1?: Prisma.ConversationsCreateNestedManyWithoutUser1Input
   messages?: Prisma.MessagesCreateNestedManyWithoutSenderInput
+  journal_entries?: Prisma.JournalEntriesCreateNestedManyWithoutUserInput
   commentLikes?: Prisma.CommentLikesCreateNestedManyWithoutUserInput
   spotify_account?: Prisma.SpotifyAccountsCreateNestedOneWithoutUserInput
+  rooms_hosted?: Prisma.RoomsCreateNestedManyWithoutHostInput
+  room_participations?: Prisma.RoomParticipantsCreateNestedManyWithoutUserInput
+  room_queue_additions?: Prisma.RoomQueueItemsCreateNestedManyWithoutAdded_byInput
 }
 
 export type UsersUncheckedCreateWithoutConversations_user2Input = {
@@ -5462,8 +6066,12 @@ export type UsersUncheckedCreateWithoutConversations_user2Input = {
   activities_targets?: Prisma.ActivitiesUncheckedCreateNestedManyWithoutTarget_userInput
   conversations_user1?: Prisma.ConversationsUncheckedCreateNestedManyWithoutUser1Input
   messages?: Prisma.MessagesUncheckedCreateNestedManyWithoutSenderInput
+  journal_entries?: Prisma.JournalEntriesUncheckedCreateNestedManyWithoutUserInput
   commentLikes?: Prisma.CommentLikesUncheckedCreateNestedManyWithoutUserInput
   spotify_account?: Prisma.SpotifyAccountsUncheckedCreateNestedOneWithoutUserInput
+  rooms_hosted?: Prisma.RoomsUncheckedCreateNestedManyWithoutHostInput
+  room_participations?: Prisma.RoomParticipantsUncheckedCreateNestedManyWithoutUserInput
+  room_queue_additions?: Prisma.RoomQueueItemsUncheckedCreateNestedManyWithoutAdded_byInput
 }
 
 export type UsersCreateOrConnectWithoutConversations_user2Input = {
@@ -5533,8 +6141,12 @@ export type UsersUpdateWithoutConversations_user1Input = {
   activities_targets?: Prisma.ActivitiesUpdateManyWithoutTarget_userNestedInput
   conversations_user2?: Prisma.ConversationsUpdateManyWithoutUser2NestedInput
   messages?: Prisma.MessagesUpdateManyWithoutSenderNestedInput
+  journal_entries?: Prisma.JournalEntriesUpdateManyWithoutUserNestedInput
   commentLikes?: Prisma.CommentLikesUpdateManyWithoutUserNestedInput
   spotify_account?: Prisma.SpotifyAccountsUpdateOneWithoutUserNestedInput
+  rooms_hosted?: Prisma.RoomsUpdateManyWithoutHostNestedInput
+  room_participations?: Prisma.RoomParticipantsUpdateManyWithoutUserNestedInput
+  room_queue_additions?: Prisma.RoomQueueItemsUpdateManyWithoutAdded_byNestedInput
 }
 
 export type UsersUncheckedUpdateWithoutConversations_user1Input = {
@@ -5588,8 +6200,12 @@ export type UsersUncheckedUpdateWithoutConversations_user1Input = {
   activities_targets?: Prisma.ActivitiesUncheckedUpdateManyWithoutTarget_userNestedInput
   conversations_user2?: Prisma.ConversationsUncheckedUpdateManyWithoutUser2NestedInput
   messages?: Prisma.MessagesUncheckedUpdateManyWithoutSenderNestedInput
+  journal_entries?: Prisma.JournalEntriesUncheckedUpdateManyWithoutUserNestedInput
   commentLikes?: Prisma.CommentLikesUncheckedUpdateManyWithoutUserNestedInput
   spotify_account?: Prisma.SpotifyAccountsUncheckedUpdateOneWithoutUserNestedInput
+  rooms_hosted?: Prisma.RoomsUncheckedUpdateManyWithoutHostNestedInput
+  room_participations?: Prisma.RoomParticipantsUncheckedUpdateManyWithoutUserNestedInput
+  room_queue_additions?: Prisma.RoomQueueItemsUncheckedUpdateManyWithoutAdded_byNestedInput
 }
 
 export type UsersUpsertWithoutConversations_user2Input = {
@@ -5654,8 +6270,12 @@ export type UsersUpdateWithoutConversations_user2Input = {
   activities_targets?: Prisma.ActivitiesUpdateManyWithoutTarget_userNestedInput
   conversations_user1?: Prisma.ConversationsUpdateManyWithoutUser1NestedInput
   messages?: Prisma.MessagesUpdateManyWithoutSenderNestedInput
+  journal_entries?: Prisma.JournalEntriesUpdateManyWithoutUserNestedInput
   commentLikes?: Prisma.CommentLikesUpdateManyWithoutUserNestedInput
   spotify_account?: Prisma.SpotifyAccountsUpdateOneWithoutUserNestedInput
+  rooms_hosted?: Prisma.RoomsUpdateManyWithoutHostNestedInput
+  room_participations?: Prisma.RoomParticipantsUpdateManyWithoutUserNestedInput
+  room_queue_additions?: Prisma.RoomQueueItemsUpdateManyWithoutAdded_byNestedInput
 }
 
 export type UsersUncheckedUpdateWithoutConversations_user2Input = {
@@ -5709,8 +6329,12 @@ export type UsersUncheckedUpdateWithoutConversations_user2Input = {
   activities_targets?: Prisma.ActivitiesUncheckedUpdateManyWithoutTarget_userNestedInput
   conversations_user1?: Prisma.ConversationsUncheckedUpdateManyWithoutUser1NestedInput
   messages?: Prisma.MessagesUncheckedUpdateManyWithoutSenderNestedInput
+  journal_entries?: Prisma.JournalEntriesUncheckedUpdateManyWithoutUserNestedInput
   commentLikes?: Prisma.CommentLikesUncheckedUpdateManyWithoutUserNestedInput
   spotify_account?: Prisma.SpotifyAccountsUncheckedUpdateOneWithoutUserNestedInput
+  rooms_hosted?: Prisma.RoomsUncheckedUpdateManyWithoutHostNestedInput
+  room_participations?: Prisma.RoomParticipantsUncheckedUpdateManyWithoutUserNestedInput
+  room_queue_additions?: Prisma.RoomQueueItemsUncheckedUpdateManyWithoutAdded_byNestedInput
 }
 
 export type UsersCreateWithoutMessagesInput = {
@@ -5764,8 +6388,12 @@ export type UsersCreateWithoutMessagesInput = {
   activities_targets?: Prisma.ActivitiesCreateNestedManyWithoutTarget_userInput
   conversations_user1?: Prisma.ConversationsCreateNestedManyWithoutUser1Input
   conversations_user2?: Prisma.ConversationsCreateNestedManyWithoutUser2Input
+  journal_entries?: Prisma.JournalEntriesCreateNestedManyWithoutUserInput
   commentLikes?: Prisma.CommentLikesCreateNestedManyWithoutUserInput
   spotify_account?: Prisma.SpotifyAccountsCreateNestedOneWithoutUserInput
+  rooms_hosted?: Prisma.RoomsCreateNestedManyWithoutHostInput
+  room_participations?: Prisma.RoomParticipantsCreateNestedManyWithoutUserInput
+  room_queue_additions?: Prisma.RoomQueueItemsCreateNestedManyWithoutAdded_byInput
 }
 
 export type UsersUncheckedCreateWithoutMessagesInput = {
@@ -5819,8 +6447,12 @@ export type UsersUncheckedCreateWithoutMessagesInput = {
   activities_targets?: Prisma.ActivitiesUncheckedCreateNestedManyWithoutTarget_userInput
   conversations_user1?: Prisma.ConversationsUncheckedCreateNestedManyWithoutUser1Input
   conversations_user2?: Prisma.ConversationsUncheckedCreateNestedManyWithoutUser2Input
+  journal_entries?: Prisma.JournalEntriesUncheckedCreateNestedManyWithoutUserInput
   commentLikes?: Prisma.CommentLikesUncheckedCreateNestedManyWithoutUserInput
   spotify_account?: Prisma.SpotifyAccountsUncheckedCreateNestedOneWithoutUserInput
+  rooms_hosted?: Prisma.RoomsUncheckedCreateNestedManyWithoutHostInput
+  room_participations?: Prisma.RoomParticipantsUncheckedCreateNestedManyWithoutUserInput
+  room_queue_additions?: Prisma.RoomQueueItemsUncheckedCreateNestedManyWithoutAdded_byInput
 }
 
 export type UsersCreateOrConnectWithoutMessagesInput = {
@@ -5890,8 +6522,12 @@ export type UsersUpdateWithoutMessagesInput = {
   activities_targets?: Prisma.ActivitiesUpdateManyWithoutTarget_userNestedInput
   conversations_user1?: Prisma.ConversationsUpdateManyWithoutUser1NestedInput
   conversations_user2?: Prisma.ConversationsUpdateManyWithoutUser2NestedInput
+  journal_entries?: Prisma.JournalEntriesUpdateManyWithoutUserNestedInput
   commentLikes?: Prisma.CommentLikesUpdateManyWithoutUserNestedInput
   spotify_account?: Prisma.SpotifyAccountsUpdateOneWithoutUserNestedInput
+  rooms_hosted?: Prisma.RoomsUpdateManyWithoutHostNestedInput
+  room_participations?: Prisma.RoomParticipantsUpdateManyWithoutUserNestedInput
+  room_queue_additions?: Prisma.RoomQueueItemsUpdateManyWithoutAdded_byNestedInput
 }
 
 export type UsersUncheckedUpdateWithoutMessagesInput = {
@@ -5945,8 +6581,768 @@ export type UsersUncheckedUpdateWithoutMessagesInput = {
   activities_targets?: Prisma.ActivitiesUncheckedUpdateManyWithoutTarget_userNestedInput
   conversations_user1?: Prisma.ConversationsUncheckedUpdateManyWithoutUser1NestedInput
   conversations_user2?: Prisma.ConversationsUncheckedUpdateManyWithoutUser2NestedInput
+  journal_entries?: Prisma.JournalEntriesUncheckedUpdateManyWithoutUserNestedInput
   commentLikes?: Prisma.CommentLikesUncheckedUpdateManyWithoutUserNestedInput
   spotify_account?: Prisma.SpotifyAccountsUncheckedUpdateOneWithoutUserNestedInput
+  rooms_hosted?: Prisma.RoomsUncheckedUpdateManyWithoutHostNestedInput
+  room_participations?: Prisma.RoomParticipantsUncheckedUpdateManyWithoutUserNestedInput
+  room_queue_additions?: Prisma.RoomQueueItemsUncheckedUpdateManyWithoutAdded_byNestedInput
+}
+
+export type UsersCreateWithoutRooms_hostedInput = {
+  id?: string
+  username: string
+  pseudo: string
+  email: string
+  password?: string | null
+  favorite_band?: string | null
+  profile_picture?: runtime.Bytes | null
+  banner?: runtime.Bytes | null
+  shop_points?: number
+  owned_cosmetics?: Prisma.UsersCreateowned_cosmeticsInput | string[]
+  equipped_avatar_border?: string | null
+  equipped_font?: string | null
+  equipped_title?: string | null
+  equipped_text_effect?: string | null
+  equipped_banner?: string | null
+  equipped_pattern?: string | null
+  role?: $Enums.Roles
+  provider?: $Enums.AuthProvider | null
+  provider_id?: string | null
+  has_notifications?: boolean
+  phone_number?: string | null
+  biography?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  email_verified?: boolean
+  email_verification_code?: string | null
+  email_verification_expires?: Date | string | null
+  password_reset_code?: string | null
+  password_reset_expires?: Date | string | null
+  twofa_enabled?: boolean
+  twofa_secret?: string | null
+  twofa_backup_codes?: Prisma.UsersCreatetwofa_backup_codesInput | string[]
+  earned_badges?: Prisma.UsersCreateearned_badgesInput | string[]
+  expo_push_token?: string | null
+  reviews?: Prisma.ReviewsCreateNestedManyWithoutUserInput
+  review_comments?: Prisma.ReviewCommentsCreateNestedManyWithoutUserInput
+  review_likes?: Prisma.ReviewLikesCreateNestedManyWithoutUserInput
+  playlists?: Prisma.PlaylistsCreateNestedManyWithoutUserInput
+  playlist_collaborations?: Prisma.PlaylistCollaboratorsCreateNestedManyWithoutUserInput
+  follows?: Prisma.FollowsCreateNestedManyWithoutUserInput
+  followers?: Prisma.FollowsCreateNestedManyWithoutFollow_userInput
+  notifications?: Prisma.NotificationsCreateNestedManyWithoutUserInput
+  notificationsRelated?: Prisma.NotificationsCreateNestedManyWithoutRelated_userInput
+  user_media_status?: Prisma.UserMediaStatusCreateNestedManyWithoutUserInput
+  reporter_reports?: Prisma.ReportsCreateNestedManyWithoutReporterInput
+  profile_reports?: Prisma.ReportsCreateNestedManyWithoutProfileInput
+  activities?: Prisma.ActivitiesCreateNestedManyWithoutUserInput
+  activities_targets?: Prisma.ActivitiesCreateNestedManyWithoutTarget_userInput
+  conversations_user1?: Prisma.ConversationsCreateNestedManyWithoutUser1Input
+  conversations_user2?: Prisma.ConversationsCreateNestedManyWithoutUser2Input
+  messages?: Prisma.MessagesCreateNestedManyWithoutSenderInput
+  journal_entries?: Prisma.JournalEntriesCreateNestedManyWithoutUserInput
+  commentLikes?: Prisma.CommentLikesCreateNestedManyWithoutUserInput
+  spotify_account?: Prisma.SpotifyAccountsCreateNestedOneWithoutUserInput
+  room_participations?: Prisma.RoomParticipantsCreateNestedManyWithoutUserInput
+  room_queue_additions?: Prisma.RoomQueueItemsCreateNestedManyWithoutAdded_byInput
+}
+
+export type UsersUncheckedCreateWithoutRooms_hostedInput = {
+  id?: string
+  username: string
+  pseudo: string
+  email: string
+  password?: string | null
+  favorite_band?: string | null
+  profile_picture?: runtime.Bytes | null
+  banner?: runtime.Bytes | null
+  shop_points?: number
+  owned_cosmetics?: Prisma.UsersCreateowned_cosmeticsInput | string[]
+  equipped_avatar_border?: string | null
+  equipped_font?: string | null
+  equipped_title?: string | null
+  equipped_text_effect?: string | null
+  equipped_banner?: string | null
+  equipped_pattern?: string | null
+  role?: $Enums.Roles
+  provider?: $Enums.AuthProvider | null
+  provider_id?: string | null
+  has_notifications?: boolean
+  phone_number?: string | null
+  biography?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  email_verified?: boolean
+  email_verification_code?: string | null
+  email_verification_expires?: Date | string | null
+  password_reset_code?: string | null
+  password_reset_expires?: Date | string | null
+  twofa_enabled?: boolean
+  twofa_secret?: string | null
+  twofa_backup_codes?: Prisma.UsersCreatetwofa_backup_codesInput | string[]
+  earned_badges?: Prisma.UsersCreateearned_badgesInput | string[]
+  expo_push_token?: string | null
+  reviews?: Prisma.ReviewsUncheckedCreateNestedManyWithoutUserInput
+  review_comments?: Prisma.ReviewCommentsUncheckedCreateNestedManyWithoutUserInput
+  review_likes?: Prisma.ReviewLikesUncheckedCreateNestedManyWithoutUserInput
+  playlists?: Prisma.PlaylistsUncheckedCreateNestedManyWithoutUserInput
+  playlist_collaborations?: Prisma.PlaylistCollaboratorsUncheckedCreateNestedManyWithoutUserInput
+  follows?: Prisma.FollowsUncheckedCreateNestedManyWithoutUserInput
+  followers?: Prisma.FollowsUncheckedCreateNestedManyWithoutFollow_userInput
+  notifications?: Prisma.NotificationsUncheckedCreateNestedManyWithoutUserInput
+  notificationsRelated?: Prisma.NotificationsUncheckedCreateNestedManyWithoutRelated_userInput
+  user_media_status?: Prisma.UserMediaStatusUncheckedCreateNestedManyWithoutUserInput
+  reporter_reports?: Prisma.ReportsUncheckedCreateNestedManyWithoutReporterInput
+  profile_reports?: Prisma.ReportsUncheckedCreateNestedManyWithoutProfileInput
+  activities?: Prisma.ActivitiesUncheckedCreateNestedManyWithoutUserInput
+  activities_targets?: Prisma.ActivitiesUncheckedCreateNestedManyWithoutTarget_userInput
+  conversations_user1?: Prisma.ConversationsUncheckedCreateNestedManyWithoutUser1Input
+  conversations_user2?: Prisma.ConversationsUncheckedCreateNestedManyWithoutUser2Input
+  messages?: Prisma.MessagesUncheckedCreateNestedManyWithoutSenderInput
+  journal_entries?: Prisma.JournalEntriesUncheckedCreateNestedManyWithoutUserInput
+  commentLikes?: Prisma.CommentLikesUncheckedCreateNestedManyWithoutUserInput
+  spotify_account?: Prisma.SpotifyAccountsUncheckedCreateNestedOneWithoutUserInput
+  room_participations?: Prisma.RoomParticipantsUncheckedCreateNestedManyWithoutUserInput
+  room_queue_additions?: Prisma.RoomQueueItemsUncheckedCreateNestedManyWithoutAdded_byInput
+}
+
+export type UsersCreateOrConnectWithoutRooms_hostedInput = {
+  where: Prisma.UsersWhereUniqueInput
+  create: Prisma.XOR<Prisma.UsersCreateWithoutRooms_hostedInput, Prisma.UsersUncheckedCreateWithoutRooms_hostedInput>
+}
+
+export type UsersUpsertWithoutRooms_hostedInput = {
+  update: Prisma.XOR<Prisma.UsersUpdateWithoutRooms_hostedInput, Prisma.UsersUncheckedUpdateWithoutRooms_hostedInput>
+  create: Prisma.XOR<Prisma.UsersCreateWithoutRooms_hostedInput, Prisma.UsersUncheckedCreateWithoutRooms_hostedInput>
+  where?: Prisma.UsersWhereInput
+}
+
+export type UsersUpdateToOneWithWhereWithoutRooms_hostedInput = {
+  where?: Prisma.UsersWhereInput
+  data: Prisma.XOR<Prisma.UsersUpdateWithoutRooms_hostedInput, Prisma.UsersUncheckedUpdateWithoutRooms_hostedInput>
+}
+
+export type UsersUpdateWithoutRooms_hostedInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.StringFieldUpdateOperationsInput | string
+  pseudo?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  favorite_band?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile_picture?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
+  banner?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
+  shop_points?: Prisma.IntFieldUpdateOperationsInput | number
+  owned_cosmetics?: Prisma.UsersUpdateowned_cosmeticsInput | string[]
+  equipped_avatar_border?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  equipped_font?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  equipped_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  equipped_text_effect?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  equipped_banner?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  equipped_pattern?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRolesFieldUpdateOperationsInput | $Enums.Roles
+  provider?: Prisma.NullableEnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider | null
+  provider_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  has_notifications?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  phone_number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  biography?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  email_verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  email_verification_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email_verification_expires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  password_reset_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  password_reset_expires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  twofa_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  twofa_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  twofa_backup_codes?: Prisma.UsersUpdatetwofa_backup_codesInput | string[]
+  earned_badges?: Prisma.UsersUpdateearned_badgesInput | string[]
+  expo_push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reviews?: Prisma.ReviewsUpdateManyWithoutUserNestedInput
+  review_comments?: Prisma.ReviewCommentsUpdateManyWithoutUserNestedInput
+  review_likes?: Prisma.ReviewLikesUpdateManyWithoutUserNestedInput
+  playlists?: Prisma.PlaylistsUpdateManyWithoutUserNestedInput
+  playlist_collaborations?: Prisma.PlaylistCollaboratorsUpdateManyWithoutUserNestedInput
+  follows?: Prisma.FollowsUpdateManyWithoutUserNestedInput
+  followers?: Prisma.FollowsUpdateManyWithoutFollow_userNestedInput
+  notifications?: Prisma.NotificationsUpdateManyWithoutUserNestedInput
+  notificationsRelated?: Prisma.NotificationsUpdateManyWithoutRelated_userNestedInput
+  user_media_status?: Prisma.UserMediaStatusUpdateManyWithoutUserNestedInput
+  reporter_reports?: Prisma.ReportsUpdateManyWithoutReporterNestedInput
+  profile_reports?: Prisma.ReportsUpdateManyWithoutProfileNestedInput
+  activities?: Prisma.ActivitiesUpdateManyWithoutUserNestedInput
+  activities_targets?: Prisma.ActivitiesUpdateManyWithoutTarget_userNestedInput
+  conversations_user1?: Prisma.ConversationsUpdateManyWithoutUser1NestedInput
+  conversations_user2?: Prisma.ConversationsUpdateManyWithoutUser2NestedInput
+  messages?: Prisma.MessagesUpdateManyWithoutSenderNestedInput
+  journal_entries?: Prisma.JournalEntriesUpdateManyWithoutUserNestedInput
+  commentLikes?: Prisma.CommentLikesUpdateManyWithoutUserNestedInput
+  spotify_account?: Prisma.SpotifyAccountsUpdateOneWithoutUserNestedInput
+  room_participations?: Prisma.RoomParticipantsUpdateManyWithoutUserNestedInput
+  room_queue_additions?: Prisma.RoomQueueItemsUpdateManyWithoutAdded_byNestedInput
+}
+
+export type UsersUncheckedUpdateWithoutRooms_hostedInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.StringFieldUpdateOperationsInput | string
+  pseudo?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  favorite_band?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile_picture?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
+  banner?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
+  shop_points?: Prisma.IntFieldUpdateOperationsInput | number
+  owned_cosmetics?: Prisma.UsersUpdateowned_cosmeticsInput | string[]
+  equipped_avatar_border?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  equipped_font?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  equipped_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  equipped_text_effect?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  equipped_banner?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  equipped_pattern?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRolesFieldUpdateOperationsInput | $Enums.Roles
+  provider?: Prisma.NullableEnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider | null
+  provider_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  has_notifications?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  phone_number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  biography?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  email_verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  email_verification_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email_verification_expires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  password_reset_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  password_reset_expires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  twofa_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  twofa_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  twofa_backup_codes?: Prisma.UsersUpdatetwofa_backup_codesInput | string[]
+  earned_badges?: Prisma.UsersUpdateearned_badgesInput | string[]
+  expo_push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reviews?: Prisma.ReviewsUncheckedUpdateManyWithoutUserNestedInput
+  review_comments?: Prisma.ReviewCommentsUncheckedUpdateManyWithoutUserNestedInput
+  review_likes?: Prisma.ReviewLikesUncheckedUpdateManyWithoutUserNestedInput
+  playlists?: Prisma.PlaylistsUncheckedUpdateManyWithoutUserNestedInput
+  playlist_collaborations?: Prisma.PlaylistCollaboratorsUncheckedUpdateManyWithoutUserNestedInput
+  follows?: Prisma.FollowsUncheckedUpdateManyWithoutUserNestedInput
+  followers?: Prisma.FollowsUncheckedUpdateManyWithoutFollow_userNestedInput
+  notifications?: Prisma.NotificationsUncheckedUpdateManyWithoutUserNestedInput
+  notificationsRelated?: Prisma.NotificationsUncheckedUpdateManyWithoutRelated_userNestedInput
+  user_media_status?: Prisma.UserMediaStatusUncheckedUpdateManyWithoutUserNestedInput
+  reporter_reports?: Prisma.ReportsUncheckedUpdateManyWithoutReporterNestedInput
+  profile_reports?: Prisma.ReportsUncheckedUpdateManyWithoutProfileNestedInput
+  activities?: Prisma.ActivitiesUncheckedUpdateManyWithoutUserNestedInput
+  activities_targets?: Prisma.ActivitiesUncheckedUpdateManyWithoutTarget_userNestedInput
+  conversations_user1?: Prisma.ConversationsUncheckedUpdateManyWithoutUser1NestedInput
+  conversations_user2?: Prisma.ConversationsUncheckedUpdateManyWithoutUser2NestedInput
+  messages?: Prisma.MessagesUncheckedUpdateManyWithoutSenderNestedInput
+  journal_entries?: Prisma.JournalEntriesUncheckedUpdateManyWithoutUserNestedInput
+  commentLikes?: Prisma.CommentLikesUncheckedUpdateManyWithoutUserNestedInput
+  spotify_account?: Prisma.SpotifyAccountsUncheckedUpdateOneWithoutUserNestedInput
+  room_participations?: Prisma.RoomParticipantsUncheckedUpdateManyWithoutUserNestedInput
+  room_queue_additions?: Prisma.RoomQueueItemsUncheckedUpdateManyWithoutAdded_byNestedInput
+}
+
+export type UsersCreateWithoutRoom_participationsInput = {
+  id?: string
+  username: string
+  pseudo: string
+  email: string
+  password?: string | null
+  favorite_band?: string | null
+  profile_picture?: runtime.Bytes | null
+  banner?: runtime.Bytes | null
+  shop_points?: number
+  owned_cosmetics?: Prisma.UsersCreateowned_cosmeticsInput | string[]
+  equipped_avatar_border?: string | null
+  equipped_font?: string | null
+  equipped_title?: string | null
+  equipped_text_effect?: string | null
+  equipped_banner?: string | null
+  equipped_pattern?: string | null
+  role?: $Enums.Roles
+  provider?: $Enums.AuthProvider | null
+  provider_id?: string | null
+  has_notifications?: boolean
+  phone_number?: string | null
+  biography?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  email_verified?: boolean
+  email_verification_code?: string | null
+  email_verification_expires?: Date | string | null
+  password_reset_code?: string | null
+  password_reset_expires?: Date | string | null
+  twofa_enabled?: boolean
+  twofa_secret?: string | null
+  twofa_backup_codes?: Prisma.UsersCreatetwofa_backup_codesInput | string[]
+  earned_badges?: Prisma.UsersCreateearned_badgesInput | string[]
+  expo_push_token?: string | null
+  reviews?: Prisma.ReviewsCreateNestedManyWithoutUserInput
+  review_comments?: Prisma.ReviewCommentsCreateNestedManyWithoutUserInput
+  review_likes?: Prisma.ReviewLikesCreateNestedManyWithoutUserInput
+  playlists?: Prisma.PlaylistsCreateNestedManyWithoutUserInput
+  playlist_collaborations?: Prisma.PlaylistCollaboratorsCreateNestedManyWithoutUserInput
+  follows?: Prisma.FollowsCreateNestedManyWithoutUserInput
+  followers?: Prisma.FollowsCreateNestedManyWithoutFollow_userInput
+  notifications?: Prisma.NotificationsCreateNestedManyWithoutUserInput
+  notificationsRelated?: Prisma.NotificationsCreateNestedManyWithoutRelated_userInput
+  user_media_status?: Prisma.UserMediaStatusCreateNestedManyWithoutUserInput
+  reporter_reports?: Prisma.ReportsCreateNestedManyWithoutReporterInput
+  profile_reports?: Prisma.ReportsCreateNestedManyWithoutProfileInput
+  activities?: Prisma.ActivitiesCreateNestedManyWithoutUserInput
+  activities_targets?: Prisma.ActivitiesCreateNestedManyWithoutTarget_userInput
+  conversations_user1?: Prisma.ConversationsCreateNestedManyWithoutUser1Input
+  conversations_user2?: Prisma.ConversationsCreateNestedManyWithoutUser2Input
+  messages?: Prisma.MessagesCreateNestedManyWithoutSenderInput
+  journal_entries?: Prisma.JournalEntriesCreateNestedManyWithoutUserInput
+  commentLikes?: Prisma.CommentLikesCreateNestedManyWithoutUserInput
+  spotify_account?: Prisma.SpotifyAccountsCreateNestedOneWithoutUserInput
+  rooms_hosted?: Prisma.RoomsCreateNestedManyWithoutHostInput
+  room_queue_additions?: Prisma.RoomQueueItemsCreateNestedManyWithoutAdded_byInput
+}
+
+export type UsersUncheckedCreateWithoutRoom_participationsInput = {
+  id?: string
+  username: string
+  pseudo: string
+  email: string
+  password?: string | null
+  favorite_band?: string | null
+  profile_picture?: runtime.Bytes | null
+  banner?: runtime.Bytes | null
+  shop_points?: number
+  owned_cosmetics?: Prisma.UsersCreateowned_cosmeticsInput | string[]
+  equipped_avatar_border?: string | null
+  equipped_font?: string | null
+  equipped_title?: string | null
+  equipped_text_effect?: string | null
+  equipped_banner?: string | null
+  equipped_pattern?: string | null
+  role?: $Enums.Roles
+  provider?: $Enums.AuthProvider | null
+  provider_id?: string | null
+  has_notifications?: boolean
+  phone_number?: string | null
+  biography?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  email_verified?: boolean
+  email_verification_code?: string | null
+  email_verification_expires?: Date | string | null
+  password_reset_code?: string | null
+  password_reset_expires?: Date | string | null
+  twofa_enabled?: boolean
+  twofa_secret?: string | null
+  twofa_backup_codes?: Prisma.UsersCreatetwofa_backup_codesInput | string[]
+  earned_badges?: Prisma.UsersCreateearned_badgesInput | string[]
+  expo_push_token?: string | null
+  reviews?: Prisma.ReviewsUncheckedCreateNestedManyWithoutUserInput
+  review_comments?: Prisma.ReviewCommentsUncheckedCreateNestedManyWithoutUserInput
+  review_likes?: Prisma.ReviewLikesUncheckedCreateNestedManyWithoutUserInput
+  playlists?: Prisma.PlaylistsUncheckedCreateNestedManyWithoutUserInput
+  playlist_collaborations?: Prisma.PlaylistCollaboratorsUncheckedCreateNestedManyWithoutUserInput
+  follows?: Prisma.FollowsUncheckedCreateNestedManyWithoutUserInput
+  followers?: Prisma.FollowsUncheckedCreateNestedManyWithoutFollow_userInput
+  notifications?: Prisma.NotificationsUncheckedCreateNestedManyWithoutUserInput
+  notificationsRelated?: Prisma.NotificationsUncheckedCreateNestedManyWithoutRelated_userInput
+  user_media_status?: Prisma.UserMediaStatusUncheckedCreateNestedManyWithoutUserInput
+  reporter_reports?: Prisma.ReportsUncheckedCreateNestedManyWithoutReporterInput
+  profile_reports?: Prisma.ReportsUncheckedCreateNestedManyWithoutProfileInput
+  activities?: Prisma.ActivitiesUncheckedCreateNestedManyWithoutUserInput
+  activities_targets?: Prisma.ActivitiesUncheckedCreateNestedManyWithoutTarget_userInput
+  conversations_user1?: Prisma.ConversationsUncheckedCreateNestedManyWithoutUser1Input
+  conversations_user2?: Prisma.ConversationsUncheckedCreateNestedManyWithoutUser2Input
+  messages?: Prisma.MessagesUncheckedCreateNestedManyWithoutSenderInput
+  journal_entries?: Prisma.JournalEntriesUncheckedCreateNestedManyWithoutUserInput
+  commentLikes?: Prisma.CommentLikesUncheckedCreateNestedManyWithoutUserInput
+  spotify_account?: Prisma.SpotifyAccountsUncheckedCreateNestedOneWithoutUserInput
+  rooms_hosted?: Prisma.RoomsUncheckedCreateNestedManyWithoutHostInput
+  room_queue_additions?: Prisma.RoomQueueItemsUncheckedCreateNestedManyWithoutAdded_byInput
+}
+
+export type UsersCreateOrConnectWithoutRoom_participationsInput = {
+  where: Prisma.UsersWhereUniqueInput
+  create: Prisma.XOR<Prisma.UsersCreateWithoutRoom_participationsInput, Prisma.UsersUncheckedCreateWithoutRoom_participationsInput>
+}
+
+export type UsersUpsertWithoutRoom_participationsInput = {
+  update: Prisma.XOR<Prisma.UsersUpdateWithoutRoom_participationsInput, Prisma.UsersUncheckedUpdateWithoutRoom_participationsInput>
+  create: Prisma.XOR<Prisma.UsersCreateWithoutRoom_participationsInput, Prisma.UsersUncheckedCreateWithoutRoom_participationsInput>
+  where?: Prisma.UsersWhereInput
+}
+
+export type UsersUpdateToOneWithWhereWithoutRoom_participationsInput = {
+  where?: Prisma.UsersWhereInput
+  data: Prisma.XOR<Prisma.UsersUpdateWithoutRoom_participationsInput, Prisma.UsersUncheckedUpdateWithoutRoom_participationsInput>
+}
+
+export type UsersUpdateWithoutRoom_participationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.StringFieldUpdateOperationsInput | string
+  pseudo?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  favorite_band?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile_picture?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
+  banner?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
+  shop_points?: Prisma.IntFieldUpdateOperationsInput | number
+  owned_cosmetics?: Prisma.UsersUpdateowned_cosmeticsInput | string[]
+  equipped_avatar_border?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  equipped_font?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  equipped_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  equipped_text_effect?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  equipped_banner?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  equipped_pattern?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRolesFieldUpdateOperationsInput | $Enums.Roles
+  provider?: Prisma.NullableEnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider | null
+  provider_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  has_notifications?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  phone_number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  biography?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  email_verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  email_verification_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email_verification_expires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  password_reset_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  password_reset_expires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  twofa_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  twofa_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  twofa_backup_codes?: Prisma.UsersUpdatetwofa_backup_codesInput | string[]
+  earned_badges?: Prisma.UsersUpdateearned_badgesInput | string[]
+  expo_push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reviews?: Prisma.ReviewsUpdateManyWithoutUserNestedInput
+  review_comments?: Prisma.ReviewCommentsUpdateManyWithoutUserNestedInput
+  review_likes?: Prisma.ReviewLikesUpdateManyWithoutUserNestedInput
+  playlists?: Prisma.PlaylistsUpdateManyWithoutUserNestedInput
+  playlist_collaborations?: Prisma.PlaylistCollaboratorsUpdateManyWithoutUserNestedInput
+  follows?: Prisma.FollowsUpdateManyWithoutUserNestedInput
+  followers?: Prisma.FollowsUpdateManyWithoutFollow_userNestedInput
+  notifications?: Prisma.NotificationsUpdateManyWithoutUserNestedInput
+  notificationsRelated?: Prisma.NotificationsUpdateManyWithoutRelated_userNestedInput
+  user_media_status?: Prisma.UserMediaStatusUpdateManyWithoutUserNestedInput
+  reporter_reports?: Prisma.ReportsUpdateManyWithoutReporterNestedInput
+  profile_reports?: Prisma.ReportsUpdateManyWithoutProfileNestedInput
+  activities?: Prisma.ActivitiesUpdateManyWithoutUserNestedInput
+  activities_targets?: Prisma.ActivitiesUpdateManyWithoutTarget_userNestedInput
+  conversations_user1?: Prisma.ConversationsUpdateManyWithoutUser1NestedInput
+  conversations_user2?: Prisma.ConversationsUpdateManyWithoutUser2NestedInput
+  messages?: Prisma.MessagesUpdateManyWithoutSenderNestedInput
+  journal_entries?: Prisma.JournalEntriesUpdateManyWithoutUserNestedInput
+  commentLikes?: Prisma.CommentLikesUpdateManyWithoutUserNestedInput
+  spotify_account?: Prisma.SpotifyAccountsUpdateOneWithoutUserNestedInput
+  rooms_hosted?: Prisma.RoomsUpdateManyWithoutHostNestedInput
+  room_queue_additions?: Prisma.RoomQueueItemsUpdateManyWithoutAdded_byNestedInput
+}
+
+export type UsersUncheckedUpdateWithoutRoom_participationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.StringFieldUpdateOperationsInput | string
+  pseudo?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  favorite_band?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile_picture?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
+  banner?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
+  shop_points?: Prisma.IntFieldUpdateOperationsInput | number
+  owned_cosmetics?: Prisma.UsersUpdateowned_cosmeticsInput | string[]
+  equipped_avatar_border?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  equipped_font?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  equipped_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  equipped_text_effect?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  equipped_banner?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  equipped_pattern?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRolesFieldUpdateOperationsInput | $Enums.Roles
+  provider?: Prisma.NullableEnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider | null
+  provider_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  has_notifications?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  phone_number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  biography?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  email_verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  email_verification_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email_verification_expires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  password_reset_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  password_reset_expires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  twofa_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  twofa_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  twofa_backup_codes?: Prisma.UsersUpdatetwofa_backup_codesInput | string[]
+  earned_badges?: Prisma.UsersUpdateearned_badgesInput | string[]
+  expo_push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reviews?: Prisma.ReviewsUncheckedUpdateManyWithoutUserNestedInput
+  review_comments?: Prisma.ReviewCommentsUncheckedUpdateManyWithoutUserNestedInput
+  review_likes?: Prisma.ReviewLikesUncheckedUpdateManyWithoutUserNestedInput
+  playlists?: Prisma.PlaylistsUncheckedUpdateManyWithoutUserNestedInput
+  playlist_collaborations?: Prisma.PlaylistCollaboratorsUncheckedUpdateManyWithoutUserNestedInput
+  follows?: Prisma.FollowsUncheckedUpdateManyWithoutUserNestedInput
+  followers?: Prisma.FollowsUncheckedUpdateManyWithoutFollow_userNestedInput
+  notifications?: Prisma.NotificationsUncheckedUpdateManyWithoutUserNestedInput
+  notificationsRelated?: Prisma.NotificationsUncheckedUpdateManyWithoutRelated_userNestedInput
+  user_media_status?: Prisma.UserMediaStatusUncheckedUpdateManyWithoutUserNestedInput
+  reporter_reports?: Prisma.ReportsUncheckedUpdateManyWithoutReporterNestedInput
+  profile_reports?: Prisma.ReportsUncheckedUpdateManyWithoutProfileNestedInput
+  activities?: Prisma.ActivitiesUncheckedUpdateManyWithoutUserNestedInput
+  activities_targets?: Prisma.ActivitiesUncheckedUpdateManyWithoutTarget_userNestedInput
+  conversations_user1?: Prisma.ConversationsUncheckedUpdateManyWithoutUser1NestedInput
+  conversations_user2?: Prisma.ConversationsUncheckedUpdateManyWithoutUser2NestedInput
+  messages?: Prisma.MessagesUncheckedUpdateManyWithoutSenderNestedInput
+  journal_entries?: Prisma.JournalEntriesUncheckedUpdateManyWithoutUserNestedInput
+  commentLikes?: Prisma.CommentLikesUncheckedUpdateManyWithoutUserNestedInput
+  spotify_account?: Prisma.SpotifyAccountsUncheckedUpdateOneWithoutUserNestedInput
+  rooms_hosted?: Prisma.RoomsUncheckedUpdateManyWithoutHostNestedInput
+  room_queue_additions?: Prisma.RoomQueueItemsUncheckedUpdateManyWithoutAdded_byNestedInput
+}
+
+export type UsersCreateWithoutRoom_queue_additionsInput = {
+  id?: string
+  username: string
+  pseudo: string
+  email: string
+  password?: string | null
+  favorite_band?: string | null
+  profile_picture?: runtime.Bytes | null
+  banner?: runtime.Bytes | null
+  shop_points?: number
+  owned_cosmetics?: Prisma.UsersCreateowned_cosmeticsInput | string[]
+  equipped_avatar_border?: string | null
+  equipped_font?: string | null
+  equipped_title?: string | null
+  equipped_text_effect?: string | null
+  equipped_banner?: string | null
+  equipped_pattern?: string | null
+  role?: $Enums.Roles
+  provider?: $Enums.AuthProvider | null
+  provider_id?: string | null
+  has_notifications?: boolean
+  phone_number?: string | null
+  biography?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  email_verified?: boolean
+  email_verification_code?: string | null
+  email_verification_expires?: Date | string | null
+  password_reset_code?: string | null
+  password_reset_expires?: Date | string | null
+  twofa_enabled?: boolean
+  twofa_secret?: string | null
+  twofa_backup_codes?: Prisma.UsersCreatetwofa_backup_codesInput | string[]
+  earned_badges?: Prisma.UsersCreateearned_badgesInput | string[]
+  expo_push_token?: string | null
+  reviews?: Prisma.ReviewsCreateNestedManyWithoutUserInput
+  review_comments?: Prisma.ReviewCommentsCreateNestedManyWithoutUserInput
+  review_likes?: Prisma.ReviewLikesCreateNestedManyWithoutUserInput
+  playlists?: Prisma.PlaylistsCreateNestedManyWithoutUserInput
+  playlist_collaborations?: Prisma.PlaylistCollaboratorsCreateNestedManyWithoutUserInput
+  follows?: Prisma.FollowsCreateNestedManyWithoutUserInput
+  followers?: Prisma.FollowsCreateNestedManyWithoutFollow_userInput
+  notifications?: Prisma.NotificationsCreateNestedManyWithoutUserInput
+  notificationsRelated?: Prisma.NotificationsCreateNestedManyWithoutRelated_userInput
+  user_media_status?: Prisma.UserMediaStatusCreateNestedManyWithoutUserInput
+  reporter_reports?: Prisma.ReportsCreateNestedManyWithoutReporterInput
+  profile_reports?: Prisma.ReportsCreateNestedManyWithoutProfileInput
+  activities?: Prisma.ActivitiesCreateNestedManyWithoutUserInput
+  activities_targets?: Prisma.ActivitiesCreateNestedManyWithoutTarget_userInput
+  conversations_user1?: Prisma.ConversationsCreateNestedManyWithoutUser1Input
+  conversations_user2?: Prisma.ConversationsCreateNestedManyWithoutUser2Input
+  messages?: Prisma.MessagesCreateNestedManyWithoutSenderInput
+  journal_entries?: Prisma.JournalEntriesCreateNestedManyWithoutUserInput
+  commentLikes?: Prisma.CommentLikesCreateNestedManyWithoutUserInput
+  spotify_account?: Prisma.SpotifyAccountsCreateNestedOneWithoutUserInput
+  rooms_hosted?: Prisma.RoomsCreateNestedManyWithoutHostInput
+  room_participations?: Prisma.RoomParticipantsCreateNestedManyWithoutUserInput
+}
+
+export type UsersUncheckedCreateWithoutRoom_queue_additionsInput = {
+  id?: string
+  username: string
+  pseudo: string
+  email: string
+  password?: string | null
+  favorite_band?: string | null
+  profile_picture?: runtime.Bytes | null
+  banner?: runtime.Bytes | null
+  shop_points?: number
+  owned_cosmetics?: Prisma.UsersCreateowned_cosmeticsInput | string[]
+  equipped_avatar_border?: string | null
+  equipped_font?: string | null
+  equipped_title?: string | null
+  equipped_text_effect?: string | null
+  equipped_banner?: string | null
+  equipped_pattern?: string | null
+  role?: $Enums.Roles
+  provider?: $Enums.AuthProvider | null
+  provider_id?: string | null
+  has_notifications?: boolean
+  phone_number?: string | null
+  biography?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  email_verified?: boolean
+  email_verification_code?: string | null
+  email_verification_expires?: Date | string | null
+  password_reset_code?: string | null
+  password_reset_expires?: Date | string | null
+  twofa_enabled?: boolean
+  twofa_secret?: string | null
+  twofa_backup_codes?: Prisma.UsersCreatetwofa_backup_codesInput | string[]
+  earned_badges?: Prisma.UsersCreateearned_badgesInput | string[]
+  expo_push_token?: string | null
+  reviews?: Prisma.ReviewsUncheckedCreateNestedManyWithoutUserInput
+  review_comments?: Prisma.ReviewCommentsUncheckedCreateNestedManyWithoutUserInput
+  review_likes?: Prisma.ReviewLikesUncheckedCreateNestedManyWithoutUserInput
+  playlists?: Prisma.PlaylistsUncheckedCreateNestedManyWithoutUserInput
+  playlist_collaborations?: Prisma.PlaylistCollaboratorsUncheckedCreateNestedManyWithoutUserInput
+  follows?: Prisma.FollowsUncheckedCreateNestedManyWithoutUserInput
+  followers?: Prisma.FollowsUncheckedCreateNestedManyWithoutFollow_userInput
+  notifications?: Prisma.NotificationsUncheckedCreateNestedManyWithoutUserInput
+  notificationsRelated?: Prisma.NotificationsUncheckedCreateNestedManyWithoutRelated_userInput
+  user_media_status?: Prisma.UserMediaStatusUncheckedCreateNestedManyWithoutUserInput
+  reporter_reports?: Prisma.ReportsUncheckedCreateNestedManyWithoutReporterInput
+  profile_reports?: Prisma.ReportsUncheckedCreateNestedManyWithoutProfileInput
+  activities?: Prisma.ActivitiesUncheckedCreateNestedManyWithoutUserInput
+  activities_targets?: Prisma.ActivitiesUncheckedCreateNestedManyWithoutTarget_userInput
+  conversations_user1?: Prisma.ConversationsUncheckedCreateNestedManyWithoutUser1Input
+  conversations_user2?: Prisma.ConversationsUncheckedCreateNestedManyWithoutUser2Input
+  messages?: Prisma.MessagesUncheckedCreateNestedManyWithoutSenderInput
+  journal_entries?: Prisma.JournalEntriesUncheckedCreateNestedManyWithoutUserInput
+  commentLikes?: Prisma.CommentLikesUncheckedCreateNestedManyWithoutUserInput
+  spotify_account?: Prisma.SpotifyAccountsUncheckedCreateNestedOneWithoutUserInput
+  rooms_hosted?: Prisma.RoomsUncheckedCreateNestedManyWithoutHostInput
+  room_participations?: Prisma.RoomParticipantsUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UsersCreateOrConnectWithoutRoom_queue_additionsInput = {
+  where: Prisma.UsersWhereUniqueInput
+  create: Prisma.XOR<Prisma.UsersCreateWithoutRoom_queue_additionsInput, Prisma.UsersUncheckedCreateWithoutRoom_queue_additionsInput>
+}
+
+export type UsersUpsertWithoutRoom_queue_additionsInput = {
+  update: Prisma.XOR<Prisma.UsersUpdateWithoutRoom_queue_additionsInput, Prisma.UsersUncheckedUpdateWithoutRoom_queue_additionsInput>
+  create: Prisma.XOR<Prisma.UsersCreateWithoutRoom_queue_additionsInput, Prisma.UsersUncheckedCreateWithoutRoom_queue_additionsInput>
+  where?: Prisma.UsersWhereInput
+}
+
+export type UsersUpdateToOneWithWhereWithoutRoom_queue_additionsInput = {
+  where?: Prisma.UsersWhereInput
+  data: Prisma.XOR<Prisma.UsersUpdateWithoutRoom_queue_additionsInput, Prisma.UsersUncheckedUpdateWithoutRoom_queue_additionsInput>
+}
+
+export type UsersUpdateWithoutRoom_queue_additionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.StringFieldUpdateOperationsInput | string
+  pseudo?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  favorite_band?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile_picture?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
+  banner?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
+  shop_points?: Prisma.IntFieldUpdateOperationsInput | number
+  owned_cosmetics?: Prisma.UsersUpdateowned_cosmeticsInput | string[]
+  equipped_avatar_border?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  equipped_font?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  equipped_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  equipped_text_effect?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  equipped_banner?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  equipped_pattern?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRolesFieldUpdateOperationsInput | $Enums.Roles
+  provider?: Prisma.NullableEnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider | null
+  provider_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  has_notifications?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  phone_number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  biography?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  email_verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  email_verification_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email_verification_expires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  password_reset_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  password_reset_expires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  twofa_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  twofa_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  twofa_backup_codes?: Prisma.UsersUpdatetwofa_backup_codesInput | string[]
+  earned_badges?: Prisma.UsersUpdateearned_badgesInput | string[]
+  expo_push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reviews?: Prisma.ReviewsUpdateManyWithoutUserNestedInput
+  review_comments?: Prisma.ReviewCommentsUpdateManyWithoutUserNestedInput
+  review_likes?: Prisma.ReviewLikesUpdateManyWithoutUserNestedInput
+  playlists?: Prisma.PlaylistsUpdateManyWithoutUserNestedInput
+  playlist_collaborations?: Prisma.PlaylistCollaboratorsUpdateManyWithoutUserNestedInput
+  follows?: Prisma.FollowsUpdateManyWithoutUserNestedInput
+  followers?: Prisma.FollowsUpdateManyWithoutFollow_userNestedInput
+  notifications?: Prisma.NotificationsUpdateManyWithoutUserNestedInput
+  notificationsRelated?: Prisma.NotificationsUpdateManyWithoutRelated_userNestedInput
+  user_media_status?: Prisma.UserMediaStatusUpdateManyWithoutUserNestedInput
+  reporter_reports?: Prisma.ReportsUpdateManyWithoutReporterNestedInput
+  profile_reports?: Prisma.ReportsUpdateManyWithoutProfileNestedInput
+  activities?: Prisma.ActivitiesUpdateManyWithoutUserNestedInput
+  activities_targets?: Prisma.ActivitiesUpdateManyWithoutTarget_userNestedInput
+  conversations_user1?: Prisma.ConversationsUpdateManyWithoutUser1NestedInput
+  conversations_user2?: Prisma.ConversationsUpdateManyWithoutUser2NestedInput
+  messages?: Prisma.MessagesUpdateManyWithoutSenderNestedInput
+  journal_entries?: Prisma.JournalEntriesUpdateManyWithoutUserNestedInput
+  commentLikes?: Prisma.CommentLikesUpdateManyWithoutUserNestedInput
+  spotify_account?: Prisma.SpotifyAccountsUpdateOneWithoutUserNestedInput
+  rooms_hosted?: Prisma.RoomsUpdateManyWithoutHostNestedInput
+  room_participations?: Prisma.RoomParticipantsUpdateManyWithoutUserNestedInput
+}
+
+export type UsersUncheckedUpdateWithoutRoom_queue_additionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.StringFieldUpdateOperationsInput | string
+  pseudo?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  favorite_band?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile_picture?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
+  banner?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
+  shop_points?: Prisma.IntFieldUpdateOperationsInput | number
+  owned_cosmetics?: Prisma.UsersUpdateowned_cosmeticsInput | string[]
+  equipped_avatar_border?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  equipped_font?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  equipped_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  equipped_text_effect?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  equipped_banner?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  equipped_pattern?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRolesFieldUpdateOperationsInput | $Enums.Roles
+  provider?: Prisma.NullableEnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider | null
+  provider_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  has_notifications?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  phone_number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  biography?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  email_verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  email_verification_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email_verification_expires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  password_reset_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  password_reset_expires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  twofa_enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  twofa_secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  twofa_backup_codes?: Prisma.UsersUpdatetwofa_backup_codesInput | string[]
+  earned_badges?: Prisma.UsersUpdateearned_badgesInput | string[]
+  expo_push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reviews?: Prisma.ReviewsUncheckedUpdateManyWithoutUserNestedInput
+  review_comments?: Prisma.ReviewCommentsUncheckedUpdateManyWithoutUserNestedInput
+  review_likes?: Prisma.ReviewLikesUncheckedUpdateManyWithoutUserNestedInput
+  playlists?: Prisma.PlaylistsUncheckedUpdateManyWithoutUserNestedInput
+  playlist_collaborations?: Prisma.PlaylistCollaboratorsUncheckedUpdateManyWithoutUserNestedInput
+  follows?: Prisma.FollowsUncheckedUpdateManyWithoutUserNestedInput
+  followers?: Prisma.FollowsUncheckedUpdateManyWithoutFollow_userNestedInput
+  notifications?: Prisma.NotificationsUncheckedUpdateManyWithoutUserNestedInput
+  notificationsRelated?: Prisma.NotificationsUncheckedUpdateManyWithoutRelated_userNestedInput
+  user_media_status?: Prisma.UserMediaStatusUncheckedUpdateManyWithoutUserNestedInput
+  reporter_reports?: Prisma.ReportsUncheckedUpdateManyWithoutReporterNestedInput
+  profile_reports?: Prisma.ReportsUncheckedUpdateManyWithoutProfileNestedInput
+  activities?: Prisma.ActivitiesUncheckedUpdateManyWithoutUserNestedInput
+  activities_targets?: Prisma.ActivitiesUncheckedUpdateManyWithoutTarget_userNestedInput
+  conversations_user1?: Prisma.ConversationsUncheckedUpdateManyWithoutUser1NestedInput
+  conversations_user2?: Prisma.ConversationsUncheckedUpdateManyWithoutUser2NestedInput
+  messages?: Prisma.MessagesUncheckedUpdateManyWithoutSenderNestedInput
+  journal_entries?: Prisma.JournalEntriesUncheckedUpdateManyWithoutUserNestedInput
+  commentLikes?: Prisma.CommentLikesUncheckedUpdateManyWithoutUserNestedInput
+  spotify_account?: Prisma.SpotifyAccountsUncheckedUpdateOneWithoutUserNestedInput
+  rooms_hosted?: Prisma.RoomsUncheckedUpdateManyWithoutHostNestedInput
+  room_participations?: Prisma.RoomParticipantsUncheckedUpdateManyWithoutUserNestedInput
 }
 
 
@@ -5972,7 +7368,11 @@ export type UsersCountOutputType = {
   conversations_user1: number
   conversations_user2: number
   messages: number
+  journal_entries: number
   commentLikes: number
+  rooms_hosted: number
+  room_participations: number
+  room_queue_additions: number
 }
 
 export type UsersCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -5993,7 +7393,11 @@ export type UsersCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.
   conversations_user1?: boolean | UsersCountOutputTypeCountConversations_user1Args
   conversations_user2?: boolean | UsersCountOutputTypeCountConversations_user2Args
   messages?: boolean | UsersCountOutputTypeCountMessagesArgs
+  journal_entries?: boolean | UsersCountOutputTypeCountJournal_entriesArgs
   commentLikes?: boolean | UsersCountOutputTypeCountCommentLikesArgs
+  rooms_hosted?: boolean | UsersCountOutputTypeCountRooms_hostedArgs
+  room_participations?: boolean | UsersCountOutputTypeCountRoom_participationsArgs
+  room_queue_additions?: boolean | UsersCountOutputTypeCountRoom_queue_additionsArgs
 }
 
 /**
@@ -6128,8 +7532,36 @@ export type UsersCountOutputTypeCountMessagesArgs<ExtArgs extends runtime.Types.
 /**
  * UsersCountOutputType without action
  */
+export type UsersCountOutputTypeCountJournal_entriesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.JournalEntriesWhereInput
+}
+
+/**
+ * UsersCountOutputType without action
+ */
 export type UsersCountOutputTypeCountCommentLikesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.CommentLikesWhereInput
+}
+
+/**
+ * UsersCountOutputType without action
+ */
+export type UsersCountOutputTypeCountRooms_hostedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.RoomsWhereInput
+}
+
+/**
+ * UsersCountOutputType without action
+ */
+export type UsersCountOutputTypeCountRoom_participationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.RoomParticipantsWhereInput
+}
+
+/**
+ * UsersCountOutputType without action
+ */
+export type UsersCountOutputTypeCountRoom_queue_additionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.RoomQueueItemsWhereInput
 }
 
 
@@ -6185,8 +7617,12 @@ export type UsersSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   conversations_user1?: boolean | Prisma.Users$conversations_user1Args<ExtArgs>
   conversations_user2?: boolean | Prisma.Users$conversations_user2Args<ExtArgs>
   messages?: boolean | Prisma.Users$messagesArgs<ExtArgs>
+  journal_entries?: boolean | Prisma.Users$journal_entriesArgs<ExtArgs>
   commentLikes?: boolean | Prisma.Users$commentLikesArgs<ExtArgs>
   spotify_account?: boolean | Prisma.Users$spotify_accountArgs<ExtArgs>
+  rooms_hosted?: boolean | Prisma.Users$rooms_hostedArgs<ExtArgs>
+  room_participations?: boolean | Prisma.Users$room_participationsArgs<ExtArgs>
+  room_queue_additions?: boolean | Prisma.Users$room_queue_additionsArgs<ExtArgs>
   _count?: boolean | Prisma.UsersCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["users"]>
 
@@ -6320,8 +7756,12 @@ export type UsersInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   conversations_user1?: boolean | Prisma.Users$conversations_user1Args<ExtArgs>
   conversations_user2?: boolean | Prisma.Users$conversations_user2Args<ExtArgs>
   messages?: boolean | Prisma.Users$messagesArgs<ExtArgs>
+  journal_entries?: boolean | Prisma.Users$journal_entriesArgs<ExtArgs>
   commentLikes?: boolean | Prisma.Users$commentLikesArgs<ExtArgs>
   spotify_account?: boolean | Prisma.Users$spotify_accountArgs<ExtArgs>
+  rooms_hosted?: boolean | Prisma.Users$rooms_hostedArgs<ExtArgs>
+  room_participations?: boolean | Prisma.Users$room_participationsArgs<ExtArgs>
+  room_queue_additions?: boolean | Prisma.Users$room_queue_additionsArgs<ExtArgs>
   _count?: boolean | Prisma.UsersCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UsersIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -6347,8 +7787,12 @@ export type $UsersPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     conversations_user1: Prisma.$ConversationsPayload<ExtArgs>[]
     conversations_user2: Prisma.$ConversationsPayload<ExtArgs>[]
     messages: Prisma.$MessagesPayload<ExtArgs>[]
+    journal_entries: Prisma.$JournalEntriesPayload<ExtArgs>[]
     commentLikes: Prisma.$CommentLikesPayload<ExtArgs>[]
     spotify_account: Prisma.$SpotifyAccountsPayload<ExtArgs> | null
+    rooms_hosted: Prisma.$RoomsPayload<ExtArgs>[]
+    room_participations: Prisma.$RoomParticipantsPayload<ExtArgs>[]
+    room_queue_additions: Prisma.$RoomQueueItemsPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -6796,8 +8240,12 @@ export interface Prisma__UsersClient<T, Null = never, ExtArgs extends runtime.Ty
   conversations_user1<T extends Prisma.Users$conversations_user1Args<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Users$conversations_user1Args<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ConversationsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   conversations_user2<T extends Prisma.Users$conversations_user2Args<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Users$conversations_user2Args<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ConversationsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   messages<T extends Prisma.Users$messagesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Users$messagesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MessagesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  journal_entries<T extends Prisma.Users$journal_entriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Users$journal_entriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$JournalEntriesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   commentLikes<T extends Prisma.Users$commentLikesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Users$commentLikesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CommentLikesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   spotify_account<T extends Prisma.Users$spotify_accountArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Users$spotify_accountArgs<ExtArgs>>): Prisma.Prisma__SpotifyAccountsClient<runtime.Types.Result.GetResult<Prisma.$SpotifyAccountsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  rooms_hosted<T extends Prisma.Users$rooms_hostedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Users$rooms_hostedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RoomsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  room_participations<T extends Prisma.Users$room_participationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Users$room_participationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RoomParticipantsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  room_queue_additions<T extends Prisma.Users$room_queue_additionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Users$room_queue_additionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RoomQueueItemsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -7657,6 +9105,30 @@ export type Users$messagesArgs<ExtArgs extends runtime.Types.Extensions.Internal
 }
 
 /**
+ * Users.journal_entries
+ */
+export type Users$journal_entriesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the JournalEntries
+   */
+  select?: Prisma.JournalEntriesSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the JournalEntries
+   */
+  omit?: Prisma.JournalEntriesOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.JournalEntriesInclude<ExtArgs> | null
+  where?: Prisma.JournalEntriesWhereInput
+  orderBy?: Prisma.JournalEntriesOrderByWithRelationInput | Prisma.JournalEntriesOrderByWithRelationInput[]
+  cursor?: Prisma.JournalEntriesWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.JournalEntriesScalarFieldEnum | Prisma.JournalEntriesScalarFieldEnum[]
+}
+
+/**
  * Users.commentLikes
  */
 export type Users$commentLikesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -7697,6 +9169,78 @@ export type Users$spotify_accountArgs<ExtArgs extends runtime.Types.Extensions.I
    */
   include?: Prisma.SpotifyAccountsInclude<ExtArgs> | null
   where?: Prisma.SpotifyAccountsWhereInput
+}
+
+/**
+ * Users.rooms_hosted
+ */
+export type Users$rooms_hostedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Rooms
+   */
+  select?: Prisma.RoomsSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Rooms
+   */
+  omit?: Prisma.RoomsOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RoomsInclude<ExtArgs> | null
+  where?: Prisma.RoomsWhereInput
+  orderBy?: Prisma.RoomsOrderByWithRelationInput | Prisma.RoomsOrderByWithRelationInput[]
+  cursor?: Prisma.RoomsWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.RoomsScalarFieldEnum | Prisma.RoomsScalarFieldEnum[]
+}
+
+/**
+ * Users.room_participations
+ */
+export type Users$room_participationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the RoomParticipants
+   */
+  select?: Prisma.RoomParticipantsSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the RoomParticipants
+   */
+  omit?: Prisma.RoomParticipantsOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RoomParticipantsInclude<ExtArgs> | null
+  where?: Prisma.RoomParticipantsWhereInput
+  orderBy?: Prisma.RoomParticipantsOrderByWithRelationInput | Prisma.RoomParticipantsOrderByWithRelationInput[]
+  cursor?: Prisma.RoomParticipantsWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.RoomParticipantsScalarFieldEnum | Prisma.RoomParticipantsScalarFieldEnum[]
+}
+
+/**
+ * Users.room_queue_additions
+ */
+export type Users$room_queue_additionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the RoomQueueItems
+   */
+  select?: Prisma.RoomQueueItemsSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the RoomQueueItems
+   */
+  omit?: Prisma.RoomQueueItemsOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RoomQueueItemsInclude<ExtArgs> | null
+  where?: Prisma.RoomQueueItemsWhereInput
+  orderBy?: Prisma.RoomQueueItemsOrderByWithRelationInput | Prisma.RoomQueueItemsOrderByWithRelationInput[]
+  cursor?: Prisma.RoomQueueItemsWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.RoomQueueItemsScalarFieldEnum | Prisma.RoomQueueItemsScalarFieldEnum[]
 }
 
 /**

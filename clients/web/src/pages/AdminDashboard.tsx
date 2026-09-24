@@ -254,7 +254,7 @@ const AdminDashboard: React.FC = () => {
 
     return (
         <div
-            className="min-h-screen bg-[#0f1117] dark:bg-slate-50 text-slate-200 dark:text-gray-900 p-6 md:p-10 font-sans transition-colors duration-300">
+            className="min-h-screen bg-canvas dark:bg-canvas text-ink p-6 md:p-10 font-sans transition-colors duration-300">
             <div className="max-w-6xl mx-auto space-y-8">
 
                 {/* En-tête du Dashboard */}
@@ -263,11 +263,11 @@ const AdminDashboard: React.FC = () => {
                         <ShieldAlert size={28}/>
                     </div>
                     <div>
-                        <h1 className="text-4xl font-bold text-white dark:text-gray-900 tracking-tight"
-                            style={{fontFamily: "'Orbitron', sans-serif"}}>
+                        <h1 className="page-title text-4xl font-bold text-ink tracking-tight"
+                            >
                             {t('admin_dashboard_title', "Panneau d'Administration")}
                         </h1>
-                        <p className="text-slate-500 dark:text-gray-600 text-lg mt-1 font-medium">{t('admin_subtitle', 'Gérez les utilisateurs et le contenu')}</p>
+                        <p className="text-slate-500 dark:text-muted text-lg mt-1 font-medium">{t('admin_subtitle', 'Gérez les utilisateurs et le contenu')}</p>
                     </div>
                 </header>
 
@@ -285,15 +285,15 @@ const AdminDashboard: React.FC = () => {
 
                 {/* Barre de navigation des onglets */}
                 <nav
-                    className="bg-[#1a1d26]/50 dark:bg-white border border-slate-800 dark:border-gray-200 rounded-2xl p-1.5 flex gap-2 shadow-inner">
+                    className="bg-panel/50 dark:bg-panel border border-line dark:border-line rounded-2xl p-1.5 flex gap-2 shadow-inner">
                     {tabs.map((tab) => (
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
                             className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all ${
                                 activeTab === tab.id
-                                    ? 'bg-[#2a2e3d] dark:bg-gray-100 text-white dark:text-gray-900 shadow-md'
-                                    : 'text-slate-400 dark:text-gray-500 hover:text-white dark:hover:text-gray-900 hover:bg-slate-800/30 dark:hover:bg-gray-50'
+                                    ? 'bg-raised dark:bg-raised text-ink shadow-md'
+                                    : 'text-muted dark:text-muted hover:text-white dark:hover:text-gray-900 hover:bg-raised/30 dark:hover:bg-gray-50'
                             }`}
                         >
                             {tab.label}
@@ -308,7 +308,7 @@ const AdminDashboard: React.FC = () => {
 
                 {loading ? (
                     <div
-                        className="text-center py-20 text-slate-400">{t('loading_db_data', 'Chargement des données de la base de données...')}</div>
+                        className="text-center py-20 text-muted">{t('loading_db_data', 'Chargement des données de la base de données...')}</div>
                 ) : (
                     <div className="space-y-6">
 
@@ -317,28 +317,28 @@ const AdminDashboard: React.FC = () => {
                                 <div className="flex flex-col md:flex-row gap-4">
                                     <div className="relative flex-1 group">
                                         <Search
-                                            className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 dark:text-gray-400 group-focus-within:text-blue-500 transition-colors"
+                                            className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 dark:text-muted group-focus-within:text-blue-500 transition-colors"
                                             size={20}/>
                                         <input
                                             type="text"
                                             value={userSearch}
                                             onChange={(e) => setUserSearch(e.target.value)}
                                             placeholder={t('search_banned_placeholder', 'Rechercher un utilisateur banni (pseudo, email, raison)...')}
-                                            className="w-full bg-[#1a1d26] dark:bg-white border border-slate-800 dark:border-gray-200 rounded-xl py-3.5 pl-12 pr-4 text-sm text-white dark:text-gray-900 focus:outline-none focus:border-blue-500/50 transition-all shadow-sm"
+                                            className="w-full bg-panel dark:bg-panel border border-line dark:border-line rounded-xl py-3.5 pl-12 pr-4 text-sm text-ink focus:outline-none focus:border-blue-500/50 transition-all shadow-sm"
                                         />
                                     </div>
                                 </div>
 
                                 {displayedBannedUsers.length === 0 ? (
                                     <div
-                                        className="text-center py-12 text-slate-500 bg-[#1a1d26] dark:bg-white border border-slate-800 dark:border-gray-200 rounded-2xl">
+                                        className="text-center py-12 text-slate-500 bg-panel dark:bg-panel border border-line dark:border-line rounded-2xl">
                                         {t('no_banned_users_found', 'Aucun utilisateur banni trouvé.')}
                                     </div>
                                 ) : (
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         {displayedBannedUsers.map((banned) => (
                                             <div key={banned.id}
-                                                 className="bg-[#1a1d26] dark:bg-white border border-slate-800 dark:border-gray-200 rounded-2xl overflow-hidden shadow-xl p-6 flex flex-col justify-between gap-4 transition-all border-l-4 border-l-rose-600/70">
+                                                 className="bg-panel dark:bg-panel border border-line dark:border-line rounded-2xl overflow-hidden shadow-xl p-6 flex flex-col justify-between gap-4 transition-all border-l-4 border-l-rose-600/70">
                                                 <div>
                                                     <div className="flex items-center gap-4 mb-4">
                                                         <Link
@@ -355,27 +355,27 @@ const AdminDashboard: React.FC = () => {
                                                         <div>
                                                             <Link to={`/profil/${banned.user_id}`}
                                                                   className="hover:underline decoration-blue-500">
-                                                                <h3 className="text-lg font-bold text-white dark:text-gray-900 hover:text-blue-500 transition-colors">
+                                                                <h3 className="text-lg font-bold text-ink hover:text-blue-500 transition-colors">
                                                                     @{banned.username}
                                                                 </h3>
                                                             </Link>
-                                                            <p className="text-slate-500 dark:text-gray-500 text-xs">{banned.email}</p>
+                                                            <p className="text-slate-500 dark:text-muted text-xs">{banned.email}</p>
                                                         </div>
                                                     </div>
                                                     <div
-                                                        className="bg-[#0f1117] dark:bg-gray-50 border border-slate-800 dark:border-gray-200 rounded-xl p-4">
+                                                        className="bg-canvas dark:bg-canvas border border-line dark:border-line rounded-xl p-4">
                                       <span
-                                          className="text-[10px] font-bold text-slate-500 dark:text-gray-400 uppercase tracking-wider block mb-1">
+                                          className="text-[10px] font-bold text-slate-500 dark:text-muted uppercase tracking-wider block mb-1">
                                         {t('ban_reason_label', 'Raison du bannissement :')}
                                       </span>
                                                         <p className="text-sm text-slate-300 dark:text-gray-700 italic">"{banned.content}"</p>
                                                     </div>
                                                 </div>
                                                 <div
-                                                    className="flex justify-end border-t border-slate-800 dark:border-gray-100 pt-3 mt-2">
+                                                    className="flex justify-end border-t border-line dark:border-gray-100 pt-3 mt-2">
                                                     <button
                                                         onClick={() => handleUnbanUser(banned.id)}
-                                                        className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 dark:bg-gray-100 dark:hover:bg-gray-200 text-slate-200 dark:text-gray-700 px-4 py-2 rounded-lg text-xs font-bold transition-all"
+                                                        className="flex items-center gap-1.5 bg-raised hover:bg-slate-700 dark:bg-raised dark:hover:bg-gray-200 text-slate-200 dark:text-gray-700 px-4 py-2 rounded-lg text-xs font-bold transition-all"
                                                     >
                                                         <Check size={14}
                                                                className="text-emerald-500"/> {t('unban_user_btn', 'Réhabiliter / Débannir')}
@@ -391,15 +391,15 @@ const AdminDashboard: React.FC = () => {
                         {activeTab === 'reports' && (
                             <div className="space-y-6 animate-in fade-in duration-300">
                                 <div
-                                    className="flex justify-between items-center bg-[#1a1d26] dark:bg-white border border-slate-800 dark:border-gray-200 rounded-xl p-4 shadow-sm">
-                                    <div className="flex items-center gap-2 text-white dark:text-gray-900 font-medium">
-                                        <Filter size={18} className="text-slate-500 dark:text-gray-500"/>
+                                    className="flex justify-between items-center bg-panel dark:bg-panel border border-line dark:border-line rounded-xl p-4 shadow-sm">
+                                    <div className="flex items-center gap-2 text-ink font-medium">
+                                        <Filter size={18} className="text-slate-500 dark:text-muted"/>
                                         {t('filter_type_label', 'Filtrer par type :')}
                                     </div>
                                     <select
                                         value={reportFilter}
                                         onChange={(e) => setReportFilter(e.target.value as any)}
-                                        className="bg-[#0f1117] dark:bg-gray-50 border border-slate-700 dark:border-gray-300 text-white dark:text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none"
+                                        className="bg-canvas dark:bg-canvas border border-line dark:border-line text-ink text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none"
                                     >
                                         <option value="all">{t('filter_all_reports', 'Tous les signalements')}</option>
                                         <option
@@ -411,13 +411,13 @@ const AdminDashboard: React.FC = () => {
 
                                 {displayedReports.length === 0 ? (
                                     <div
-                                        className="text-center py-10 text-slate-500 bg-[#1a1d26] dark:bg-white border border-slate-800 dark:border-gray-200 rounded-2xl">
+                                        className="text-center py-10 text-slate-500 bg-panel dark:bg-panel border border-line dark:border-line rounded-2xl">
                                         {t('no_reports_filtered', 'Aucun signalement trouvé pour ce filtre.')}
                                     </div>
                                 ) : (
                                     displayedReports.map((report) => (
                                         <div key={report.id}
-                                             className="bg-[#1a1d26] dark:bg-white border border-slate-800 dark:border-gray-200 rounded-2xl p-6 shadow-lg border-l-4 border-l-rose-500">
+                                             className="bg-panel dark:bg-panel border border-line dark:border-line rounded-2xl p-6 shadow-lg border-l-4 border-l-rose-500">
                                             <div className="flex justify-between items-start mb-6">
                                                 <div className="flex items-center gap-4">
                                                     <div className="p-3 rounded-full bg-rose-500/10 text-rose-500">
@@ -425,7 +425,7 @@ const AdminDashboard: React.FC = () => {
                                                     </div>
                                                     <div>
                                                         <div className="flex flex-wrap items-center gap-2 mb-1">
-                                                            <h3 className="text-sm font-mono text-slate-400">
+                                                            <h3 className="text-sm font-mono text-muted">
                                                                 {t('report_number', {id: report.id.substring(0, 8)})}...
                                                             </h3>
                                                             <span
@@ -433,12 +433,12 @@ const AdminDashboard: React.FC = () => {
                                           {t('status_pending', 'En attente')}
                                         </span>
                                                             <span
-                                                                className="bg-slate-800 dark:bg-gray-100 text-slate-300 dark:text-gray-600 text-[10px] font-bold px-2 py-0.5 rounded uppercase">
+                                                                className="bg-raised dark:bg-raised text-slate-300 dark:text-muted text-[10px] font-bold px-2 py-0.5 rounded uppercase">
                                           {t('type_label', 'Type:')} {report.reason_type === 'profile' ?
                                                                 t('type_profile', 'Profil') : report.reason_type === 'review' ? t('type_review', 'Avis') : t('type_comment', 'Commentaire')}
                                         </span>
                                                         </div>
-                                                        <p className="text-slate-500 dark:text-gray-500 text-xs">
+                                                        <p className="text-slate-500 dark:text-muted text-xs">
                                                             {t('reported_by', 'Signalé par')}{' '}
                                                             <span
                                                                 className="text-slate-300 dark:text-gray-800 font-medium">
@@ -451,10 +451,10 @@ const AdminDashboard: React.FC = () => {
                                             </div>
 
                                             <div
-                                                className="bg-[#0f1117] dark:bg-gray-50 border border-slate-800 dark:border-gray-200 rounded-xl p-4 mb-6">
+                                                className="bg-canvas dark:bg-canvas border border-line dark:border-line rounded-xl p-4 mb-6">
                                                 <p className="text-sm text-slate-300 dark:text-gray-700 mb-2 font-medium">
                                                     <strong
-                                                        className="text-white dark:text-gray-900">{t('target_label', 'Cible :')}</strong>{' '}
+                                                        className="text-ink">{t('target_label', 'Cible :')}</strong>{' '}
                                                     {report.reason_type === 'profile' ? (
                                                         report.profile?.username
                                                             ? `@${report.profile.username} (ID: ${report.profile_id?.substring(0, 8)})`
@@ -467,7 +467,7 @@ const AdminDashboard: React.FC = () => {
                                                 </p>
                                                 <p className="text-sm text-slate-300 dark:text-gray-700 font-medium">
                                                     <strong
-                                                        className="text-white dark:text-gray-900">{t('reason', 'Motif')} :</strong> {report.reason}
+                                                        className="text-ink">{t('reason', 'Motif')} :</strong> {report.reason}
                                                 </p>
                                             </div>
 
@@ -490,7 +490,7 @@ const AdminDashboard: React.FC = () => {
 
                                                 <button
                                                     onClick={() => handleRejectReport(report.id)}
-                                                    className="bg-slate-800 hover:bg-slate-700 dark:bg-gray-200 dark:hover:bg-gray-300 text-slate-300 dark:text-gray-700 px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1"
+                                                    className="bg-raised hover:bg-slate-700 dark:bg-gray-200 dark:hover:bg-gray-300 text-slate-300 dark:text-gray-700 px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1"
                                                 >
                                                     <Trash2
                                                         size={12}/> {t('reject_report_btn', 'Rejeter la demande (Ignorer)')}
@@ -504,10 +504,10 @@ const AdminDashboard: React.FC = () => {
 
                         {activeTab === 'analytics' && (
                             <div
-                                className="bg-[#1a1d26] dark:bg-white border border-slate-800 dark:border-gray-200 rounded-2xl p-20 text-center animate-in fade-in duration-300">
+                                className="bg-panel dark:bg-panel border border-line dark:border-line rounded-2xl p-20 text-center animate-in fade-in duration-300">
                                 <Activity size={48}
                                           className="mx-auto text-slate-700 dark:text-gray-300 mb-4 opacity-50"/>
-                                <h2 className="text-xl font-bold text-slate-500 dark:text-gray-400">{t('analytics_soon', 'Analyses sera bientôt disponible...')}</h2>
+                                <h2 className="text-xl font-bold text-slate-500 dark:text-muted">{t('analytics_soon', 'Analyses sera bientôt disponible...')}</h2>
                             </div>
                         )}
                     </div>

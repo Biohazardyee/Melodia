@@ -2,7 +2,7 @@ import {Server} from "socket.io";
 import http from "http";
 import {PrismaDb} from "../../config/database.js";
 import {messageService} from "../db/messages/message.service.js";
-import {Conversations, Users} from "../../generated/prisma/client.js";
+import {Conversations, Rooms, Users} from "../../generated/prisma/client.js";
 import {MessageAddResponseDto} from "../../types/messages/messages.dto";
 import jwt from "jsonwebtoken";
 import {SocketUser} from "../../types/users/user.dto.js";
@@ -14,6 +14,17 @@ import {sendPushNotification} from "../db/notifications/notification.push.js";
 import {notificationService} from "../db/notifications/notification.service.js";
 import {BatchPayload} from "../../generated/prisma/internal/prismaNamespace";
 import {setIO} from "./socket.registry.js";
+import {roomService} from "../db/rooms/room.service.js";
+import {isRoomParticipant} from "../db/rooms/room.helper.js";
+
+const roomChannel = (roomId: string): string => `room_${roomId}`;
+
+/** is_playing ? position_ms + (now - position_updated_at) : position_ms */
+const computeLivePosition = (room: Rooms): number => {
+    if (!room.is_playing) return room.position_ms;
+    const elapsed: number = Date.now() - room.position_updated_at.getTime();
+    return room.position_ms + Math.max(0, elapsed);
+};
 
 export const initSocket = (server: http.Server) => {
     const io = new Server(server, {
@@ -95,6 +106,7 @@ export const initSocket = (server: http.Server) => {
                     }
 
                     socket.join(conversationId);
+                    if (conversation.status !== "ACCEPTED") return;
 
                     const updatedMessages: BatchPayload = await PrismaDb.messages.updateMany({
                         where: {
@@ -127,6 +139,9 @@ export const initSocket = (server: http.Server) => {
                 try {
                     const conversationId: string = data?.conversation_id;
                     if (!conversationId) return;
+                    const access = await PrismaDb.conversations.findUnique({where: {id: conversationId}});
+                    if (!access || access.status !== "ACCEPTED" ||
+                        (access.user1_id !== user.id && access.user2_id !== user.id)) return;
 
                     const updatedMessages: BatchPayload = await PrismaDb.messages.updateMany({
                         where: {
@@ -173,7 +188,7 @@ export const initSocket = (server: http.Server) => {
             async (data: {
                 conversation_id: string;
                 content: string;
-            }): Promise<void> => {
+            }, ack?: (result: {ok: boolean; error?: string}) => void): Promise<void> => {
                 try {
                     if (!data.conversation_id || !data.content) return;
 
@@ -199,6 +214,7 @@ export const initSocket = (server: http.Server) => {
                         content: data.content,
                     });
 
+                    ack?.({ok: true});
                     const messageToEmit = {
                         ...message,
                         created_at: message.created_at || new Date().toISOString(),
@@ -282,12 +298,267 @@ export const initSocket = (server: http.Server) => {
                         }
                     }
                 } catch (err) {
+                    ack?.({ok: false, error: err instanceof Error ? err.message : "Message failed"});
                     console.error(`[Message Error] User ${user.id}:`, err);
                 }
             },
         );
 
+        // ---------------------------------------------------------------
+        // Listening Rooms — écoute Spotify synchronisée entre participants.
+        // Le serveur ne fait que relayer/valider l'intention : chaque client
+        // exécute la lecture Spotify avec SON PROPRE token (voir useSpotifyPlayer
+        // côté front). Personne ne contrôle le compte Spotify d'un autre.
+        // ---------------------------------------------------------------
+
+        socket.on("join_room", async (data: { room_id: string }): Promise<void> => {
+            try {
+                const roomId: string = data?.room_id;
+                if (!roomId) return;
+
+                const allowed: boolean = await isRoomParticipant(roomId, user.id);
+                if (!allowed) {
+                    console.warn(`[Room Join Denied] User ${user.id} unauthorized for room: ${roomId}`);
+                    return;
+                }
+
+                const room = await PrismaDb.rooms.findUnique({where: {id: roomId}});
+                if (!room) return;
+
+                socket.join(roomChannel(roomId));
+
+                socket.emit("room_state", {
+                    room_id: roomId,
+                    current_track_uri: room.current_track_uri,
+                    current_track_name: room.current_track_name,
+                    current_artist_name: room.current_artist_name,
+                    current_album_art_url: room.current_album_art_url,
+                    current_duration_ms: room.current_duration_ms,
+                    position_ms: computeLivePosition(room),
+                    position_updated_at: room.position_updated_at.toISOString(),
+                    is_playing: room.is_playing,
+                    server_time: Date.now(),
+                });
+
+                socket.to(roomChannel(roomId)).emit("room_participant_joined", {
+                    room_id: roomId,
+                    user_id: user.id,
+                });
+            } catch (err) {
+                console.error(`[Join Room Error] User ${user.id}:`, err);
+            }
+        });
+
+        socket.on("leave_room", (data: { room_id: string }): void => {
+            const roomId: string = data?.room_id;
+            if (!roomId) return;
+
+            socket.leave(roomChannel(roomId));
+            socket.to(roomChannel(roomId)).emit("room_participant_left", {
+                room_id: roomId,
+                user_id: user.id,
+            });
+        });
+
+        const handleRoomTransport = async (
+            roomId: string,
+            state: {
+                current_track_uri?: string | null;
+                current_track_name?: string | null;
+                current_artist_name?: string | null;
+                current_album_art_url?: string | null;
+                current_duration_ms?: number | null;
+                position_ms: number;
+                is_playing: boolean;
+            },
+        ): Promise<void> => {
+            const room = await PrismaDb.rooms.findUnique({where: {id: roomId}});
+            if (!room) return;
+
+            if (room.host_id !== user.id) {
+                console.warn(`[Room Transport Denied] User ${user.id} is not host of room: ${roomId}`);
+                return;
+            }
+
+            const updatedRoom = await roomService.updatePlaybackState(roomId, state);
+
+            io.to(roomChannel(roomId)).emit("room_playback_sync", {
+                room_id: roomId,
+                current_track_uri: state.current_track_uri !== undefined ? state.current_track_uri : room.current_track_uri,
+                current_track_name: state.current_track_name !== undefined ? state.current_track_name : room.current_track_name,
+                current_artist_name: state.current_artist_name !== undefined ? state.current_artist_name : room.current_artist_name,
+                current_album_art_url: state.current_album_art_url !== undefined ? state.current_album_art_url : room.current_album_art_url,
+                current_duration_ms: state.current_duration_ms !== undefined ? state.current_duration_ms : room.current_duration_ms,
+                position_ms: state.position_ms,
+                position_updated_at: updatedRoom.position_updated_at.toISOString(),
+                is_playing: state.is_playing,
+                server_time: Date.now(),
+            });
+        };
+
+        socket.on(
+            "room_play",
+            async (data: {
+                room_id: string;
+                track_uri?: string;
+                track_name?: string;
+                artist_name?: string;
+                album_art_url?: string | null;
+                duration_ms?: number;
+                position_ms?: number;
+            }): Promise<void> => {
+                try {
+                    if (!data?.room_id) return;
+                    await handleRoomTransport(data.room_id, {
+                        current_track_uri: data.track_uri,
+                        current_track_name: data.track_name,
+                        current_artist_name: data.artist_name,
+                        current_album_art_url: data.album_art_url,
+                        current_duration_ms: data.duration_ms,
+                        position_ms: data.position_ms ?? 0,
+                        is_playing: true,
+                    });
+                } catch (err) {
+                    console.error(`[Room Play Error] User ${user.id}:`, err);
+                }
+            },
+        );
+
+        socket.on("room_pause", async (data: { room_id: string; position_ms?: number }): Promise<void> => {
+            try {
+                if (!data?.room_id) return;
+                const room = await PrismaDb.rooms.findUnique({where: {id: data.room_id}});
+                if (!room) return;
+                await handleRoomTransport(data.room_id, {
+                    position_ms: data.position_ms ?? computeLivePosition(room),
+                    is_playing: false,
+                });
+            } catch (err) {
+                console.error(`[Room Pause Error] User ${user.id}:`, err);
+            }
+        });
+
+        socket.on("room_seek", async (data: { room_id: string; position_ms: number }): Promise<void> => {
+            try {
+                if (!data?.room_id || data.position_ms === undefined) return;
+                const room = await PrismaDb.rooms.findUnique({where: {id: data.room_id}});
+                if (!room) return;
+                await handleRoomTransport(data.room_id, {
+                    position_ms: data.position_ms,
+                    is_playing: room.is_playing,
+                });
+            } catch (err) {
+                console.error(`[Room Seek Error] User ${user.id}:`, err);
+            }
+        });
+
+        socket.on("room_skip", async (data: {room_id: string; expected_updated_at?: string}): Promise<void> => {
+            try {
+                if (!data?.room_id) return;
+                const room = await roomService.advancePlayback(data.room_id, user.id, data.expected_updated_at);
+                if (!room) return;
+                io.to(roomChannel(room.id)).emit("room_playback_sync", {
+                    room_id: room.id,
+                    current_track_uri: room.current_track_uri,
+                    current_track_name: room.current_track_name,
+                    current_artist_name: room.current_artist_name,
+                    current_album_art_url: room.current_album_art_url,
+                    current_duration_ms: room.current_duration_ms,
+                    position_ms: room.position_ms,
+                    is_playing: room.is_playing,
+                    position_updated_at: room.position_updated_at.toISOString(),
+                    server_time: Date.now(),
+                });
+                const queue = await roomService.getQueue(room.id);
+                io.to(roomChannel(room.id)).emit("room_queue_updated", {room_id: room.id, items: queue});
+            } catch (err) {
+                console.error(`[Room Skip Error] User ${user.id}:`, err);
+            }
+        });
+
+        socket.on(
+            "room_queue_add",
+            async (data: {
+                room_id: string;
+                track_uri: string;
+                track_name: string;
+                artist_name: string;
+                album_art_url?: string | null;
+                duration_ms: number;
+            }): Promise<void> => {
+                try {
+                    if (!data?.room_id || !data.track_uri) return;
+
+                    const allowed: boolean = await isRoomParticipant(data.room_id, user.id);
+                    if (!allowed) return;
+
+                    await roomService.addQueueItem({
+                        room_id: data.room_id,
+                        added_by_id: user.id,
+                        track_uri: data.track_uri,
+                        track_name: data.track_name,
+                        artist_name: data.artist_name,
+                        album_art_url: data.album_art_url,
+                        duration_ms: data.duration_ms,
+                    });
+
+                    const queue = await roomService.getQueue(data.room_id);
+                    io.to(roomChannel(data.room_id)).emit("room_queue_updated", {room_id: data.room_id, items: queue});
+                } catch (err) {
+                    console.error(`[Room Queue Add Error] User ${user.id}:`, err);
+                }
+            },
+        );
+
+        socket.on("room_queue_remove", async (data: { room_id: string; item_id: string }): Promise<void> => {
+            try {
+                if (!data?.room_id || !data.item_id) return;
+
+                await roomService.removeQueueItem(data.room_id, data.item_id, user.id);
+
+                const queue = await roomService.getQueue(data.room_id);
+                io.to(roomChannel(data.room_id)).emit("room_queue_updated", {room_id: data.room_id, items: queue});
+            } catch (err) {
+                console.error(`[Room Queue Remove Error] User ${user.id}:`, err);
+            }
+        });
+
+        socket.on("room_chat_message", async (data: { room_id: string; content: string }): Promise<void> => {
+            try {
+                if (!data?.room_id || !data.content?.trim()) return;
+
+                const allowed: boolean = await isRoomParticipant(data.room_id, user.id);
+                if (!allowed) return;
+
+                io.to(roomChannel(data.room_id)).emit("room_chat_message_received", {
+                    room_id: data.room_id,
+                    user: {id: user.id, username: user.username},
+                    content: data.content.trim().slice(0, 500),
+                    sent_at: new Date().toISOString(),
+                });
+            } catch (err) {
+                console.error(`[Room Chat Error] User ${user.id}:`, err);
+            }
+        });
+
+        socket.on("room_reaction", (data: { room_id: string; emoji: string }): void => {
+            if (!data?.room_id || !data.emoji) return;
+            socket.to(roomChannel(data.room_id)).emit("room_reaction_received", {
+                room_id: data.room_id,
+                user_id: user.id,
+                emoji: data.emoji,
+            });
+        });
+
         socket.on("disconnect", (): void => {
+            for (const joinedRoom of socket.rooms) {
+                if (joinedRoom.startsWith("room_")) {
+                    socket.to(joinedRoom).emit("room_participant_left", {
+                        room_id: joinedRoom.replace("room_", ""),
+                        user_id: user.id,
+                    });
+                }
+            }
         });
     });
 

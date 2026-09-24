@@ -1,291 +1,168 @@
-import React, {useEffect, useState} from "react";
+import {useEffect, useMemo, useRef, useState} from "react";
 import {Link, useSearchParams} from "react-router-dom";
-import {Search, SlidersHorizontal, Loader2, ChevronDown, Disc} from "lucide-react";
+import {Search, Loader2, Disc3, ArrowUpRight, Radio, Library, AlertCircle} from "lucide-react";
 import {useTranslation} from "react-i18next";
 import {AlbumCard} from "../components/AlbumCard";
 import apiClient from "../api/client";
 
-const Home: React.FC = () => {
-    const {t} = useTranslation();
-    const [searchParams, setSearchParams] = useSearchParams();
+type Album = {id: string; title: string; artist: string; cover: string; rating: number; mbid?: string};
+type Mode = "artist" | "album";
+const PLACEHOLDER = "/melodia_placeholder.png";
 
-    const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
-    const [albums, setAlbums] = useState<any[]>([]);
+export default function Home() {
+    const {t} = useTranslation();
+    const [params, setParams] = useSearchParams();
+    const activeQuery = params.get("q")?.trim() || "";
+    const activeMode: Mode = params.get("mode") === "album" ? "album" : "artist";
+    const [query, setQuery] = useState(activeQuery);
+    const [mode, setMode] = useState<Mode>(activeMode);
+    const [albums, setAlbums] = useState<Album[]>([]);
     const [loading, setLoading] = useState(false);
-    const [selectedSort, setSelectedSort] = useState("popular");
-    const [searchMode, setSearchMode] = useState<"artist" | "album">(
-        searchParams.get("mode") === "album" ? "album" : "artist",
-    );
+    const [error, setError] = useState(false);
+    const [sort, setSort] = useState("relevance");
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(false);
+    const [retry, setRetry] = useState(0);
+    const request = useRef<AbortController | null>(null);
 
-    // Variable réutilisable pour le placeholder
-    const PLACEHOLDER_IMAGE = "/melodia_placeholder.png";
-
-    const handleSearch = async (pageNumber: number = 1) => {
-        const query = searchQuery.trim();
-        if (!query) return;
+    async function search(searchText: string, searchMode: Mode, nextPage = 1) {
+        request.current?.abort();
+        const controller = new AbortController();
+        request.current = controller;
         setLoading(true);
-
+        setError(false);
+        if (nextPage === 1) {setAlbums([]); setHasMore(false); setPage(1);}
         try {
-            let url: string =
-                searchMode === "artist"
-                    ? `/api/artists/info/top-albums?artist=${encodeURIComponent(query)}&page=${pageNumber}`
-                    : `/api/search?query=${encodeURIComponent(query)}&page=${pageNumber}`;
-
-            const response = await apiClient.get(url);
-            let rawData = [];
-            if (searchMode === "artist") {
-                rawData = response.data?.topAlbums?.topalbums?.album || [];
-            } else {
-                rawData =
-                    response.data?.searchResults?.results?.albummatches?.album || [];
-            }
-
-            const fetchedAlbums = rawData.map((a: any) => {
-                const artistName =
-                    typeof a.artist === "string"
-                        ? a.artist
-                        : a.artist?.name || t("unknown_artist");
-                const apiId = a.mbid || `album:${artistName}:${a.name}`;
-                return {
-                    id: apiId,
-                    title: a.name,
-                    artist: artistName,
-                    cover:
-                        a.image?.find((img: any) => img.size === "extralarge")?.["#text"] ||
-                        a.image?.[2]?.["#text"] ||
-                        PLACEHOLDER_IMAGE,
-                    rating: 0,
-                    year: a.year || null,
-                    mbid: a.mbid || null,
-                };
+            const url = searchMode === "artist"
+                ? `/api/artists/info/top-albums?artist=${encodeURIComponent(searchText)}&page=${nextPage}`
+                : `/api/search?query=${encodeURIComponent(searchText)}&page=${nextPage}`;
+            const response = await apiClient.get(url, {signal: controller.signal});
+            const raw = searchMode === "artist"
+                ? response.data?.topAlbums?.topalbums?.album
+                : response.data?.searchResults?.results?.albummatches?.album;
+            const fetched: Album[] = (Array.isArray(raw) ? raw : []).map((a: any) => {
+                const artist = typeof a.artist === "string" ? a.artist : a.artist?.name || t("unknown_artist");
+                return {id: a.mbid || `album:${artist}:${a.name}`, title: a.name, artist,
+                    cover: a.image?.find((i: any) => i.size === "extralarge")?.["#text"] || a.image?.[2]?.["#text"] || PLACEHOLDER,
+                    rating: 0, mbid: a.mbid || ""};
             });
-
-            let finalData = fetchedAlbums;
-            try {
-                const syncResponse = await apiClient.post("/medias/sync-search", {
-                    albums: fetchedAlbums.map((album: any) => ({
-                        api_id: album.id,
-                        name: album.title,
-                        artist: album.artist,
-                        cover: album.cover,
-                        mbid: album.mbid,
-                    })),
-                });
-
-                const syncedAlbums =
-                    syncResponse.data.medias || syncResponse.data || [];
-
-                if (Array.isArray(syncedAlbums) && syncedAlbums.length > 0) {
-                    finalData = syncedAlbums.map((s: any) => ({
-                        id: s.id,
-                        apiId: s.api_id,
-                        title: s.name,
-                        artist: s.artist,
-                        cover: s.cover || PLACEHOLDER_IMAGE,
-                        rating: s.rating !== undefined ? Number(s.rating) : 0,
-                        year: s.year || null,
-                        mbid: s.mbid || null,
-                    }));
+            let result = fetched;
+            if (fetched.length) {
+                try {
+                    const synced = await apiClient.post("/medias/sync-search", {
+                        albums: fetched.map(a => ({api_id: a.id, name: a.title, artist: a.artist, cover: a.cover, mbid: a.mbid}))
+                    }, {signal: controller.signal});
+                    const data = synced.data.medias || synced.data;
+                    if (Array.isArray(data) && data.length) {
+                        result = data.map((a: any) => ({id: a.id, title: a.name, artist: a.artist,
+                            cover: a.cover || PLACEHOLDER, rating: Number(a.rating) || 0, mbid: a.mbid || ""}));
+                    }
+                } catch {
+                    // Discovery still works when optional database synchronization fails.
                 }
-            } catch (err) {
-                console.warn("La synchronisation des résultats a échoué", err);
             }
-
-            if (pageNumber === 1) {
-                setAlbums(applySort(finalData, selectedSort));
-            } else {
-                setAlbums((prev) => {
-                    const existingIds = new Set(prev.map((a) => a.id));
-                    const uniqueNewData = finalData.filter(
-                        (a: { id: any }) => !existingIds.has(a.id),
-                    );
-                    return applySort([...prev, ...uniqueNewData], selectedSort);
-                });
-            }
-
-            setHasMore(finalData.length >= 50);
-            setPage(pageNumber);
-        } catch (error) {
-            console.error("❌ Erreur:", error);
+            if (controller.signal.aborted) return;
+            setAlbums(previous => {
+                const all = nextPage === 1 ? result : [...previous, ...result];
+                return [...new Map(all.map(a => [a.id, a])).values()];
+            });
+            setHasMore(fetched.length >= 50);
+            setPage(nextPage);
+        } catch {
+            if (!controller.signal.aborted) setError(true);
         } finally {
-            setLoading(false);
+            if (!controller.signal.aborted) setLoading(false);
         }
-    };
+    }
 
     useEffect(() => {
-        setPage(1);
-        setHasMore(false);
-    }, [searchQuery, searchMode]);
-
-    // Déclenche automatiquement une recherche si on arrive ici avec ?q=...&mode=...
-    // (depuis la recherche globale du header), puis nettoie l'URL.
-    useEffect(() => {
-        if (searchParams.get("q")) {
-            handleSearch(1);
-            setSearchParams({}, {replace: true});
+        setQuery(activeQuery);
+        setMode(activeMode);
+        if (activeQuery) void search(activeQuery, activeMode);
+        else {
+            request.current?.abort();
+            setAlbums([]); setLoading(false); setError(false); setHasMore(false);
         }
+        return () => request.current?.abort();
+        // URL state owns submitted searches; edits to the form do not mutate results.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [activeQuery, activeMode, retry]);
 
-    const applySort = (data: any[], sortType: string) => {
-        let sorted = [...data];
-        if (sortType === "rating") {
-            sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-        } else if (sortType === "az") {
-            sorted.sort((a, b) => a.title.localeCompare(b.title));
-        }
-        return sorted;
-    };
+    const sorted = useMemo(() => {
+        if (sort === "az") return [...albums].sort((a,b) => a.title.localeCompare(b.title));
+        if (sort === "rating") return [...albums].sort((a,b) => b.rating - a.rating);
+        return albums;
+    }, [albums, sort]);
 
-    const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const value = e.target.value;
-        setSelectedSort(value);
-        setAlbums(applySort(albums, value));
-    };
+    function submit(event: React.FormEvent) {
+        event.preventDefault();
+        if (!query.trim()) return;
+        if (query.trim() === activeQuery && mode === activeMode) setRetry(v => v + 1);
+        else setParams({q: query.trim(), mode});
+    }
 
-    return (
-        <div className="p-8 max-w-7xl mx-auto w-full min-h-screen bg-[#13131A] dark:bg-slate-50 text-white dark:text-gray-900 transition-colors duration-300">
-            <div className="mb-8">
-                <h1 className="text-4xl font-bold mb-2 text-white dark:text-gray-900" style={{fontFamily: "'Orbitron', sans-serif", letterSpacing: "0.5px"}}>
-                    {t("explore_title")}
-                </h1>
-                <p className="text-slate-400 dark:text-gray-600 text-lg">
-                    {t("explore_subtitle")}
-                </p>
+    return <div className="p-8 max-w-7xl mx-auto min-h-screen text-ink">
+        <section className="page-heading">
+            <div><span className="eyebrow">{t("design_discovery_label")}</span>
+                <h1 className="my-3">{t("design_discovery_title")}</h1><p>{t("explore_subtitle")}</p>
             </div>
-            <div className="p-6 rounded-2xl mb-6 border border-indigo-500/20 dark:border-gray-200">
-                <div className="flex flex-col lg:flex-row gap-6 mb-4">
-                    <div className="flex-1">
-                        <label className="block text-sm font-semibold mb-2 text-indigo-300 dark:text-gray-600">
-                            {t("search_label")}
-                        </label>
-                        <div className="flex items-center bg-[#13131A] dark:bg-white rounded-lg px-4 py-2.5 border border-indigo-500/20 dark:border-gray-300 focus-within:border-indigo-400 dark:focus-within:border-indigo-500 transition-colors">
-                            <Search size={18} className="text-slate-400 dark:text-gray-400"/>
-                            <input
-                                type="text"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                onKeyDown={(e) => e.key === "Enter" && handleSearch(1)}
-                                placeholder={t("search_album_placeholder")}
-                                className="bg-transparent text-white dark:text-gray-900 outline-none w-full text-sm placeholder-slate-500 dark:placeholder-gray-400 ml-3"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="w-full lg:w-1/4">
-                        <label className="block text-sm font-semibold mb-2 text-indigo-300 dark:text-gray-600">
-                            {t("sort_label")}
-                        </label>
-                        <div className="relative">
-                            <select
-                                value={selectedSort}
-                                onChange={handleSortChange}
-                                className="w-full bg-[#13131A] dark:bg-white text-white dark:text-gray-900 border border-indigo-500/20 dark:border-gray-300 rounded-lg px-4 py-3 outline-none appearance-none text-sm cursor-pointer focus:border-indigo-400 dark:focus:border-indigo-500 transition-colors"
-                            >
-                                <option value="az">{t("sort_az")}</option>
-                                <option value="rating">{t("sort_rating")}</option>
-                            </select>
-                            <ChevronDown
-                                size={16}
-                                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-400 pointer-events-none"
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                <div className="flex flex-wrap gap-3">
-                    <button
-                        onClick={() => handleSearch(1)}
-                        disabled={loading}
-                        className="flex items-center gap-2 bg-gradient-to-br from-indigo-500 to-indigo-700 hover:from-indigo-400 hover:to-indigo-600 disabled:from-gray-600 disabled:to-gray-700 px-6 py-2.5 rounded-lg transition-all text-sm font-bold text-white shadow-lg shadow-indigo-500/30"
-                    >
-                        {loading && page === 1 ? (
-                            <Loader2 size={16} className="animate-spin"/>
-                        ) : (
-                            <Search size={16}/>
-                        )}
-                        {loading && page === 1 ? t("searching_label") : t("search_label")}
-                    </button>
-
-                    <button
-                        onClick={() =>
-                            setSearchMode(searchMode === "artist" ? "album" : "artist")
-                        }
-                        className="flex items-center gap-2 bg-[#13131A] dark:bg-white border border-indigo-500/20 dark:border-gray-300 px-5 py-2.5 rounded-lg hover:bg-[#1c1c26] dark:hover:bg-gray-50 transition-colors text-sm font-semibold text-indigo-200/80 dark:text-gray-700"
-                    >
-                        <SlidersHorizontal size={16}/>
-                        {t("search_mode")}:{" "}
-                        {searchMode === "artist" ? t("mode_artist") : t("mode_album")}
-                    </button>
+        </section>
+        <form className="search-panel" onSubmit={submit} role="search">
+            <div className="flex flex-wrap items-center justify-between gap-4 mb-5">
+                <label htmlFor="album-query" className="font-semibold">{t("search_label")}</label>
+                <div className="flex rounded-xl bg-raised p-1 gap-1" role="group" aria-label={t("search_mode")}>
+                    {(["artist", "album"] as const).map(value => <button key={value} type="button" aria-pressed={mode === value}
+                        onClick={() => setMode(value)} className={`px-4 py-2 rounded-lg text-xs font-semibold transition-colors ${mode === value ? "bg-panel text-accent shadow-sm" : "text-muted"}`}>
+                        {t(value === "artist" ? "mode_artist" : "mode_album")}
+                    </button>)}
                 </div>
             </div>
-
-            {albums.length > 0 ? (
-                <p className="text-slate-400 dark:text-gray-500 text-sm mb-6">
-                    {t("results_count_plural", {count: albums.length})}
-                </p>
-            ) : (
-                <div className="flex flex-col items-center text-center py-16 px-4 rounded-2xl border border-dashed border-indigo-500/20 dark:border-gray-300 mb-6">
-                    <div className="w-14 h-14 rounded-full bg-indigo-500/10 dark:bg-indigo-100 flex items-center justify-center mb-4">
-                        <Disc size={26} className="text-indigo-300 dark:text-indigo-500"/>
-                    </div>
-                    <p className="text-sm font-semibold text-white dark:text-gray-900 mb-1">
-                        {t("no_result_found")}
-                    </p>
-                    <p className="text-xs text-slate-500 dark:text-gray-500">
-                        {t("try_another_search")}
-                    </p>
+            <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-line bg-canvas focus-within:border-accent flex-1">
+                    <Search size={20} className="text-muted shrink-0"/>
+                    <input id="album-query" value={query} onChange={e => setQuery(e.target.value)}
+                        placeholder={t("design_search_placeholder")} className="bg-transparent outline-none w-full min-w-0 text-sm" autoComplete="off"/>
                 </div>
-            )}
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {albums.map((album, index) => {
-                    const albumCover = album.cover || PLACEHOLDER_IMAGE;
-
-                    const params = new URLSearchParams({
-                        artist: album.artist,
-                        album: album.title,
-                        cover: albumCover,
-                        mbid: album.mbid || "",
-                    }).toString();
-
-                    return (
-                        <Link
-                            to={`/album/${album.id}?${params}`}
-                            key={`${album.id}-${index}`}
-                            className="block transition-transform duration-200 hover:scale-[1.02]"
-                        >
-                            <AlbumCard
-                                id={album.id}
-                                title={album.title}
-                                artist={album.artist}
-                                cover={albumCover}
-                                rating={album.rating}
-                            />
-                        </Link>
-                    );
-                })}
+                <button type="submit" disabled={!query.trim()} className="primary-action">
+                    {loading ? <Loader2 size={17} className="animate-spin"/> : <Search size={17}/>}
+                    {t("search_label")}
+                </button>
             </div>
-
-            {albums.length > 0 && hasMore && (
-                <div className="flex justify-center mt-12 pb-10">
-                    <button
-                        onClick={() => handleSearch(page + 1)}
-                        disabled={loading}
-                        className="flex items-center gap-3 bg-[#13131A] hover:bg-[#1c1c26] dark:bg-white dark:hover:bg-gray-50 border border-slate-800 dark:border-gray-300 px-10 py-3.5 rounded-xl transition-all text-sm font-bold text-slate-300 dark:text-gray-700 disabled:opacity-50"
-                    >
-                        {loading ? (
-                            <Loader2 size={20} className="animate-spin text-indigo-500"/>
-                        ) : (
-                            <span>{t("show_more")}</span>
-                        )}
-                    </button>
-                </div>
-            )}
+        </form>
+        {error && <div role="alert" className="flex flex-wrap gap-3 items-center p-4 mb-6 border border-red-500/30 bg-red-500/5 rounded-xl">
+            <AlertCircle size={18}/><span className="flex-1">{t("design_search_error")}</span>
+            <button className="secondary-action text-sm" onClick={() => search(activeQuery, activeMode, albums.length ? page + 1 : 1)}>{t("design_retry")}</button>
+        </div>}
+        {albums.length > 0 && <div className="section-topline">
+            <p className="text-sm text-muted" aria-live="polite">{t("results_count_plural", {count: albums.length})}</p>
+            <div className="flex items-center gap-3 text-sm">
+                <label htmlFor="album-sort" className="text-muted">{t("sort_label")}</label>
+                <select id="album-sort" value={sort} onChange={e => setSort(e.target.value)} className="bg-panel border border-line rounded-lg px-3 py-2">
+                    <option value="relevance">{t("design_relevance")}</option><option value="az">{t("sort_az")}</option><option value="rating">{t("sort_rating")}</option>
+                </select>
+            </div>
+        </div>}
+        <div className="grid grid-cols-2 md:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-5" aria-busy={loading}>
+            {sorted.map(album => <AlbumCard key={album.id} {...album} to={`/album/${encodeURIComponent(album.id)}?${new URLSearchParams({
+                artist: album.artist, album: album.title, cover: album.cover, mbid: album.mbid || ""})}`}/>)}
+            {loading && Array.from({length: 8}, (_,i) => <div key={`loading-${i}`} className="album-card" aria-hidden="true">
+                <div className="skeleton aspect-square rounded-xl"/><div className="skeleton h-4 w-3/4 rounded mt-5 mb-3"/><div className="skeleton h-3 w-1/2 rounded mb-4"/>
+            </div>)}
         </div>
-    );
-};
-
-export default Home;
+        {loading && <p role="status" className="sr-only">{t("searching_label")}</p>}
+        {!loading && !error && !albums.length && (activeQuery ? <div className="empty-state">
+            <Disc3 className="mx-auto text-accent" size={32}/><h2>{t("no_result_found")}</h2><p>{t("try_another_search")}</p>
+        </div> : <section>
+            <div className="section-topline"><h2>{t("design_start_title")}</h2><span className="text-sm text-muted">{t("design_start_subtitle")}</span></div>
+            <div className="grid md:grid-cols-2 gap-4">
+                {[{to: "/library", Icon: Library, title: "design_library_title", desc: "design_library_desc"},
+                  {to: "/rooms", Icon: Radio, title: "design_listen_together", desc: "design_rooms_desc"}].map(({to, Icon, title, desc}) =>
+                    <Link key={to} to={to} className="p-6 bg-panel border border-line rounded-2xl hover:border-accent transition-colors group">
+                        <div className="flex justify-between mb-7"><Icon className="text-accent" size={26}/><ArrowUpRight size={19} className="text-muted group-hover:text-accent"/></div>
+                        <h3 className="text-lg font-semibold mb-2">{t(title)}</h3><p className="text-muted text-sm leading-relaxed">{t(desc)}</p>
+                    </Link>)}
+            </div>
+        </section>)}
+        {!loading && hasMore && <div className="flex justify-center mt-8"><button className="secondary-action" onClick={() => search(activeQuery, activeMode, page + 1)}>{t("show_more")}</button></div>}
+    </div>;
+}

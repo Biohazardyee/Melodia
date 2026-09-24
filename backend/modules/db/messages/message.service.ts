@@ -20,6 +20,8 @@ import {
 } from "../../../generated/prisma/client.js";
 import {messagesMapper} from "../../../mappers/messages/messages.mapper.js";
 
+import {assertCanSend} from "../conversations/conversation.policy.js";
+
 export class MessageService {
     async create(data: MessageAddDto): Promise<MessageAddResponseDto> {
         if (isEmptyString(data.conversation_id)) {
@@ -34,38 +36,49 @@ export class MessageService {
             throw new BadRequest("Conversation content cannot be empty");
         }
 
-        const conversation: Conversations | null =
-            await PrismaDb.conversations.findUnique({
+        if (data.content.length > 1000) throw new BadRequest("Message cannot exceed 1000 characters");
+
+        return PrismaDb.$transaction(async (tx) => {
+            // Serialize sends and acceptance: concurrent requests cannot send two invitations.
+            await tx.$queryRaw`SELECT id FROM "Conversations" WHERE id = ${data.conversation_id} FOR UPDATE`;
+            const conversation: Conversations | null =
+                await tx.conversations.findUnique({
+                    where: {
+                        id: data.conversation_id,
+                    },
+                });
+
+            if (!conversation) {
+                throw new BadRequest("Conversation not found");
+            }
+
+            assertCanSend(conversation, data.sender_id);
+
+            const sender: Users | null = await tx.users.findUnique({
                 where: {
-                    id: data.conversation_id,
+                    id: data.sender_id,
                 },
             });
 
-        if (!conversation) {
-            throw new BadRequest("Conversation not found");
-        }
+            if (!sender) {
+                throw new BadRequest("Sender not found");
+            }
 
-        const sender: Users | null = await PrismaDb.users.findUnique({
-            where: {
-                id: data.sender_id,
-            },
+            const createData: Prisma.MessagesUncheckedCreateInput = {
+                conversation_id: data.conversation_id,
+                sender_id: data.sender_id,
+                content: data.content,
+            };
+
+            const message: Messages = await tx.messages.create({
+                data: createData,
+            });
+
+            if (conversation.status === "PENDING") {
+                await tx.conversations.update({where: {id: conversation.id}, data: {invitation_sent: true}});
+            }
+            return messagesMapper.toAddDto(message);
         });
-
-        if (!sender) {
-            throw new BadRequest("Sender not found");
-        }
-
-        const createData: Prisma.MessagesUncheckedCreateInput = {
-            conversation_id: data.conversation_id,
-            sender_id: data.sender_id,
-            content: data.content,
-        };
-
-        const message: Messages = await PrismaDb.messages.create({
-            data: createData,
-        });
-
-        return messagesMapper.toAddDto(message);
     }
 
     async getAll(): Promise<MessageResponseDto[]> {

@@ -1,4 +1,5 @@
 import {useNavigate, NavigateFunction} from "react-router-dom";
+import {backDestination} from "../utils/navigation";
 
 /**
  * Retourne une fonction "retour" fiable.
@@ -13,13 +14,11 @@ export function useGoBack(fallback: string = "/home"): () => void {
     const navigate: NavigateFunction = useNavigate();
 
     return (): void => {
-        const idx: number =
-            (window.history.state && (window.history.state as any).idx) || 0;
-
-        if (idx > 0) {
+        const destination = backDestination(window.history.state?.idx, fallback);
+        if (destination === -1) {
             navigate(-1);
         } else {
-            navigate(fallback);
+            navigate(destination);
         }
     };
 }

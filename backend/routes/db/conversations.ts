@@ -1,7 +1,6 @@
 import express, {NextFunction, Request, Response, Router} from "express";
 import conversationController from "../../modules/db/conversations/conversation.controller.js";
 import {authGuard} from "../../middlewares/auth.js";
-import {checkResourceOwnerOrAdmin} from "../../middlewares/checkResourceOwnerOrAdmin.js";
 import {checkAdmin} from "../../middlewares/checkAdmin.js";
 
 const router: Router = express.Router();
@@ -10,7 +9,7 @@ router.get("/", authGuard, checkAdmin, function (req: Request, res: Response, ne
     conversationController.getAll(req, res, next);
 })
 
-router.get("/:id", authGuard, checkResourceOwnerOrAdmin('conversations'), function (req: Request, res: Response, next: NextFunction): void {
+router.get("/:id", authGuard, function (req: Request, res: Response, next: NextFunction): void {
     conversationController.getById(req, res, next);
 })
 
@@ -23,8 +22,12 @@ router.get('/user/:userId', authGuard, function (req: Request, res: Response, ne
     }
 );
 
-router.delete("/:id", authGuard, checkResourceOwnerOrAdmin('conversations'), function (req: Request, res: Response, next: NextFunction): void {
+router.delete("/:id", authGuard, checkAdmin, function (req: Request, res: Response, next: NextFunction): void {
     conversationController.delete(req, res, next);
 })
+
+router.patch("/:id/request", authGuard, (req, res, next) => {
+    conversationController.respond(req, res, next);
+});
 
 export default router;

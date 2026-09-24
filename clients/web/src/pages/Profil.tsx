@@ -1,49 +1,24 @@
-import React, {useState, useEffect, useRef} from "react";
-import {
-    Calendar,
-    Settings,
-    Camera,
-    UserPlus,
-    UserCheck,
-    Heart,
-    Flag,
-    Music,
-    Plus,
-    Coins,
-    Sparkles,
-    X,
-    Image as ImageIcon,
-    ArrowLeft,
-    MoreVertical,
-    Star,
-    MessageSquare,
-    ChevronRight,
-    Trash2,
-    ShieldCheck,
-    Loader2,
-    Award,
-    PenLine,
-    Users,
-    ListMusic,
-    Lock,
-} from "lucide-react";
-import {NavigateFunction, useNavigate, useParams} from "react-router-dom";
-import {useTranslation} from "react-i18next";
-import {jwtDecode} from "jwt-decode";
-import {toast} from "react-toastify";
+import { AxiosResponse } from "axios";
+import { jwtDecode } from "jwt-decode";
+import React, { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useParams } from "react-router-dom";
+import { toast } from "react-toastify";
 import apiClient from "../api/client";
-import {useConfirm} from "../context/ConfirmContext";
-import AvatarBorder, {isValidBorder} from "../components/AvatarBorder";
-import {PSEUDO_FONTS, getPseudoFontFamily, isValidPseudoFont} from "../fonts.config";
-import {getProfileTitle, isValidProfileTitle} from "../titles.config";
-import {TEXT_EFFECTS, getTextEffectClassName, isValidTextEffect} from "../textEffects.config";
-import {getPremiumBanner, isValidPremiumBanner} from "../banners.config";
-import {getPattern, isValidPattern} from "../patterns.config";
-import {toImageDataUri} from "../utils/imageDataUri";
-import {AlbumCard} from "../components/AlbumCard";
-import SpotifyPlaylistImport from "../components/SpotifyPlaylistImport";
-import NowPlayingCard from "../components/NowPlayingCard";
-import {AxiosResponse} from "axios";
+import { getPremiumBanner } from "../banners.config";
+import { AlbumCard } from "../components/AlbumCard";
+import ProfileActivity from "../components/profile/ProfileActivity";
+import ProfileBadges from "../components/profile/ProfileBadges";
+import ProfileCosmeticsDialog from "../components/profile/ProfileCosmeticsDialog";
+import ProfileFollowDialog from "../components/profile/ProfileFollowDialog";
+import ProfileHeader from "../components/profile/ProfileHeader";
+import ProfilePlaylistDetail from "../components/profile/ProfilePlaylistDetail";
+import ProfilePlaylists from "../components/profile/ProfilePlaylists";
+import { useConfirm } from "../context/ConfirmContext";
+import { useProfileCosmetics } from "../hooks/useProfileCosmetics";
+import { getPattern } from "../patterns.config";
+import { getProfileTitle } from "../titles.config";
+import { toImageDataUri } from "../utils/imageDataUri";
 
 const formatReviewItem = (
     item: any,
@@ -88,27 +63,9 @@ const formatReviewItem = (
     };
 };
 
-const BADGE_ICONS: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
-    PenLine,
-    Users,
-    UserPlus,
-    MessageSquare,
-    ListMusic,
-    Heart,
-};
-
-const getRatingColors = (rating: number) => {
-    if (rating >= 4.5) return { bg: "bg-emerald-500/10", text: "text-emerald-600 dark:text-emerald-500", border: "border-emerald-500/20", fill: "#10b981" };
-    if (rating >= 3.5) return { bg: "bg-blue-500/10", text: "text-blue-600 dark:text-blue-500", border: "border-blue-500/20", fill: "#3b82f6" };
-    if (rating >= 2.5) return { bg: "bg-amber-500/10", text: "text-amber-600 dark:text-amber-500", border: "border-amber-500/20", fill: "#f59e0b" };
-    if (rating >= 1.5) return { bg: "bg-orange-500/10", text: "text-orange-600 dark:text-orange-500", border: "border-orange-500/20", fill: "#f97316" };
-    return { bg: "bg-rose-500/10", text: "text-rose-600 dark:text-rose-500", border: "border-rose-500/20", fill: "#f43f5e" };
-};
-
 const Profil: React.FC = () => {
-    const navigate: NavigateFunction = useNavigate();
-    const {id: externalUserId} = useParams<{ id: string }>();
-    const {t} = useTranslation(); // <-- Utilisation de t()
+    const { id: externalUserId } = useParams<{ id: string }>();
+    const { t } = useTranslation(); // <-- Utilisation de t()
     const confirm = useConfirm();
 
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -117,10 +74,10 @@ const Profil: React.FC = () => {
 
     const [activeTab, setActiveTab] = useState("favorites");
     const [userProfil, setUserProfil] = useState<any>(null);
+    const cosmetics = useProfileCosmetics(setUserProfil);
+    const {showCosmetics, cosmeticLabel, openCosmetics} = cosmetics;
+
     const [userConnected, setUserConnected] = useState<string>("");
-    const [showCosmetics, setShowCosmetics] = useState<boolean>(false);
-    const [cosmeticNames, setCosmeticNames] = useState<Record<string, string>>({});
-    const [equipping, setEquipping] = useState<string | null>(null);
     const [playlists, setPlaylists] = useState<any[]>([]);
     const [badges, setBadges] = useState<any[]>([]);
     const [mediaStatuses, setMediaStatuses] = useState<any[]>([]);
@@ -295,7 +252,7 @@ const Profil: React.FC = () => {
         try {
             if (previousStatus) {
                 await apiClient.delete(`/follows/`, {
-                    data: {user_id: userConnected, follow_user_id: userProfil.id},
+                    data: { user_id: userConnected, follow_user_id: userProfil.id },
                 });
             } else {
                 await apiClient.post(`/follows/`, {
@@ -308,7 +265,7 @@ const Profil: React.FC = () => {
             console.error("Erreur Follow/Unfollow:", error);
             toast.error(t("alert_follow_error")); // <-- Traduit
             setIsFollowing(previousStatus);
-            setFollowCounts((prev) => ({...prev, followers: previousFollowers}));
+            setFollowCounts((prev) => ({ ...prev, followers: previousFollowers }));
         } finally {
             isInteracting.current = false;
         }
@@ -389,7 +346,7 @@ const Profil: React.FC = () => {
         e.stopPropagation();
         const ok = await confirm({
             title: t("remove_item_title", "Retirer de la playlist"),
-            message: t("confirm_remove_item", {title: mediaTitle}),
+            message: t("confirm_remove_item", { title: mediaTitle }),
             confirmText: t("remove", "Retirer"),
             danger: true,
         });
@@ -404,163 +361,6 @@ const Profil: React.FC = () => {
         } catch (error) {
             console.error("Erreur suppression:", error);
             toast.error(t("alert_item_remove_error")); // <-- Traduit
-        }
-    };
-
-    const openCosmetics = async (): Promise<void> => {
-        setShowCosmetics(true);
-        try {
-            const res = await apiClient.get("/users/cosmetics/catalog");
-            const map: Record<string, string> = {};
-            (res.data.catalog || []).forEach((c: any) => {
-                map[c.id] = c.name;
-            });
-            setCosmeticNames(map);
-        } catch (e) {
-            console.error("Erreur chargement catalogue cosmétiques:", e);
-        }
-    };
-
-    const equipBorder = async (cosmeticId: string | null): Promise<void> => {
-        setEquipping(cosmeticId || "none-border");
-        try {
-            const res = await apiClient.post("/users/cosmetics/equip", {
-                cosmetic_id: cosmeticId,
-                slot: "avatar_border",
-            });
-            setUserProfil((prev: any) => ({
-                ...prev,
-                equipped_avatar_border: res.data.equipped_avatar_border,
-            }));
-            window.dispatchEvent(new Event("profileUpdated"));
-            toast.success(
-                cosmeticId
-                    ? t("cosmetic_equipped", "Contour équipé !")
-                    : t("cosmetic_unequipped", "Contour retiré."),
-            );
-        } catch (e: any) {
-            toast.error(e.response?.data?.message || t("cosmetic_equip_error", "Action impossible."));
-        } finally {
-            setEquipping(null);
-        }
-    };
-
-    const equipFont = async (cosmeticId: string | null): Promise<void> => {
-        setEquipping(cosmeticId || "none-font");
-        try {
-            const res = await apiClient.post("/users/cosmetics/equip", {
-                cosmetic_id: cosmeticId,
-                slot: "font",
-            });
-            setUserProfil((prev: any) => ({
-                ...prev,
-                equipped_font: res.data.equipped_font,
-            }));
-            toast.success(
-                cosmeticId
-                    ? t("font_equipped", "Police équipée !")
-                    : t("font_unequipped", "Police retirée."),
-            );
-        } catch (e: any) {
-            toast.error(e.response?.data?.message || t("cosmetic_equip_error", "Action impossible."));
-        } finally {
-            setEquipping(null);
-        }
-    };
-
-    const equipTitle = async (cosmeticId: string | null): Promise<void> => {
-        setEquipping(cosmeticId || "none-title");
-        try {
-            const res = await apiClient.post("/users/cosmetics/equip", {
-                cosmetic_id: cosmeticId,
-                slot: "title",
-            });
-            setUserProfil((prev: any) => ({
-                ...prev,
-                equipped_title: res.data.equipped_title,
-            }));
-            window.dispatchEvent(new Event("profileUpdated"));
-            toast.success(
-                cosmeticId
-                    ? t("title_equipped", "Titre équipé !")
-                    : t("title_unequipped", "Titre retiré."),
-            );
-        } catch (e: any) {
-            toast.error(e.response?.data?.message || t("cosmetic_equip_error", "Action impossible."));
-        } finally {
-            setEquipping(null);
-        }
-    };
-
-    const equipTextEffect = async (cosmeticId: string | null): Promise<void> => {
-        setEquipping(cosmeticId || "none-text_effect");
-        try {
-            const res = await apiClient.post("/users/cosmetics/equip", {
-                cosmetic_id: cosmeticId,
-                slot: "text_effect",
-            });
-            setUserProfil((prev: any) => ({
-                ...prev,
-                equipped_text_effect: res.data.equipped_text_effect,
-            }));
-            window.dispatchEvent(new Event("profileUpdated"));
-            toast.success(
-                cosmeticId
-                    ? t("text_effect_equipped", "Effet équipé !")
-                    : t("text_effect_unequipped", "Effet retiré."),
-            );
-        } catch (e: any) {
-            toast.error(e.response?.data?.message || t("cosmetic_equip_error", "Action impossible."));
-        } finally {
-            setEquipping(null);
-        }
-    };
-
-    const equipBanner = async (cosmeticId: string | null): Promise<void> => {
-        setEquipping(cosmeticId || "none-banner");
-        try {
-            const res = await apiClient.post("/users/cosmetics/equip", {
-                cosmetic_id: cosmeticId,
-                slot: "banner",
-            });
-            setUserProfil((prev: any) => ({
-                ...prev,
-                equipped_banner: res.data.equipped_banner,
-            }));
-            window.dispatchEvent(new Event("profileUpdated"));
-            toast.success(
-                cosmeticId
-                    ? t("banner_equipped", "Bannière équipée !")
-                    : t("banner_unequipped", "Bannière retirée."),
-            );
-        } catch (e: any) {
-            toast.error(e.response?.data?.message || t("cosmetic_equip_error", "Action impossible."));
-        } finally {
-            setEquipping(null);
-        }
-    };
-
-    const equipPattern = async (cosmeticId: string | null): Promise<void> => {
-        setEquipping(cosmeticId || "none-pattern");
-        try {
-            const res = await apiClient.post("/users/cosmetics/equip", {
-                cosmetic_id: cosmeticId,
-                slot: "pattern",
-            });
-            setUserProfil((prev: any) => ({
-                ...prev,
-                equipped_pattern: res.data.equipped_pattern,
-            }));
-            window.dispatchEvent(new Event("profileUpdated"));
-            toast.success(
-                cosmeticId
-                    ? t("pattern_equipped", "Motif équipé !")
-                    : t("pattern_unequipped", "Motif retiré."),
-            );
-        } catch (e: any) {
-            toast.error(e.response?.data?.message || t("cosmetic_equip_error", "Action impossible."));
-        } finally {
-            setEquipping(null);
         }
     };
 
@@ -588,7 +388,7 @@ const Profil: React.FC = () => {
         localUri: string,
     ): Promise<void> => {
         try {
-            setUserProfil((prev: any) => ({...prev, profile_picture: localUri}));
+            setUserProfil((prev: any) => ({ ...prev, profile_picture: localUri }));
 
             await apiClient.put(`/users/${userConnected}`, {
                 profile_picture: base64Image,
@@ -631,7 +431,7 @@ const Profil: React.FC = () => {
         localUri: string,
     ): Promise<void> => {
         try {
-            setUserProfil((prev: any) => ({...prev, banner: localUri}));
+            setUserProfil((prev: any) => ({ ...prev, banner: localUri }));
 
             await apiClient.put(`/users/${userConnected}`, {
                 banner: base64Image,
@@ -785,7 +585,7 @@ const Profil: React.FC = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-[#13131A] dark:bg-slate-50 flex items-center justify-center transition-colors duration-300">
+            <div className="min-h-screen bg-canvas dark:bg-canvas flex items-center justify-center transition-colors duration-300">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
             </div>
         );
@@ -794,11 +594,11 @@ const Profil: React.FC = () => {
     const unlockedBadgesCount: number = badges.filter((b) => b.unlocked).length;
 
     const tabs = [
-        {id: "favorites", label: t("tab_favorite_albums")},
-        {id: "playlists", label: `${t("tab_playlists")} (${playlists.length})`},
-        {id: "mediaStatus", label: t("tab_media_status", "Écoute")},
-        {id: "badges", label: `${t("tab_badges", "Badges")} (${unlockedBadgesCount})`},
-        {id: "activity", label: t("tab_recent_activity")},
+        { id: "favorites", label: t("tab_favorite_albums") },
+        { id: "playlists", label: `${t("tab_playlists")} (${playlists.length})` },
+        { id: "mediaStatus", label: t("tab_media_status", "Écoute") },
+        { id: "badges", label: `${t("tab_badges", "Badges")} (${unlockedBadgesCount})` },
+        { id: "activity", label: t("tab_recent_activity") },
     ];
 
     const equippedBannerDef = getPremiumBanner(userProfil?.equipped_banner);
@@ -807,7 +607,7 @@ const Profil: React.FC = () => {
 
     return (
         <div
-            className={`min-h-screen bg-[#13131A] text-slate-200 dark:bg-slate-50 dark:text-gray-900 font-sans transition-colors duration-300 ${equippedPatternDef?.className || ""}`}>
+            className={`min-h-screen bg-canvas text-slate-200 dark:bg-canvas dark:text-gray-900 font-sans transition-colors duration-300 ${equippedPatternDef?.className || ""}`}>
             <input
                 type="file"
                 ref={fileInputRef}
@@ -824,225 +624,36 @@ const Profil: React.FC = () => {
             />
 
             {/* Header */}
-            <div className="relative">
-                <div
-                    onClick={handleBannerClick}
-                    className={`h-56 md:h-72 lg:h-80 w-full bg-cover bg-center relative group ${isOwnProfile ? "cursor-pointer" : ""} ${equippedBannerDef?.className || ""}`}
-                    style={equippedBannerDef ? undefined : {
-                        backgroundImage: `url('${
-                            toImageDataUri(userProfil?.banner) || "https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=1600"
-                        }')`,
-                    }}
-                >
-                    {/* Léger dégradé en bas seulement (pas de flou) pour détacher l'avatar — la bannière reste nette */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent pointer-events-none"></div>
-                    {isOwnProfile && (
-                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 group-hover:bg-black/30 transition-all">
-                            <div className="flex items-center gap-2 bg-black/60 text-white px-4 py-2 rounded-lg text-sm font-semibold backdrop-blur-sm">
-                                <ImageIcon size={16}/>
-                                {t("change_banner")}
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                {/* Zone des infos du profil */}
-                <div className="max-w-6xl mx-auto px-6">
-                    <div className="relative -mt-12 mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
-                        <div className="flex flex-col md:flex-row md:items-end gap-6">
-                            <AvatarBorder borderId={userProfil?.equipped_avatar_border} className="z-10">
-                            <div
-                                onClick={handleProfilePictureClick}
-                                className={`w-32 h-32 md:w-40 md:h-40 rounded-full border-[6px] border-[#0f1117] dark:border-slate-50 flex items-center justify-center text-white text-4xl font-bold shadow-xl z-10 transition-colors relative overflow-hidden group ${isOwnProfile ? "cursor-pointer" : ""}`}
-                            >
-                                {userProfil?.profile_picture &&
-                                typeof userProfil.profile_picture === "string" ? (
-                                    <img
-                                        src={toImageDataUri(userProfil.profile_picture) || undefined}
-                                        alt="Profil"
-                                        className="w-full h-full object-cover"
-                                    />
-                                ) : (
-                                    <div className="w-full h-full bg-blue-500 flex items-center justify-center">
-                                        {(userProfil?.pseudo || userProfil?.username)?.substring(0, 2).toUpperCase()}
-                                    </div>
-                                )}
-
-                                {isOwnProfile && (
-                                    <div
-                                        className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                                        <Camera size={24} className="text-white"/>
-                                    </div>
-                                )}
-                            </div>
-                            </AvatarBorder>
-
-                            <div className="pb-2">
-                                <div className="flex items-center gap-3 flex-wrap">
-                                    <h1
-                                        className={`text-4xl font-bold tracking-tight ${getTextEffectClassName(userProfil?.equipped_text_effect) || "text-white dark:text-gray-900"}`}
-                                        style={{fontFamily: getPseudoFontFamily(userProfil?.equipped_font) || undefined}}
-                                    >
-                                        {userProfil?.pseudo || userProfil?.username}
-                                    </h1>
-                                    {userProfil?.role === "ADMIN" && (
-                                        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full border border-rose-500/40 bg-rose-500/15 text-rose-400 text-sm font-bold">
-                                            <ShieldCheck size={14}/>
-                                            {t("admin_badge", "Admin")}
-                                        </span>
-                                    )}
-                                    {equippedTitleDef && (
-                                        <span className={`inline-flex items-center px-3 py-1 rounded-full border text-sm font-bold ${equippedTitleDef.className}`}>
-                                            {equippedTitleDef.label}
-                                        </span>
-                                    )}
-                                </div>
-                                <p className="text-slate-400 dark:text-gray-600 font-medium">
-                                    @{userProfil?.username?.toLowerCase()}
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="flex items-center gap-2 self-start md:self-end mb-2">
-                            {isOwnProfile ? (
-                                <>
-                                    <button
-                                        onClick={openCosmetics}
-                                        className="flex items-center gap-2 bg-purple-600/90 hover:bg-purple-500 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all shadow-sm"
-                                    >
-                                        <Sparkles size={16}/>
-                                        {t("cosmetics", "Cosmétiques")}
-                                    </button>
-                                    <button
-                                        onClick={() => navigate("/settings")}
-                                        className="flex items-center gap-2 bg-slate-800/80 dark:bg-white hover:bg-slate-700 dark:hover:bg-gray-100 text-slate-100 dark:text-gray-900 px-4 py-2 rounded-lg text-sm font-semibold transition-all border border-slate-700 dark:border-gray-200 shadow-sm"
-                                    >
-                                        <Settings size={16}/>
-                                        {t("profile_edit_btn")}
-                                    </button>
-                                </>
-                            ) : (
-                                <>
-                                    <button
-                                        onClick={handleFollowToggle}
-                                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all border shadow-sm ${
-                                            isFollowing
-                                                ? "bg-transparent border-slate-700 dark:border-gray-300 text-slate-300 dark:text-gray-700 hover:bg-slate-800/40"
-                                                : "bg-blue-600 border-blue-600 text-white hover:bg-blue-500"
-                                        }`}
-                                    >
-                                        {isFollowing ? (
-                                            <UserCheck size={16}/>
-                                        ) : (
-                                            <UserPlus size={16}/>
-                                        )}
-                                        {isFollowing ? "Following" : "Follow"}
-                                    </button>
-
-                                    <button
-                                        onClick={() => setIsReportModalOpen(true)}
-                                        className="p-2.5 bg-slate-800/80 dark:bg-white border border-slate-700 dark:border-gray-200 rounded-lg text-slate-400 hover:text-red-500 hover:border-red-500/50 dark:hover:text-red-600 dark:hover:border-red-500/50 transition-all shadow-sm"
-                                        title={t("report_title")}
-                                    >
-                                        <Flag size={18} />
-                                    </button>
-                                </>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Biographie & Méta-données */}
-                    <div className="max-w-2xl space-y-4">
-                        <p className="text-slate-200 dark:text-gray-700 leading-relaxed text-lg whitespace-pre-wrap break-words">
-                            {userProfil?.biography || t("profile_no_bio")}
-                        </p>
-
-                        <div className="flex flex-wrap gap-x-6 gap-y-2 text-slate-400 dark:text-gray-500 text-sm">
-                            {userProfil?.favorite_band && (
-                                <div className="flex items-center gap-1.5">
-                                    <Music size={16} className="text-blue-400 dark:text-blue-500 shrink-0"/>
-                                    <span className="text-slate-300 dark:text-gray-600">
-                                        <span className="text-slate-500 dark:text-gray-400">{t("label_favorite_band")} : </span>
-                                        {userProfil.favorite_band}
-                                    </span>
-                                </div>
-                            )}
-                            <div className="flex items-center gap-1.5">
-                                <Calendar
-                                    size={16}
-                                    className="text-slate-500 dark:text-gray-400"
-                                />
-                                {t("profile_member_since")}{" "}
-                                {userProfil?.created_at
-                                    ? (() => {
-                                        const date: Date = new Date(userProfil.created_at);
-                                        const day: string = String(date.getDate()).padStart(2, "0");
-                                        const month: string = String(date.getMonth() + 1).padStart(
-                                            2,
-                                            "0",
-                                        );
-                                        const year: number = date.getFullYear();
-                                        return `${day}/${month}/${year}`;
-                                    })()
-                                    : ""}
-                            </div>
-                        </div>
-                        <div className="flex gap-8 pt-2">
-                            <button
-                                onClick={() => openFollowModal("followers")}
-                                className="flex items-center gap-1.5 hover:opacity-80 transition-opacity"
-                            >
-                                <span className="text-white dark:text-gray-900 font-bold text-lg">
-                                  {followCounts.followers}
-                                </span>
-                                <span className="text-slate-500 dark:text-gray-500 text-sm">
-                                  {t("profile_followers")}
-                                </span>
-                            </button>
-                            <button
-                                onClick={() => openFollowModal("following")}
-                                className="flex items-center gap-1.5 hover:opacity-80 transition-opacity"
-                            >
-                                <span className="text-white dark:text-gray-900 font-bold text-lg">
-                                  {followCounts.following}
-                                </span>
-                                <span className="text-slate-500 dark:text-gray-500 text-sm">
-                                  {t("profile_following")}
-                                </span>
-                            </button>
-                            <div className="flex items-center gap-1.5">
-                                <span className="text-white dark:text-gray-900 font-bold text-lg">
-                                  {favoriteReviews.length}
-                                </span>
-                                <span className="text-slate-500 dark:text-gray-500 text-sm">
-                                  {t("profile_albums")}
-                                </span>
-                            </div>
-                        </div>
-
-                        {userProfil?.id && (
-                            <div className="pt-4">
-                                <NowPlayingCard userId={userProfil.id}/>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
+            <ProfileHeader
+                handleBannerClick={handleBannerClick}
+                isOwnProfile={isOwnProfile}
+                equippedBannerDef={equippedBannerDef}
+                userProfil={userProfil}
+                handleProfilePictureClick={handleProfilePictureClick}
+                equippedTitleDef={equippedTitleDef}
+                cosmeticLabel={cosmeticLabel}
+                openCosmetics={openCosmetics}
+                handleFollowToggle={handleFollowToggle}
+                isFollowing={isFollowing}
+                setIsReportModalOpen={setIsReportModalOpen}
+                openFollowModal={openFollowModal}
+                followCounts={followCounts}
+                favoriteReviews={favoriteReviews}
+            />
 
             {/* Navigation des Onglets cachée si on regarde le détail d'une playlist */}
             {!selectedPlaylist && (
                 <div className="max-w-6xl mx-auto px-6 mt-12">
                     <div
-                        className="bg-slate-900/50 dark:bg-white border border-slate-800 dark:border-gray-200 p-1 rounded-xl flex items-center justify-between shadow-inner transition-colors">
+                        className="bg-panel/50 dark:bg-panel border border-line dark:border-line p-1 rounded-xl flex items-center justify-between shadow-inner transition-colors">
                         {tabs.map((tab) => (
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
-                                className={`flex-1 py-3 text-sm font-bold rounded-lg transition-all ${
-                                    activeTab === tab.id
-                                        ? "bg-slate-800 dark:bg-gray-100 text-white dark:text-gray-900 shadow-md"
-                                        : "text-slate-400 dark:text-gray-500 hover:text-white dark:hover:text-gray-900 hover:bg-slate-800/40 dark:hover:bg-gray-50"
-                                }`}
+                                className={`flex-1 py-3 text-sm font-bold rounded-lg transition-all ${activeTab === tab.id
+                                        ? "bg-raised dark:bg-raised text-ink shadow-md"
+                                        : "text-muted dark:text-muted hover:text-white dark:hover:text-gray-900 hover:bg-raised/40 dark:hover:bg-gray-50"
+                                    }`}
                             >
                                 {tab.label}
                             </button>
@@ -1051,98 +662,15 @@ const Profil: React.FC = () => {
                 </div>
             )}
 
-            <main className="max-w-6xl mx-auto px-6 py-10">
+            <section className="max-w-6xl mx-auto px-6 py-10">
                 {selectedPlaylist ? (
-                    <div className="space-y-8 animate-fadeIn">
-                        <button
-                            onClick={() => setSelectedPlaylist(null)}
-                            className="flex items-center gap-2 text-slate-400 hover:text-white dark:text-gray-500 dark:hover:text-gray-900 transition-colors mb-4"
-                        >
-                            <ArrowLeft size={20}/> {t("back") || "Retour"}
-                        </button>
-
-                        <div className="flex flex-col md:flex-row gap-8 items-start">
-                            <div
-                                className="w-48 h-48 md:w-56 md:h-56 bg-slate-900 dark:bg-gray-100 rounded-2xl overflow-hidden shadow-2xl shrink-0">
-                                {selectedPlaylist.image_url ? (
-                                    <img
-                                        src={formatPlaylistImage(selectedPlaylist.image_url)}
-                                        alt=""
-                                        className="w-full h-full object-cover"
-                                    />
-                                ) : (
-                                    <div
-                                        className="w-full h-full flex items-center justify-center text-slate-600 dark:text-gray-400">
-                                        {t("no_cover") || "Sans couverture"}
-                                    </div>
-                                )}
-                            </div>
-                            <div className="flex flex-col gap-4 mt-2">
-                                <h1 className="text-4xl md:text-5xl font-bold text-white dark:text-gray-900 tracking-tight">
-                                    {selectedPlaylist.name}
-                                </h1>
-                                <p className="text-slate-500 dark:text-gray-500 font-medium">
-                                    {selectedPlaylist.items?.length || 0} Albums
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="mt-12 pt-8 border-t border-slate-800 dark:border-gray-200">
-                            <h2 className="text-2xl font-bold mb-6 text-white dark:text-gray-900">
-                                Albums
-                            </h2>
-                            {selectedPlaylist.items && selectedPlaylist.items.length > 0 ? (
-                                <div
-                                    className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-8 gap-y-10">
-                                    {selectedPlaylist.items.map((item: any) => (
-                                        <div
-                                            key={item.id}
-                                            className="flex flex-col gap-3 group cursor-pointer relative"
-                                            onClick={() => navigate(`/album/${item.media_id}`)}
-                                        >
-                                            {isOwnProfile && (
-                                                <button
-                                                    onClick={(e: React.MouseEvent<HTMLButtonElement>) =>
-                                                        removeItem(e, item.id, item.media?.title || "Album")
-                                                    }
-                                                    className="absolute top-2 right-2 z-20 bg-black/50 hover:bg-rose-500/80 backdrop-blur-md p-1.5 rounded-lg text-white transition-colors"
-                                                >
-                                                    <MoreVertical size={16}/>
-                                                </button>
-                                            )}
-
-                                            <div
-                                                className="aspect-square bg-slate-900 dark:bg-gray-100 rounded-2xl overflow-hidden shadow-lg relative border border-transparent dark:border-gray-200 group-hover:border-slate-700 dark:group-hover:border-gray-300 transition-colors">
-                                                <img
-                                                    src={item.media?.cover || item.image}
-                                                    alt=""
-                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                                />
-                                                {item.media?.rating > 0 && (
-                                                    <div
-                                                        className="absolute top-2 left-2 bg-black/60 backdrop-blur-md px-2 py-1 rounded-lg flex items-center gap-1">
-                                                        <span className="text-yellow-400">★</span>
-                                                        <span className="text-white text-xs font-bold">
-                                                          {item.media.rating}
-                                                        </span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <div className="px-1">
-                                                <h4 className="font-bold text-white dark:text-gray-900 text-lg truncate">
-                                                    {item.media?.title || item.title}
-                                                </h4>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <p className="text-slate-500 font-medium py-12">
-                                    {t("empty_playlist")}
-                                </p>
-                            )}
-                        </div>
-                    </div>
+                    <ProfilePlaylistDetail
+                        setSelectedPlaylist={setSelectedPlaylist}
+                        selectedPlaylist={selectedPlaylist}
+                        formatPlaylistImage={formatPlaylistImage}
+                        isOwnProfile={isOwnProfile}
+                        removeItem={removeItem}
+                    />
                 ) : (
                     <>
                         {activeTab === "favorites" && (
@@ -1162,110 +690,29 @@ const Profil: React.FC = () => {
                         )}
 
                         {activeTab === "playlists" && (
-                            <div className="space-y-4 w-full">
-                                {isOwnProfile && (
-                                    <SpotifyPlaylistImport onImported={() => fetchPlaylists(userConnected, true)}/>
-                                )}
-                                {isOwnProfile && (
-                                    <button
-                                        onClick={() => navigate("/create-playlist")}
-                                        className="w-full flex items-center gap-5 bg-[#1a1d26] dark:bg-white border border-dashed border-slate-600 dark:border-gray-300 p-5 rounded-2xl cursor-pointer hover:border-blue-500 dark:hover:border-blue-400 hover:bg-[#1e2230] dark:hover:bg-gray-50 transition-all group"
-                                    >
-                                        <div className="w-20 h-20 sm:w-24 sm:h-24 bg-slate-800/60 dark:bg-gray-100 rounded-xl flex items-center justify-center shrink-0 border border-slate-700 dark:border-gray-200 group-hover:border-blue-500/50 transition-colors">
-                                            <Plus size={28} className="text-slate-400 dark:text-gray-400 group-hover:text-blue-400 dark:group-hover:text-blue-500 group-hover:scale-110 transition-all"/>
-                                        </div>
-                                        <span className="text-slate-400 dark:text-gray-500 font-semibold text-lg group-hover:text-blue-400 dark:group-hover:text-blue-500 transition-colors">
-                                            {t("create_playlist_card")}
-                                        </span>
-                                    </button>
-                                )}
-                                {playlists.map((playlist) => {
-                                    // Récupère dynamiquement le nombre de titres selon ce que renvoie ton API
-                                    const tracksCount = playlist.items?.length ?? playlist._count?.items ?? playlist.items_count ?? 0;
-
-                                    return (
-                                        <div
-                                            key={playlist.id}
-                                            onClick={() => fetchPlaylistDetails(playlist.id)}
-                                            className="flex items-center gap-5 bg-[#1a1d26] dark:bg-white border border-slate-800/80 dark:border-gray-200 p-5 rounded-2xl cursor-pointer hover:border-slate-700/50 dark:hover:border-gray-300 transition-all shadow-md group"
-                                        >
-                                            {/* Pochette de la Playlist */}
-                                            <div className="w-20 h-20 sm:w-24 sm:h-24 bg-slate-800 dark:bg-gray-100 rounded-xl flex items-center justify-center overflow-hidden shrink-0 shadow-md relative border border-slate-800/50 dark:border-gray-200">
-                                                {playlist.image_url ? (
-                                                    <img
-                                                        src={formatPlaylistImage(playlist.image_url)}
-                                                        alt={playlist.name}
-                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                                    />
-                                                ) : (
-                                                    <Music size={32} className="text-blue-500 group-hover:scale-110 transition-transform duration-300"/>
-                                                )}
-                                            </div>
-
-                                            {/* Informations textuelles */}
-                                            <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                                                <div>
-                                                    <h4 className="text-white dark:text-gray-900 font-bold text-lg md:text-xl truncate group-hover:text-blue-400 dark:group-hover:text-blue-600 transition-colors">
-                                                        {playlist.name}
-                                                    </h4>
-                                                    <p className="text-sm text-slate-400 dark:text-gray-500 mt-1 flex items-center gap-1.5 font-medium">
-                                                        <Music size={14} className="text-slate-500" />
-                                                        <span>
-                                                            {tracksCount} {tracksCount > 1 ? t("track_plural") : t("track_singular")}
-                                                        </span>
-                                                    </p>
-                                                </div>
-
-                                                {/* Badges de Statut & Indicateur d'action */}
-                                                <div className="flex items-center gap-4 self-start sm:self-center">
-                                                    {String(playlist.is_public) === "false" ? (
-                                                        <span className="bg-amber-500/10 text-amber-500 dark:text-amber-600 border border-amber-500/20 text-xs font-semibold px-3 py-1 rounded-full shadow-sm">
-                                                            {t("status_private")}
-                                                        </span>
-                                                    ) : (
-                                                        <span className="bg-emerald-500/10 text-emerald-500 dark:text-emerald-600 border border-emerald-500/20 text-xs font-semibold px-3 py-1 rounded-full shadow-sm">
-                                                            {t("status_public")}
-                                                        </span>
-                                                    )}
-                                                    {isOwnProfile && (
-                                                        <button
-                                                            onClick={(e) => handleDeletePlaylist(e, playlist.id)}
-                                                            className="p-2 rounded-lg text-slate-500 hover:text-rose-500 hover:bg-rose-500/10 transition-colors"
-                                                            title={t("delete_playlist_title", "Supprimer la playlist")}
-                                                        >
-                                                            <Trash2 size={16}/>
-                                                        </button>
-                                                    )}
-                                                    <ChevronRight
-                                                        size={20}
-                                                        className="text-slate-500 dark:text-gray-400 group-hover:text-white dark:group-hover:text-gray-900 group-hover:translate-x-1 transition-all hidden sm:block"
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-
-                                {playlists.length === 0 && (
-                                    <p className="text-slate-500 font-medium py-12 text-center">
-                                        {t("empty_playlists_list")}
-                                    </p>
-                                )}
-                            </div>
+                            <ProfilePlaylists
+                                isOwnProfile={isOwnProfile}
+                                fetchPlaylists={fetchPlaylists}
+                                userConnected={userConnected}
+                                playlists={playlists}
+                                fetchPlaylistDetails={fetchPlaylistDetails}
+                                formatPlaylistImage={formatPlaylistImage}
+                                handleDeletePlaylist={handleDeletePlaylist}
+                            />
                         )}
 
                         {activeTab === "mediaStatus" && (() => {
-                            const statusCounts = {listened: 0, later: 0, favorite: 0, disliked: 0};
+                            const statusCounts = { listened: 0, later: 0, favorite: 0, disliked: 0 };
                             mediaStatuses.forEach((item: any): void => {
                                 const key = item.status?.toLowerCase();
                                 if (key in statusCounts) statusCounts[key as keyof typeof statusCounts]++;
                             });
 
                             const statusFilters = [
-                                {id: "listened", label: t("status_listened", "Écoutés"), icon: "✅"},
-                                {id: "later", label: t("status_later", "À écouter"), icon: "🎧"},
-                                {id: "favorite", label: t("status_favorite", "Favoris"), icon: "⭐"},
-                                {id: "disliked", label: t("status_disliked", "Détestés"), icon: "❌"},
+                                { id: "listened", label: t("status_listened", "Écoutés"), icon: "✅" },
+                                { id: "later", label: t("status_later", "À écouter"), icon: "🎧" },
+                                { id: "favorite", label: t("status_favorite", "Favoris"), icon: "⭐" },
+                                { id: "disliked", label: t("status_disliked", "Détestés"), icon: "❌" },
                             ];
 
                             const filteredAlbums = mediaStatuses
@@ -1280,16 +727,15 @@ const Profil: React.FC = () => {
 
                             return (
                                 <div className="space-y-6">
-                                    <div className="flex flex-wrap bg-slate-900/50 dark:bg-white border border-slate-800 dark:border-gray-200 rounded-xl p-1 shadow-inner">
+                                    <div className="flex flex-wrap bg-panel/50 dark:bg-panel border border-line dark:border-line rounded-xl p-1 shadow-inner">
                                         {statusFilters.map((filter) => (
                                             <button
                                                 key={filter.id}
                                                 onClick={() => setMediaStatusFilter(filter.id)}
-                                                className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg font-semibold text-sm transition-all ${
-                                                    mediaStatusFilter === filter.id
-                                                        ? "bg-slate-800 dark:bg-gray-100 text-white dark:text-gray-900 shadow-md"
-                                                        : "text-slate-400 dark:text-gray-500 hover:text-white dark:hover:text-gray-900"
-                                                }`}
+                                                className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg font-semibold text-sm transition-all ${mediaStatusFilter === filter.id
+                                                        ? "bg-raised dark:bg-raised text-ink shadow-md"
+                                                        : "text-muted dark:text-muted hover:text-white dark:hover:text-gray-900"
+                                                    }`}
                                             >
                                                 <span>{filter.icon}</span>
                                                 <span>{filter.label}</span>
@@ -1321,169 +767,21 @@ const Profil: React.FC = () => {
                         })()}
 
                         {activeTab === "badges" && (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                                {badges.map((badge) => {
-                                    const Icon = BADGE_ICONS[badge.icon] || Award;
-                                    const progressPct: number = Math.min(
-                                        100,
-                                        Math.round((badge.progress / badge.threshold) * 100),
-                                    );
-
-                                    return (
-                                        <div
-                                            key={badge.id}
-                                            className={`relative flex items-start gap-4 p-5 rounded-2xl border transition-all ${
-                                                badge.unlocked
-                                                    ? "bg-amber-500/5 border-amber-500/30"
-                                                    : "bg-[#1a1d26] dark:bg-white border-slate-800 dark:border-gray-200 opacity-70"
-                                            }`}
-                                        >
-                                            <div
-                                                className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                                                    badge.unlocked
-                                                        ? "bg-amber-500/15 text-amber-400"
-                                                        : "bg-slate-800 dark:bg-gray-100 text-slate-500"
-                                                }`}
-                                            >
-                                                {badge.unlocked ? <Icon size={22}/> : <Lock size={20}/>}
-                                            </div>
-                                            <div className="min-w-0 grow">
-                                                <p className="font-bold text-white dark:text-gray-900">
-                                                    {badge.name}
-                                                </p>
-                                                <p className="text-xs text-slate-400 dark:text-gray-500 mt-0.5">
-                                                    {badge.description}
-                                                </p>
-                                                {!badge.unlocked && (
-                                                    <div className="mt-2.5 space-y-1">
-                                                        <div className="h-1.5 rounded-full bg-slate-800 dark:bg-gray-200 overflow-hidden">
-                                                            <div
-                                                                className="h-full bg-amber-500/70 rounded-full transition-all"
-                                                                style={{width: `${progressPct}%`}}
-                                                            />
-                                                        </div>
-                                                        <p className="text-[11px] text-slate-500 dark:text-gray-400">
-                                                            {badge.progress}/{badge.threshold}
-                                                        </p>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-
-                                {badges.length === 0 && (
-                                    <p className="text-slate-500 font-medium py-12 text-center col-span-full">
-                                        {t("badges_loading", "Chargement des badges...")}
-                                    </p>
-                                )}
-                            </div>
+                            <ProfileBadges
+                                badges={badges}
+                            />
                         )}
 
                         {activeTab === "activity" && (
-                            <div className="space-y-4 w-full">
-                                {recentActivity.map((item) => {
-                                    const ratingColors = getRatingColors(item.rating);
-
-                                    return (
-                                        <div
-                                            key={item.id}
-                                            className="bg-[#1a1d26] dark:bg-white border border-slate-800/80 dark:border-gray-200 p-6 rounded-2xl shadow-md flex gap-5 md:gap-6 transition-all hover:border-slate-700/50 group"
-                                        >
-                                            <div
-                                                onClick={() => navigate(`/album/${item.media_id}`)}
-                                                className="w-24 h-24 sm:w-32 sm:h-32 md:w-36 md:h-36 rounded-xl overflow-hidden shrink-0 shadow-lg cursor-pointer relative border border-slate-800/60 dark:border-gray-100"
-                                            >
-                                                <img
-                                                    src={item.cover}
-                                                    alt={item.album}
-                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                                />
-                                                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                                    <Music size={20} className="text-white opacity-80" />
-                                                </div>
-                                            </div>
-
-                                            <div className="flex-1 flex flex-col justify-between min-w-0">
-                                                <div>
-                                                    <div className="flex items-start justify-between gap-2 mb-1">
-                                                        <div className="text-sm md:text-base min-w-0">
-                                                            <span className="font-bold text-white dark:text-gray-900 truncate block sm:inline">
-                                                                {item.user_name}
-                                                            </span>
-                                                            <span className="text-slate-400 dark:text-gray-500 sm:ml-1.5 text-xs sm:text-sm">
-                                                                {t("activity_rated")}
-                                                            </span>
-                                                            <span
-                                                                onClick={() => navigate(`/album/${item.media_id}`)}
-                                                                className="font-semibold text-indigo-400 dark:text-indigo-600 hover:underline sm:ml-1.5 cursor-pointer truncate block sm:inline"
-                                                            >
-                                                                {item.album}
-                                                            </span>
-                                                            <span className="text-slate-500 dark:text-gray-400 text-xs md:text-sm block sm:ml-1.5 sm:inline">
-                                                                {t("activity_by")} {item.artist}
-                                                            </span>
-                                                        </div>
-
-                                                        {/* Badge de Note dynamique */}
-                                                        {item.rating > 0 && (
-                                                            <div className={`flex items-center gap-1 ${ratingColors.bg} ${ratingColors.text} px-3 py-1 rounded-full text-xs md:text-sm font-bold border ${ratingColors.border} shrink-0 shadow-sm`}>
-                                                                <Star size={14} fill={ratingColors.fill} className={ratingColors.text} />
-                                                                <span>{item.rating}</span>
-                                                            </div>
-                                                        )}
-                                                    </div>
-
-                                                    {item.content && (
-                                                        <div className="relative bg-slate-900/40 dark:bg-gray-50 p-4 rounded-xl border border-slate-800/40 dark:border-gray-100/80 my-2">
-                                                            <p className="text-slate-300 dark:text-gray-600 text-sm md:text-base leading-relaxed italic">
-                                                                "{item.content}"
-                                                            </p>
-                                                        </div>
-                                                    )}
-                                                </div>
-
-                                                <div className="flex items-center gap-5 mt-2 pt-2 border-t border-slate-800/40 dark:border-gray-100/60">
-                                                    <button
-                                                        onClick={() => handleLike(item.id)}
-                                                        className={`flex items-center gap-1.5 text-xs md:text-sm font-semibold transition-colors ${
-                                                            item.isLiked
-                                                                ? "text-pink-500"
-                                                                : "text-slate-400 hover:text-pink-500 dark:text-gray-500 dark:hover:text-pink-600"
-                                                        }`}
-                                                    >
-                                                        <Heart
-                                                            size={15}
-                                                            fill={item.isLiked ? "#ec4899" : "none"}
-                                                            className={item.isLiked ? "text-pink-500" : ""}
-                                                        />
-                                                        <span>{item.likes_count} {item.likes_count > 1 ? t("like_plural") : t("like_singular")}</span>
-                                                    </button>
-
-                                                    <div className="flex items-center gap-1.5 text-xs md:text-sm text-slate-500 dark:text-gray-400 font-medium">
-                                                        <MessageSquare size={15} />
-                                                        <span>{item.comments_count} {item.comments_count > 1 ? t("comment_plural") : t("comment_singular")}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-
-                                {hasMoreActivity && (
-                                    <div className="text-center pt-4">
-                                        <button
-                                            onClick={() =>
-                                                fetchRecentActivity(activityOffset, userProfil.id)
-                                            }
-                                            disabled={loadingMore}
-                                            className="text-sm font-bold text-blue-500 dark:text-blue-600 hover:underline disabled:opacity-50"
-                                        >
-                                            {loadingMore ? t("loading") : t("load_more")}
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
+                            <ProfileActivity
+                                recentActivity={recentActivity}
+                                handleLike={handleLike}
+                                hasMoreActivity={hasMoreActivity}
+                                fetchRecentActivity={fetchRecentActivity}
+                                activityOffset={activityOffset}
+                                userProfil={userProfil}
+                                loadingMore={loadingMore}
+                            />
                         )}
                     </>
                 )}
@@ -1492,12 +790,12 @@ const Profil: React.FC = () => {
                     <div
                         className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
                         <div
-                            className="bg-[#1a1d26] dark:bg-white border border-slate-800 dark:border-gray-200 p-6 rounded-xl shadow-2xl w-full max-w-md">
-                            <h3 className="text-xl font-bold text-white dark:text-gray-900 mb-4">
+                            className="bg-panel dark:bg-panel border border-line dark:border-line p-6 rounded-xl shadow-2xl w-full max-w-md">
+                            <h3 className="text-xl font-bold text-ink mb-4">
                                 {t("report_title")} {userProfil?.username}
                             </h3>
 
-                            <p className="text-sm text-slate-400 dark:text-gray-600 mb-4">
+                            <p className="text-sm text-muted dark:text-muted mb-4">
                                 {t("report_desc")}
                             </p>
 
@@ -1505,7 +803,7 @@ const Profil: React.FC = () => {
                                 value={reportReason}
                                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setReportReason(e.target.value)}
                                 placeholder={t("report_placeholder")}
-                                className="w-full h-32 p-3 bg-slate-900/50 dark:bg-gray-50 border border-slate-700 dark:border-gray-300 rounded-lg text-white dark:text-gray-900 placeholder-slate-500 focus:outline-none focus:border-red-500 transition-colors resize-none mb-6"
+                                className="w-full h-32 p-3 bg-panel/50 dark:bg-canvas border border-line dark:border-line rounded-lg text-ink placeholder-slate-500 focus:outline-none focus:border-red-500 transition-colors resize-none mb-6"
                             />
 
                             <div className="flex justify-end gap-3">
@@ -1514,7 +812,7 @@ const Profil: React.FC = () => {
                                         setIsReportModalOpen(false);
                                         setReportReason("");
                                     }}
-                                    className="px-4 py-2 rounded-lg text-sm font-semibold text-slate-300 dark:text-gray-600 hover:bg-slate-800 dark:hover:bg-gray-100 transition-colors"
+                                    className="px-4 py-2 rounded-lg text-sm font-semibold text-slate-300 dark:text-muted hover:bg-raised dark:hover:bg-gray-100 transition-colors"
                                     disabled={isSubmittingReport}
                                 >
                                     {t("report_btn_cancel")}
@@ -1533,389 +831,18 @@ const Profil: React.FC = () => {
 
                 {/* Modale : gérer les cosmétiques (profil perso) */}
                 {showCosmetics && (
-                    <div
-                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
-                        onClick={() => setShowCosmetics(false)}
-                    >
-                        <div
-                            className="w-full max-w-lg bg-[#1a1d26] dark:bg-white border border-slate-800 dark:border-slate-200 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]"
-                            onClick={(e) => e.stopPropagation()}
-                        >
-                            <div className="flex items-center justify-between p-5 border-b border-slate-800 dark:border-slate-200">
-                                <h2 className="text-lg font-bold text-white dark:text-gray-900 flex items-center gap-2">
-                                    <Sparkles size={18} className="text-purple-400"/>
-                                    {t("my_cosmetics", "Mes cosmétiques")}
-                                </h2>
-                                <button
-                                    onClick={() => setShowCosmetics(false)}
-                                    className="p-1.5 rounded-full text-slate-500 hover:text-white dark:hover:text-gray-900 hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors"
-                                >
-                                    <X size={20}/>
-                                </button>
-                            </div>
-
-                            <div className="overflow-y-auto p-5">
-                                {(() => {
-                                    const ownedBorders: string[] = (userProfil?.owned_cosmetics || []).filter((id: string) => isValidBorder(id));
-                                    const ownedFonts: string[] = (userProfil?.owned_cosmetics || []).filter((id: string) => isValidPseudoFont(id));
-                                    const ownedTitles: string[] = (userProfil?.owned_cosmetics || []).filter((id: string) => isValidProfileTitle(id));
-                                    const ownedTextEffects: string[] = (userProfil?.owned_cosmetics || []).filter((id: string) => isValidTextEffect(id));
-                                    const ownedBanners: string[] = (userProfil?.owned_cosmetics || []).filter((id: string) => isValidPremiumBanner(id));
-                                    const ownedPatterns: string[] = (userProfil?.owned_cosmetics || []).filter((id: string) => isValidPattern(id));
-                                    const pic: string | null =
-                                        typeof userProfil?.profile_picture === "string"
-                                            ? toImageDataUri(userProfil.profile_picture)
-                                            : null;
-                                    const equipped: string | null = userProfil?.equipped_avatar_border || null;
-                                    const equippedFont: string | null = userProfil?.equipped_font || null;
-                                    const equippedTitle: string | null = userProfil?.equipped_title || null;
-                                    const equippedTextEffect: string | null = userProfil?.equipped_text_effect || null;
-                                    const equippedBanner: string | null = userProfil?.equipped_banner || null;
-                                    const equippedPattern: string | null = userProfil?.equipped_pattern || null;
-                                    const pseudoText: string = (userProfil?.pseudo || userProfil?.username) || "Aa";
-
-                                    const PreviewInner = (
-                                        <div className="w-16 h-16 rounded-full overflow-hidden bg-slate-800 dark:bg-gray-100 flex items-center justify-center">
-                                            {pic ? (
-                                                <img src={pic} alt="" className="w-full h-full object-cover"/>
-                                            ) : (
-                                                <span className="text-sm font-bold text-blue-400">
-                                                    {(userProfil?.pseudo || userProfil?.username)?.substring(0, 2).toUpperCase()}
-                                                </span>
-                                            )}
-                                        </div>
-                                    );
-
-                                    if (
-                                        ownedBorders.length === 0 &&
-                                        ownedFonts.length === 0 &&
-                                        ownedTitles.length === 0 &&
-                                        ownedTextEffects.length === 0 &&
-                                        ownedBanners.length === 0 &&
-                                        ownedPatterns.length === 0
-                                    ) {
-                                        return (
-                                            <div className="text-center py-8">
-                                                <p className="text-sm text-slate-400 dark:text-gray-500 mb-5">
-                                                    {t("no_owned_cosmetics", "Tu n'as pas encore de contour. Visite la boutique pour en débloquer !")}
-                                                </p>
-                                                <button
-                                                    onClick={() => navigate("/shop")}
-                                                    className="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-500 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors"
-                                                >
-                                                    <Coins size={16}/>
-                                                    {t("go_to_shop", "Aller à la boutique")}
-                                                </button>
-                                            </div>
-                                        );
-                                    }
-
-                                    return (
-                                        <div className="space-y-6">
-                                            {/* Contours */}
-                                            {ownedBorders.length > 0 && (
-                                                <div>
-                                                    <h3 className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-gray-400 mb-3">
-                                                        {t("shop_section_borders", "Contours")}
-                                                    </h3>
-                                                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-5">
-                                                        <button
-                                                            onClick={() => equipBorder(null)}
-                                                            disabled={equipping !== null}
-                                                            className="flex flex-col items-center gap-2 disabled:opacity-50"
-                                                        >
-                                                            <div className={`p-1 rounded-full ${!equipped ? "ring-2 ring-purple-500" : ""}`}>
-                                                                {PreviewInner}
-                                                            </div>
-                                                            <span className={`text-xs ${!equipped ? "text-purple-400 dark:text-purple-500 font-bold" : "text-slate-400 dark:text-gray-500"}`}>
-                                                                {t("none", "Aucun")}
-                                                            </span>
-                                                        </button>
-                                                        {ownedBorders.map((id: string) => (
-                                                            <button
-                                                                key={id}
-                                                                onClick={() => equipBorder(id)}
-                                                                disabled={equipping !== null}
-                                                                className="flex flex-col items-center gap-2 disabled:opacity-50"
-                                                            >
-                                                                <div className={`p-1 rounded-full ${equipped === id ? "ring-2 ring-purple-500" : ""}`}>
-                                                                    <AvatarBorder borderId={id}>
-                                                                        {PreviewInner}
-                                                                    </AvatarBorder>
-                                                                </div>
-                                                                <span className={`text-xs truncate max-w-full ${equipped === id ? "text-purple-400 dark:text-purple-500 font-bold" : "text-slate-400 dark:text-gray-500"}`}>
-                                                                    {cosmeticNames[id] || id}
-                                                                </span>
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {/* Polices (aperçu du pseudo) */}
-                                            {ownedFonts.length > 0 && (
-                                                <div>
-                                                    <h3 className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-gray-400 mb-3">
-                                                        {t("shop_section_fonts", "Polices")}
-                                                    </h3>
-                                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                                                        <button
-                                                            onClick={() => equipFont(null)}
-                                                            disabled={equipping !== null}
-                                                            className={`flex flex-col items-center gap-1 p-3 rounded-xl border transition-all disabled:opacity-50 ${!equippedFont ? "border-purple-500 bg-purple-500/10" : "border-slate-800 dark:border-gray-200 hover:border-slate-600 dark:hover:border-gray-300"}`}
-                                                        >
-                                                            <span className="text-xl text-white dark:text-gray-900 truncate max-w-full leading-tight">
-                                                                {pseudoText}
-                                                            </span>
-                                                            <span className={`text-[11px] ${!equippedFont ? "text-purple-400 dark:text-purple-500 font-bold" : "text-slate-400 dark:text-gray-500"}`}>
-                                                                {t("default_font", "Défaut")}
-                                                            </span>
-                                                        </button>
-                                                        {ownedFonts.map((id: string) => (
-                                                            <button
-                                                                key={id}
-                                                                onClick={() => equipFont(id)}
-                                                                disabled={equipping !== null}
-                                                                className={`flex flex-col items-center gap-1 p-3 rounded-xl border transition-all disabled:opacity-50 ${equippedFont === id ? "border-purple-500 bg-purple-500/10" : "border-slate-800 dark:border-gray-200 hover:border-slate-600 dark:hover:border-gray-300"}`}
-                                                            >
-                                                                <span className="text-xl text-white dark:text-gray-900 truncate max-w-full leading-tight" style={{fontFamily: getPseudoFontFamily(id)}}>
-                                                                    {pseudoText}
-                                                                </span>
-                                                                <span className={`text-[11px] truncate max-w-full ${equippedFont === id ? "text-purple-400 dark:text-purple-500 font-bold" : "text-slate-400 dark:text-gray-500"}`}>
-                                                                    {PSEUDO_FONTS.find((f) => f.id === id)?.name || id}
-                                                                </span>
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {/* Titres de profil */}
-                                            {ownedTitles.length > 0 && (
-                                                <div>
-                                                    <h3 className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-gray-400 mb-3">
-                                                        {t("shop_section_titles", "Titres de profil")}
-                                                    </h3>
-                                                    <div className="flex flex-wrap gap-2">
-                                                        <button
-                                                            onClick={() => equipTitle(null)}
-                                                            disabled={equipping !== null}
-                                                            className={`px-3 py-1.5 rounded-full border text-xs font-bold transition-all disabled:opacity-50 ${!equippedTitle ? "border-purple-500 bg-purple-500/10 text-purple-400 dark:text-purple-500" : "border-slate-700 dark:border-gray-300 text-slate-400 dark:text-gray-500"}`}
-                                                        >
-                                                            {t("none", "Aucun")}
-                                                        </button>
-                                                        {ownedTitles.map((id: string) => {
-                                                            const def = getProfileTitle(id);
-                                                            return (
-                                                                <button
-                                                                    key={id}
-                                                                    onClick={() => equipTitle(id)}
-                                                                    disabled={equipping !== null}
-                                                                    className={`px-3 py-1.5 rounded-full border text-xs font-bold transition-all disabled:opacity-50 ${def?.className || "border-slate-700 text-slate-300"} ${equippedTitle === id ? "ring-2 ring-purple-500" : ""}`}
-                                                                >
-                                                                    {def?.label || cosmeticNames[id] || id}
-                                                                </button>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {/* Effets de texte du pseudo */}
-                                            {ownedTextEffects.length > 0 && (
-                                                <div>
-                                                    <h3 className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-gray-400 mb-3">
-                                                        {t("shop_section_text_effects", "Effets de texte")}
-                                                    </h3>
-                                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                                                        <button
-                                                            onClick={() => equipTextEffect(null)}
-                                                            disabled={equipping !== null}
-                                                            className={`flex flex-col items-center gap-1 p-3 rounded-xl border transition-all disabled:opacity-50 ${!equippedTextEffect ? "border-purple-500 bg-purple-500/10" : "border-slate-800 dark:border-gray-200 hover:border-slate-600 dark:hover:border-gray-300"}`}
-                                                        >
-                                                            <span className="text-xl text-white dark:text-gray-900 truncate max-w-full leading-tight">
-                                                                {pseudoText}
-                                                            </span>
-                                                            <span className={`text-[11px] ${!equippedTextEffect ? "text-purple-400 dark:text-purple-500 font-bold" : "text-slate-400 dark:text-gray-500"}`}>
-                                                                {t("default_font", "Défaut")}
-                                                            </span>
-                                                        </button>
-                                                        {ownedTextEffects.map((id: string) => (
-                                                            <button
-                                                                key={id}
-                                                                onClick={() => equipTextEffect(id)}
-                                                                disabled={equipping !== null}
-                                                                className={`flex flex-col items-center gap-1 p-3 rounded-xl border transition-all disabled:opacity-50 ${equippedTextEffect === id ? "border-purple-500 bg-purple-500/10" : "border-slate-800 dark:border-gray-200 hover:border-slate-600 dark:hover:border-gray-300"}`}
-                                                            >
-                                                                <span className={`text-xl font-bold truncate max-w-full leading-tight ${getTextEffectClassName(id)}`}>
-                                                                    {pseudoText}
-                                                                </span>
-                                                                <span className={`text-[11px] truncate max-w-full ${equippedTextEffect === id ? "text-purple-400 dark:text-purple-500 font-bold" : "text-slate-400 dark:text-gray-500"}`}>
-                                                                    {TEXT_EFFECTS.find((e) => e.id === id)?.name || id}
-                                                                </span>
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {/* Bannières premium */}
-                                            {ownedBanners.length > 0 && (
-                                                <div>
-                                                    <h3 className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-gray-400 mb-3">
-                                                        {t("shop_section_banners", "Bannières")}
-                                                    </h3>
-                                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                                                        <button
-                                                            onClick={() => equipBanner(null)}
-                                                            disabled={equipping !== null}
-                                                            className={`flex flex-col items-center gap-1.5 p-2 rounded-xl border transition-all disabled:opacity-50 ${!equippedBanner ? "border-purple-500" : "border-slate-800 dark:border-gray-200 hover:border-slate-600 dark:hover:border-gray-300"}`}
-                                                        >
-                                                            <div className="w-full h-10 rounded-lg bg-slate-800 dark:bg-gray-100"/>
-                                                            <span className={`text-[11px] ${!equippedBanner ? "text-purple-400 dark:text-purple-500 font-bold" : "text-slate-400 dark:text-gray-500"}`}>
-                                                                {t("none", "Aucun")}
-                                                            </span>
-                                                        </button>
-                                                        {ownedBanners.map((id: string) => {
-                                                            const def = getPremiumBanner(id);
-                                                            return (
-                                                                <button
-                                                                    key={id}
-                                                                    onClick={() => equipBanner(id)}
-                                                                    disabled={equipping !== null}
-                                                                    className={`flex flex-col items-center gap-1.5 p-2 rounded-xl border transition-all disabled:opacity-50 ${equippedBanner === id ? "border-purple-500" : "border-slate-800 dark:border-gray-200 hover:border-slate-600 dark:hover:border-gray-300"}`}
-                                                                >
-                                                                    <div className={`w-full h-10 rounded-lg ${def?.className || "bg-slate-800"}`}/>
-                                                                    <span className={`text-[11px] truncate max-w-full ${equippedBanner === id ? "text-purple-400 dark:text-purple-500 font-bold" : "text-slate-400 dark:text-gray-500"}`}>
-                                                                        {def?.name || cosmeticNames[id] || id}
-                                                                    </span>
-                                                                </button>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {/* Motifs de fond (page profil) */}
-                                            {ownedPatterns.length > 0 && (
-                                                <div>
-                                                    <h3 className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-gray-400 mb-3">
-                                                        {t("shop_section_patterns", "Motifs de profil")}
-                                                    </h3>
-                                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                                                        <button
-                                                            onClick={() => equipPattern(null)}
-                                                            disabled={equipping !== null}
-                                                            className={`flex flex-col items-center gap-1.5 p-2 rounded-xl border transition-all disabled:opacity-50 ${!equippedPattern ? "border-purple-500" : "border-slate-800 dark:border-gray-200 hover:border-slate-600 dark:hover:border-gray-300"}`}
-                                                        >
-                                                            <div className="w-full h-10 rounded-lg bg-slate-800 dark:bg-gray-100"/>
-                                                            <span className={`text-[11px] ${!equippedPattern ? "text-purple-400 dark:text-purple-500 font-bold" : "text-slate-400 dark:text-gray-500"}`}>
-                                                                {t("none", "Aucun")}
-                                                            </span>
-                                                        </button>
-                                                        {ownedPatterns.map((id: string) => {
-                                                            const def = getPattern(id);
-                                                            return (
-                                                                <button
-                                                                    key={id}
-                                                                    onClick={() => equipPattern(id)}
-                                                                    disabled={equipping !== null}
-                                                                    className={`flex flex-col items-center gap-1.5 p-2 rounded-xl border transition-all disabled:opacity-50 ${equippedPattern === id ? "border-purple-500" : "border-slate-800 dark:border-gray-200 hover:border-slate-600 dark:hover:border-gray-300"}`}
-                                                                >
-                                                                    <div className={`w-full h-10 rounded-lg bg-slate-800 dark:bg-gray-100 ${def?.className || ""}`}/>
-                                                                    <span className={`text-[11px] truncate max-w-full ${equippedPattern === id ? "text-purple-400 dark:text-purple-500 font-bold" : "text-slate-400 dark:text-gray-500"}`}>
-                                                                        {def?.name || cosmeticNames[id] || id}
-                                                                    </span>
-                                                                </button>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    );
-                                })()}
-                            </div>
-                        </div>
-                    </div>
+                    <ProfileCosmeticsDialog {...cosmetics} userProfil={userProfil} />
                 )}
 
                 {followModalType && (
-                    <div
-                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
-                        onClick={() => setFollowModalType(null)}
-                    >
-                        <div
-                            className="w-full max-w-sm bg-[#1a1d26] dark:bg-white border border-slate-800 dark:border-slate-200 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]"
-                            onClick={(e) => e.stopPropagation()}
-                        >
-                            <div className="flex items-center justify-between p-5 border-b border-slate-800 dark:border-slate-200">
-                                <h2 className="text-lg font-bold text-white dark:text-gray-900">
-                                    {followModalType === "followers"
-                                        ? t("profile_followers")
-                                        : t("profile_following")}
-                                </h2>
-                                <button
-                                    onClick={() => setFollowModalType(null)}
-                                    className="p-1.5 rounded-full text-slate-500 hover:text-white dark:hover:text-gray-900 hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors"
-                                >
-                                    <X size={20}/>
-                                </button>
-                            </div>
-
-                            <div className="overflow-y-auto p-3">
-                                {followModalLoading ? (
-                                    <div className="flex justify-center py-10">
-                                        <Loader2 size={22} className="animate-spin text-slate-500"/>
-                                    </div>
-                                ) : followModalUsers.length === 0 ? (
-                                    <p className="text-sm text-slate-400 dark:text-gray-500 text-center py-10">
-                                        {followModalType === "followers"
-                                            ? t("no_followers", "Personne ne suit ce profil pour le moment.")
-                                            : t("no_following", "Ne suit personne pour le moment.")}
-                                    </p>
-                                ) : (
-                                    <div className="space-y-1">
-                                        {followModalUsers.map((u: any) => (
-                                            <button
-                                                key={u.id}
-                                                onClick={() => {
-                                                    setFollowModalType(null);
-                                                    navigate(`/profil/${u.id}`);
-                                                }}
-                                                className="w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-800/60 dark:hover:bg-gray-100 transition-colors text-left"
-                                            >
-                                                <AvatarBorder borderId={u.equipped_avatar_border} compact>
-                                                    <div className="w-11 h-11 rounded-full overflow-hidden bg-slate-800 dark:bg-gray-100 flex items-center justify-center flex-shrink-0">
-                                                        {u.profile_picture ? (
-                                                            <img src={u.profile_picture} alt="" className="w-full h-full object-cover"/>
-                                                        ) : (
-                                                            <span className="text-sm font-bold text-blue-400">
-                                                                {(u.pseudo || u.username)?.substring(0, 2).toUpperCase()}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                </AvatarBorder>
-                                                <div className="min-w-0">
-                                                    <p
-                                                        className={`font-bold truncate ${getTextEffectClassName(u.equipped_text_effect) || "text-white dark:text-gray-900"}`}
-                                                        style={{fontFamily: getPseudoFontFamily(u.equipped_font) || undefined}}
-                                                    >
-                                                        {u.pseudo || u.username}
-                                                    </p>
-                                                    <p className="text-xs text-slate-500 dark:text-gray-500 truncate">
-                                                        @{u.username}
-                                                    </p>
-                                                </div>
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
+                    <ProfileFollowDialog
+                        setFollowModalType={setFollowModalType}
+                        followModalType={followModalType}
+                        followModalLoading={followModalLoading}
+                        followModalUsers={followModalUsers}
+                    />
                 )}
-            </main>
+            </section>
         </div>
     );
 };

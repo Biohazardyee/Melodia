@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./design.css";
 
 @variant dark (&:where(.dark, .dark *));
 
@@ -21,6 +22,7 @@
 }
 
 /* ===== Cosmétiques : contours animés de photo de profil ===== */
+.cosmetic-ring > .flex { display: flex; }
 @keyframes cosmetic-spin {
   to { transform: rotate(360deg); }
 }

@@ -17,6 +17,7 @@ import apiClient from "../api/client";
 import {useConfirm} from "../context/ConfirmContext";
 import {jwtDecode} from "jwt-decode";
 import {AxiosResponse} from "axios";
+import CoverImage from "../components/CoverImage";
 
 const ListCard: React.FC<any> = ({
                                      id,
@@ -30,73 +31,22 @@ const ListCard: React.FC<any> = ({
                                      onDelete,
                                  }) => {
     const {t} = useTranslation();
-    return (
-        <div className="flex flex-col gap-3 group">
-            <div
-                onClick={() => onClick(id)}
-                className="aspect-square bg-slate-900 dark:bg-white rounded-2xl overflow-hidden cursor-pointer shadow-lg border border-slate-800 dark:border-slate-200 relative"
-            >
-                {isCollaborative && (
-                    <div
-                        title={t("playlist_collaborative", "Playlist collaborative")}
-                        className="absolute top-2 left-2 z-10 bg-black/60 backdrop-blur-md p-1.5 rounded-lg text-blue-400"
-                    >
-                        <Users size={14}/>
-                    </div>
-                )}
-                {image ? (
-                    <img
-                        src={image}
-                        alt=""
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                ) : (
-                    <div
-                        className="w-full h-full flex items-center justify-center text-slate-600 text-xs font-bold uppercase tracking-widest bg-slate-900 dark:bg-slate-100">
-                        {t("no_cover")}
-                    </div>
-                )}
+    return <article className="album-card">
+        <button type="button" onClick={() => onClick(id)} aria-label={title} className="block w-full relative">
+            <CoverImage src={image || ""} alt={title}/>
+            {isCollaborative && <span title={t("playlist_collaborative")} className="absolute top-3 left-3 z-10 bg-black/60 p-2 rounded-lg text-white"><Users size={15}/></span>}
+        </button>
+        <div className="flex justify-between items-start gap-2 p-2 pt-4">
+            <div className="min-w-0 flex-1">
+                <h3><button onClick={() => onClick(id)} className="text-left font-semibold text-ink truncate w-full hover:text-accent">{title}</button></h3>
+                <p className="text-muted text-xs mt-2">{count > 1 ? t("albums_count_plural", {count}) : t("albums_count", {count: count || 0})}</p>
             </div>
-
-            <div className="flex justify-between items-start px-1">
-                <div
-                    className="overflow-hidden cursor-pointer grow"
-                    onClick={() => onClick(id)}
-                >
-                    <h3 className="text-white dark:text-gray-900 font-bold text-lg truncate">
-                        {title}
-                    </h3>
-                    <p className="text-slate-400 dark:text-slate-500 text-sm truncate">
-                        {count > 1
-                            ? t("albums_count_plural", {count})
-                            : t("albums_count", {count: count || 0})}
-                    </p>
-                </div>
-                {isOwner !== false && (
-                    <div className="flex items-center opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
-                            onClick={(e): void => {
-                                e.stopPropagation();
-                                onEdit(id);
-                            }}
-                            className="text-slate-500 hover:text-white dark:hover:text-gray-900 p-1.5 transition-colors"
-                        >
-                            <Edit2 size={18}/>
-                        </button>
-                        <button
-                            onClick={(e): void => {
-                                e.stopPropagation();
-                                onDelete(id);
-                            }}
-                            className="text-slate-500 hover:text-rose-500 p-1.5 transition-colors"
-                        >
-                            <Trash2 size={18}/>
-                        </button>
-                    </div>
-                )}
-            </div>
+            {isOwner !== false && <div className="flex">
+                <button onClick={() => onEdit(id)} aria-label={t("modify")} className="icon-button"><Edit2 size={16}/></button>
+                <button onClick={() => onDelete(id)} aria-label={t("delete")} className="icon-button hover:text-rose-500"><Trash2 size={16}/></button>
+            </div>}
         </div>
-    );
+    </article>;
 };
 
 const LibraryPage: React.FC = () => {
@@ -296,7 +246,7 @@ const LibraryPage: React.FC = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-[#13131A] dark:bg-slate-50 text-white dark:text-slate-900 transition-colors duration-300">
+            <div className="min-h-screen flex items-center justify-center bg-canvas dark:bg-canvas text-ink transition-colors duration-300">
                 <Loader2 className="animate-spin" size={48}/>
             </div>
         );
@@ -308,17 +258,17 @@ const LibraryPage: React.FC = () => {
         const collaborators: any[] = selectedPlaylist.collaborators || [];
 
         return (
-            <div className="min-h-screen bg-[#13131A] dark:bg-slate-50 p-6 md:p-10 text-white dark:text-slate-900 font-sans transition-colors duration-300">
+            <div className="min-h-screen bg-canvas dark:bg-canvas p-6 md:p-10 text-ink font-sans transition-colors duration-300">
                 <div className="max-w-7xl mx-auto space-y-8">
                     <button
                         onClick={() => setSelectedPlaylist(null)}
-                        className="flex items-center gap-2 text-slate-400 hover:text-white dark:hover:text-slate-900 transition-colors mb-4"
+                        className="flex items-center gap-2 text-muted hover:text-white dark:hover:text-slate-900 transition-colors mb-4"
                     >
                         <ArrowLeft size={20}/> {t("back")}
                     </button>
 
                     <div className="flex flex-col md:flex-row gap-8 items-start">
-                        <div className="w-48 h-48 md:w-56 md:h-56 bg-slate-900 dark:bg-slate-200 rounded-2xl overflow-hidden shadow-2xl">
+                        <div className="w-48 h-48 md:w-56 md:h-56 bg-panel dark:bg-slate-200 rounded-2xl overflow-hidden shadow-2xl">
                             {selectedPlaylist.image_url ? (
                                 <img
                                     src={selectedPlaylist.image_url}
@@ -326,18 +276,19 @@ const LibraryPage: React.FC = () => {
                                     className="w-full h-full object-cover"
                                 />
                             ) : (
-                                <div className="w-full h-full flex items-center justify-center text-slate-600 dark:text-slate-400">
+                                <div className="w-full h-full flex items-center justify-center text-slate-600 dark:text-muted">
                                     {t("no_cover")}
                                 </div>
                             )}
                         </div>
                         <div className="flex flex-col gap-4 mt-2">
-                            <h1 className="text-4xl md:text-5xl font-bold text-white dark:text-slate-900 tracking-tight">
+                            <h1 className="page-title text-4xl md:text-5xl font-bold text-ink tracking-tight">
                                 {selectedPlaylist.name}
                             </h1>
                             <p className="text-slate-500 font-medium">
-                                {currentAlbums.length}{" "}
-                                {t("albums_count", {count: currentAlbums.length})}
+                                {currentAlbums.length > 1
+                                    ? t("albums_count_plural", {count: currentAlbums.length})
+                                    : t("albums_count", {count: currentAlbums.length})}
                             </p>
 
                             {!isOwner && selectedPlaylist.is_collaborative && (
@@ -351,8 +302,8 @@ const LibraryPage: React.FC = () => {
                         </div>
                     </div>
 
-                    <div className="pt-6 border-t border-slate-800 dark:border-slate-300 space-y-4">
-                        <h2 className="text-lg font-bold text-white dark:text-slate-900 flex items-center gap-2">
+                    <div className="pt-6 border-t border-line dark:border-line space-y-4">
+                        <h2 className="text-lg font-bold text-ink flex items-center gap-2">
                             <Users size={18}/> {t("playlist_collaborators_title", "Collaborateurs")}
                         </h2>
 
@@ -361,7 +312,7 @@ const LibraryPage: React.FC = () => {
                                 {collaborators.map((c: any) => (
                                     <div
                                         key={c.id}
-                                        className="flex items-center gap-2 bg-slate-900 dark:bg-white border border-slate-800 dark:border-slate-200 rounded-full pl-1 pr-3 py-1"
+                                        className="flex items-center gap-2 bg-panel dark:bg-panel border border-line dark:border-line rounded-full pl-1 pr-3 py-1"
                                     >
                                         <div className="w-6 h-6 rounded-full bg-slate-700 dark:bg-slate-200 overflow-hidden flex items-center justify-center text-xs font-bold shrink-0">
                                             {c.profile_picture ? (
@@ -395,7 +346,7 @@ const LibraryPage: React.FC = () => {
                                         onBlur={() => setTimeout(() => setShowInviteSuggestions(false), 150)}
                                         placeholder={t("invite_collaborator_placeholder", "Nom d'utilisateur...")}
                                         autoComplete="off"
-                                        className="flex-1 bg-slate-900 dark:bg-white border border-slate-800 dark:border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-blue-500 transition-colors"
+                                        className="flex-1 bg-panel dark:bg-panel border border-line dark:border-line rounded-xl px-3 py-2 text-sm outline-none focus:border-blue-500 transition-colors"
                                     />
                                     <button
                                         onClick={handleInviteCollaborator}
@@ -407,7 +358,7 @@ const LibraryPage: React.FC = () => {
                                 </div>
 
                                 {showInviteSuggestions && (
-                                    <div className="absolute z-50 w-full mt-1 bg-[#1c1c2e] dark:bg-white border border-slate-800 dark:border-slate-200 rounded-xl overflow-hidden shadow-2xl max-h-60 overflow-y-auto">
+                                    <div className="absolute z-50 w-full mt-1 bg-panel dark:bg-panel border border-line dark:border-line rounded-xl overflow-hidden shadow-2xl max-h-60 overflow-y-auto">
                                         {inviteSearching ? (
                                             <div className="flex items-center justify-center p-3">
                                                 <Loader2 className="animate-spin text-blue-500" size={18}/>
@@ -418,7 +369,7 @@ const LibraryPage: React.FC = () => {
                                                     key={u.id}
                                                     type="button"
                                                     onClick={() => handleSelectInviteSuggestion(u.username)}
-                                                    className="w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-slate-800 dark:hover:bg-gray-100 transition-colors"
+                                                    className="w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-raised dark:hover:bg-gray-100 transition-colors"
                                                 >
                                                     <div className="w-7 h-7 rounded-full bg-slate-700 dark:bg-slate-200 overflow-hidden flex items-center justify-center text-xs font-bold shrink-0">
                                                         {u.profile_picture ? (
@@ -428,7 +379,7 @@ const LibraryPage: React.FC = () => {
                                                         )}
                                                     </div>
                                                     <div className="min-w-0">
-                                                        <p className="text-sm font-bold text-white dark:text-gray-900 truncate">{u.pseudo}</p>
+                                                        <p className="text-sm font-bold text-ink truncate">{u.pseudo}</p>
                                                         <p className="text-xs text-slate-500 truncate">@{u.username}</p>
                                                     </div>
                                                 </button>
@@ -444,8 +395,8 @@ const LibraryPage: React.FC = () => {
                         )}
                     </div>
 
-                    <div className="mt-4 pt-8 border-t border-slate-800 dark:border-slate-300">
-                        <h2 className="text-2xl font-bold mb-6 text-white dark:text-slate-900">Albums</h2>
+                    <div className="mt-4 pt-8 border-t border-line dark:border-line">
+                        <h2 className="text-2xl font-bold mb-6 text-ink">Albums</h2>
                         {currentAlbums.length > 0 ? (
                             <div
                                 className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-10 gap-y-12 max-w-262.5">
@@ -465,7 +416,7 @@ const LibraryPage: React.FC = () => {
                                         </button>
 
                                         <div
-                                            className="aspect-square bg-slate-900 dark:bg-slate-200 rounded-2xl overflow-hidden shadow-lg relative">
+                                            className="aspect-square bg-panel dark:bg-slate-200 rounded-2xl overflow-hidden shadow-lg relative">
                                             <img
                                                 src={item.media?.cover || item.image}
                                                 alt=""
@@ -484,7 +435,7 @@ const LibraryPage: React.FC = () => {
                                         </div>
 
                                         <div className="px-1">
-                                            <h4 className="font-bold text-white dark:text-slate-900 text-lg truncate">
+                                            <h4 className="font-bold text-ink text-lg truncate">
                                                 {item.media?.title || item.title}
                                             </h4>
                                         </div>
@@ -504,21 +455,21 @@ const LibraryPage: React.FC = () => {
 
     return (
         <div
-            className="min-h-screen bg-[#13131A] dark:bg-slate-50 text-slate-50 dark:text-gray-900 p-6 md:p-10 font-sans transition-colors duration-300">
+            className="min-h-screen bg-canvas dark:bg-canvas text-ink p-6 md:p-10 font-sans transition-colors duration-300">
             <div className="max-w-7xl mx-auto space-y-10">
                 <header>
-                    <h1 className="text-4xl font-bold text-white dark:text-slate-900 mb-2">
+                    <h1 className="page-title text-4xl font-bold text-ink mb-2">
                         {t("my_playlists_title")}
                     </h1>
                 </header>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-x-10 gap-y-12 max-w-262.5 mx-auto">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     <div className="flex flex-col gap-3">
                         <button
                             onClick={(): void | Promise<void> => navigate("/create-playlist")}
-                            className="aspect-square w-full bg-[#1e2230] dark:bg-white border border-slate-800 dark:border-slate-200 rounded-2xl flex flex-col items-center justify-center gap-4 transition-all shadow-lg hover:bg-[#252a3d] dark:hover:bg-gray-50 group"
+                            className="aspect-square w-full bg-accent-soft border border-dashed border-accent/40 rounded-2xl flex flex-col items-center justify-center gap-4 transition-all shadow-lg hover:bg-raised dark:hover:bg-gray-50 group"
                         >
-                            <Plus size={48} className="text-slate-300 dark:text-slate-500 group-hover:scale-110 transition-transform" />
+                            <Plus size={48} className="text-slate-300 dark:text-muted group-hover:scale-110 transition-transform" />
                             <span className="text-slate-300 dark:text-slate-700 font-bold text-lg">
                                 {t("create_playlist_card")}
                             </span>

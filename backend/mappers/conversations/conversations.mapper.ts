@@ -17,7 +17,10 @@ class ConversationMapper extends BaseMapper<Conversations, ConversationResponseD
             id: conversation.id,
             user1_id: conversation.user1_id,
             user2_id: conversation.user2_id,
-            messages: conversation.messages,
+            status: conversation.status,
+            initiated_by: conversation.initiated_by,
+            invitation_sent: conversation.invitation_sent,
+            messages: conversation.messages || [],
             created_at: conversation.created_at,
         }
     }

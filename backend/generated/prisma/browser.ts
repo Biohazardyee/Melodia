@@ -23,6 +23,11 @@ export * from './enums.js';
  */
 export type Users = Prisma.UsersModel
 /**
+ * Model JournalEntries
+ *
+ */
+export type JournalEntries = Prisma.JournalEntriesModel
+/**
  * Model SpotifyAccounts
  * 
  */
@@ -107,3 +112,18 @@ export type Conversations = Prisma.ConversationsModel
  * 
  */
 export type Messages = Prisma.MessagesModel
+/**
+ * Model Rooms
+ * 
+ */
+export type Rooms = Prisma.RoomsModel
+/**
+ * Model RoomParticipants
+ * 
+ */
+export type RoomParticipants = Prisma.RoomParticipantsModel
+/**
+ * Model RoomQueueItems
+ * 
+ */
+export type RoomQueueItems = Prisma.RoomQueueItemsModel

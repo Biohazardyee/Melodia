@@ -9,6 +9,7 @@
  * 🟢 You can import this file directly.
  */
 export type * from './models/Users.js'
+export type * from './models/JournalEntries.js'
 export type * from './models/SpotifyAccounts.js'
 export type * from './models/Medias.js'
 export type * from './models/Reviews.js'
@@ -26,4 +27,7 @@ export type * from './models/Notifications.js'
 export type * from './models/BannedUsers.js'
 export type * from './models/Conversations.js'
 export type * from './models/Messages.js'
+export type * from './models/Rooms.js'
+export type * from './models/RoomParticipants.js'
+export type * from './models/RoomQueueItems.js'
 export type * from './commonInputTypes.js'

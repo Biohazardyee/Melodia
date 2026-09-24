@@ -12,7 +12,7 @@ class FollowController {
         try {
 
             const creationData: FollowCreateDto = {
-                user_id: req.body.user_id,
+                user_id: req.user!.id,
                 follow_user_id: req.body.follow_user_id
             }
 
@@ -35,7 +35,7 @@ class FollowController {
     async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const unfollow: FollowResponseDto = await this.service.delete(
-                req.body.user_id,
+                req.user!.id,
                 req.body.follow_user_id
             );
 

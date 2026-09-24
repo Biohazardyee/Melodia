@@ -103,15 +103,15 @@ const Login: React.FC = () => {
   };
 
   return (
-      <div className="min-h-screen bg-[#13131a] dark:bg-slate-50 text-white dark:text-gray-900 flex flex-col items-center justify-center p-6 font-sans transition-colors duration-300">
+      <div className="auth-page min-h-screen bg-canvas dark:bg-canvas text-ink flex flex-col items-center justify-center p-6 font-sans transition-colors duration-300">
         <div className="mb-10 text-center">
           <div className="w-20 h-20 bg-linear-to-tr from-[#a855f7] to-[#ec4899] rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-purple-500/20">
             <span className="text-4xl text-white">♪</span>
           </div>
-          <h1 className="text-4xl font-bold tracking-tight mb-2 text-white dark:text-gray-900">
+          <h1 className="page-title text-4xl font-bold tracking-tight mb-2 text-ink">
             {t("login_welcome")}
           </h1>
-          <p className="text-gray-400 dark:text-gray-600 text-lg">
+          <p className="text-muted dark:text-muted text-lg">
             {t("login_subtitle")}
           </p>
         </div>
@@ -125,7 +125,7 @@ const Login: React.FC = () => {
                   </div>
               )}
 
-              <p className="text-sm text-gray-400 dark:text-gray-600 text-center">
+              <p className="text-sm text-muted dark:text-muted text-center">
                 {t("login_2fa_hint", "Entre le code généré par ton application d'authentification.")}
               </p>
 
@@ -138,9 +138,9 @@ const Login: React.FC = () => {
                   onChange={(e) => setTwoFactorCode(e.target.value.toUpperCase().replace(/[^0-9A-Z-]/g, ""))}
                   placeholder="123456"
                   required
-                  className="w-full bg-[#1e1e2d] dark:bg-white border border-gray-700 dark:border-gray-300 rounded-xl px-4 py-3 text-center text-2xl tracking-[0.3em] font-bold outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/40 text-white dark:text-gray-900 transition-colors"
+                  className="w-full bg-panel dark:bg-panel border border-line dark:border-line rounded-xl px-4 py-3 text-center text-2xl tracking-[0.3em] font-bold outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/40 text-ink transition-colors"
               />
-              <p className="text-xs text-gray-500 dark:text-gray-400 text-center -mt-3">
+              <p className="text-xs text-gray-500 dark:text-muted text-center -mt-3">
                 {t("login_2fa_backup_hint", "Tu peux aussi utiliser un code de secours.")}
               </p>
 
@@ -159,7 +159,7 @@ const Login: React.FC = () => {
                       setTwoFactorCode("");
                       setError(null);
                     }}
-                    className="text-gray-400 dark:text-gray-600 hover:underline cursor-pointer"
+                    className="text-muted dark:text-muted hover:underline cursor-pointer"
                 >
                   {t("login_2fa_back", "Retour")}
                 </span>
@@ -217,11 +217,11 @@ const Login: React.FC = () => {
               </form>
 
               <div className="relative flex items-center py-2">
-                <div className="grow border-t border-gray-800 dark:border-gray-200"></div>
+                <div className="grow border-t border-line dark:border-line"></div>
                 <span className="mx-4 text-gray-500 text-sm uppercase tracking-wider">
                 {t("login_separator")}
               </span>
-                <div className="grow border-t border-gray-800 dark:border-gray-200"></div>
+                <div className="grow border-t border-line dark:border-line"></div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -229,7 +229,8 @@ const Login: React.FC = () => {
                     variant="social"
                     type="button"
                     onClick={(): void => handleOAuthLogin("google")}
-                    className="flex items-center justify-center py-3 rounded-xl transition-colors bg-gray-800 text-white hover:bg-gray-700 dark:bg-white dark:text-gray-900 dark:border dark:border-gray-200 dark:hover:bg-gray-50"
+                    aria-label="Google"
+                    className="flex items-center justify-center py-3 rounded-xl transition-colors bg-raised text-white hover:bg-gray-700 dark:bg-panel dark:text-gray-900 dark:border dark:border-line dark:hover:bg-gray-50"
                 >
                   <FaGoogle className="text-xl" />
                 </Button>
@@ -237,13 +238,14 @@ const Login: React.FC = () => {
                     variant="social"
                     type="button"
                     onClick={(): void => handleOAuthLogin("discord")}
-                    className="flex items-center justify-center py-3 rounded-xl transition-colors bg-gray-800 text-white hover:bg-gray-700 dark:bg-white dark:text-gray-900 dark:border dark:border-gray-200 dark:hover:bg-gray-50"
+                    aria-label="Discord"
+                    className="flex items-center justify-center py-3 rounded-xl transition-colors bg-raised text-white hover:bg-gray-700 dark:bg-panel dark:text-gray-900 dark:border dark:border-line dark:hover:bg-gray-50"
                 >
                   <FaDiscord className="text-xl" />
                 </Button>
               </div>
 
-              <p className="text-center text-gray-400 dark:text-gray-600 text-base pt-2">
+              <p className="text-center text-muted dark:text-muted text-base pt-2">
                 {t("login_no_account")}{" "}
                 <span
                     onClick={(): void | Promise<void> => navigate("/register")}

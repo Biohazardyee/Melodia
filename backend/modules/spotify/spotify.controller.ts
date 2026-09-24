@@ -98,6 +98,32 @@ class SpotifyController {
         }
     }
 
+    async playbackToken(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const userId: string = (req as any).user.id;
+            const access_token: string = await spotifyService.getPlaybackToken(userId);
+            res.status(200).json({ access_token });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    async searchTracks(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const userId: string = (req as any).user.id;
+            const query: string = (req.query.q as string || '').trim();
+
+            if (!query) {
+                throw new BadRequest('q is required');
+            }
+
+            const tracks = await spotifyService.searchTracks(userId, query);
+            res.status(200).json({ tracks });
+        } catch (err) {
+            next(err);
+        }
+    }
+
     async importPlaylist(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const userId: string = (req as any).user.id;

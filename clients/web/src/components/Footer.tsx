@@ -1,43 +1,14 @@
-import React from "react";
-import { useTranslation } from "react-i18next";
+import {Link} from "react-router-dom";
+import {useTranslation} from "react-i18next";
 
-export const Footer: React.FC = () => {
-  const { t } = useTranslation();
-  return (
-    <footer className="border-t border-gray-800 dark:border-gray-200 mt-16 bg-transparent dark:bg-white py-12 transition-colors duration-300">
-      <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-8">
-        <div className="flex items-center gap-3">
-          <div className="w-15 bg-linear-to-tr from-transparent to-transparent rounded-lg flex items-center justify-center relative">
-            <img
-              src="/logo.png" 
-              alt="Logo Melodia"
-              className="w-12 h-12 object-contain"
-            />
-          </div>
-          <span className="font-bold text-xl tracking-tight text-white dark:text-gray-900">
-            Melodia
-          </span>
-        </div>
-
-        <ul className="flex gap-6 text-sm text-gray-400 dark:text-gray-500">
-          <li className="hover:text-white dark:hover:text-gray-900 transition cursor-pointer">
-            {t("about")}
-          </li>
-          <li className="hover:text-white dark:hover:text-gray-900 transition cursor-pointer">
-            {t("privacy")}
-          </li>
-          <li className="hover:text-white dark:hover:text-gray-900 transition cursor-pointer">
-            {t("terms")}
-          </li>
-          <li className="hover:text-white dark:hover:text-gray-900 transition cursor-pointer">
-            {t("contact")}
-          </li>
-        </ul>
-
-        <p className="text-sm text-gray-500 dark:text-gray-400">
-          © 2026 Melodia. {t("rights")}
-        </p>
-      </div>
-    </footer>
-  );
-};
+export function Footer() {
+    const {t} = useTranslation();
+    return <footer className="app-footer flex flex-wrap justify-between items-center gap-5">
+        <div className="flex items-center gap-4"><span className="brand-word">melodia.</span><span>© {new Date().getFullYear()}</span></div>
+        <nav aria-label={t("design_footer_nav")} className="flex flex-wrap gap-6">
+            <Link className="hover:text-accent" to="/home">{t("explore_title")}</Link>
+            <Link className="hover:text-accent" to="/rooms">{t("design_listen_together")}</Link>
+            <Link className="hover:text-accent" to="/library">{t("design_your_space")}</Link>
+        </nav>
+    </footer>;
+}

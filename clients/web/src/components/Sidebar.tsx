@@ -1,285 +1,148 @@
-import {useState, useEffect} from 'react';
-import {
-    Home as HomeIcon, Library, Rocket, BarChart2,
-    Shield, Settings, X, Sun, Moon, Globe, ChevronRight, ShoppingBag, Palette
-} from 'lucide-react';
-import {useNavigate, useLocation, NavigateFunction} from 'react-router-dom';
-import {useDarkMode} from '../useDarkMode';
-import {PREMIUM_THEMES, Theme} from '../themes.config';
-import {useTranslation} from 'react-i18next';
+import {useEffect, useRef, useState} from "react";
+import {BookHeart} from "lucide-react";
+import {NavLink, useNavigate} from "react-router-dom";
+import {Compass, Library, Rocket, BarChart2, Shield, Settings, X, Sun, Moon, Globe, ShoppingBag, Palette, Radio, ChevronDown} from "lucide-react";
+import {useTranslation} from "react-i18next";
 import {jwtDecode} from "jwt-decode";
-import apiClient from '../api/client';
-import {TokenPayloadDto} from "../../../../backend/types/users/user.dto.ts"
+import {useDarkMode} from "../useDarkMode";
+import {PREMIUM_THEMES, type Theme} from "../themes.config";
+import apiClient from "../api/client";
 
-type SidebarProps = {
-    isOpen: boolean;
-    onClose: () => void;
-}
+const LANGUAGE_NAMES: Record<string, string> = {fr: "Français", en: "English", es: "Español", de: "Deutsch", it: "Italiano"};
 
-const Sidebar = ({isOpen, onClose}: SidebarProps) => {
+type SidebarProps = {isOpen: boolean; onClose: () => void; persistent?: boolean};
+
+export default function Sidebar({isOpen, onClose, persistent = false}: SidebarProps) {
     const {t, i18n} = useTranslation();
-    const navigate: NavigateFunction = useNavigate();
-    const location = useLocation();
+    const navigate = useNavigate();
     const {theme, setTheme} = useDarkMode();
+    const [desktop, setDesktop] = useState(false);
+    const [isAdmin, setIsAdmin] = useState(false);
+    const [authenticated, setAuthenticated] = useState(false);
+    const [owned, setOwned] = useState<string[]>([]);
+    const [themeOpen, setThemeOpen] = useState(false);
+    const [languageOpen, setLanguageOpen] = useState(false);
+    const visible = isOpen || (persistent && desktop);
+    const sidebarRef = useRef<HTMLElement>(null);
 
-    const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-    const [isAdmin, setIsAdmin] = useState<boolean>(false);
-    const [isLangMenuOpen, setIsLangMenuOpen] = useState(false);
-    const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
-    const [ownedCosmetics, setOwnedCosmetics] = useState<string[]>([]);
+    useEffect(() => {
+        if (!isOpen || (persistent && desktop)) return;
+        const previousFocus = document.activeElement as HTMLElement | null;
+        const panel = sidebarRef.current;
+        const focusable = () => Array.from(panel?.querySelectorAll<HTMLElement>("a[href], button:not(:disabled)") || [])
+            .filter(element => element.getClientRects().length > 0);
+        focusable()[0]?.focus();
+        const trapFocus = (event: KeyboardEvent) => {
+            if (event.key !== "Tab") return;
+            const elements = focusable();
+            const first = elements[0], last = elements[elements.length - 1];
+            if (!first || !last) return;
+            if (event.shiftKey && document.activeElement === first) {event.preventDefault(); last.focus();}
+            else if (!event.shiftKey && document.activeElement === last) {event.preventDefault(); first.focus();}
+        };
+        panel?.addEventListener("keydown", trapFocus);
+        return () => {panel?.removeEventListener("keydown", trapFocus); previousFocus?.focus();};
+    }, [isOpen, persistent, desktop]);
 
-    useEffect((): void => {
-        if (!isOpen) {
-            setIsLangMenuOpen(false);
-            setIsThemeMenuOpen(false);
-        }
-    }, [isOpen]);
-
-    // Récupère les cosmétiques possédés (pour savoir quels thèmes premium sont débloqués)
-    useEffect((): void => {
-        if (!isOpen) return;
-        const token: string | null = localStorage.getItem('token');
-        if (!token) return;
-        try {
-            const decoded: any = jwtDecode(token);
-            const uId: string = decoded.id || decoded.userId;
-            apiClient
-                .get(`/users/public/${uId}`)
-                .then((res) => {
-                    const data = res.data.user || res.data;
-                    setOwnedCosmetics(data.owned_cosmetics || []);
-                })
-                .catch((e) => console.error('Erreur cosmétiques sidebar:', e));
-        } catch (e) {
-            console.error(e);
-        }
-    }, [isOpen]);
-
-    const selectTheme = (value: Theme): void => {
-        setTheme(value);
-        setIsThemeMenuOpen(false);
-    };
-
-    const currentPremium = PREMIUM_THEMES.find((p) => p.value === theme);
-    const currentThemeLabel: string = theme === 'light'
-        ? t('light_mode')
-        : currentPremium
-            ? t(currentPremium.labelKey, currentPremium.labelFallback)
-            : t('dark_mode');
-
-    useEffect(():void => {
-        const token:string | null = localStorage.getItem('token');
-        if (!token) {
-            setIsAuthenticated(false);
-            setIsAdmin(false);
-        } else {
-            setIsAuthenticated(true);
-            const tokenDecoded: TokenPayloadDto = jwtDecode<TokenPayloadDto>(token);
-            setIsAdmin(tokenDecoded.role === 'ADMIN');
-        }
+    useEffect(() => {
+        const media = window.matchMedia("(min-width: 1280px)");
+        const update = () => setDesktop(media.matches);
+        update();
+        media.addEventListener("change", update);
+        return () => media.removeEventListener("change", update);
     }, []);
 
+    useEffect(() => {
+        let cancelled = false;
+        let latestRequest = 0;
+        const update = async () => {
+            const requestId = ++latestRequest;
+            const token = localStorage.getItem("token");
+            setAuthenticated(!!token);
+            setIsAdmin(false);
+            setOwned([]);
+            if (!token) return;
+            try {
+                const user = jwtDecode<{id: string; role: string}>(token);
+                setIsAdmin(user.role === "ADMIN");
+                const res = await apiClient.get(`/users/public/${user.id}`);
+                if (!cancelled && requestId === latestRequest) setOwned((res.data.user || res.data).owned_cosmetics || []);
+            } catch { /* Expired sessions are handled by the API client. */ }
+        };
+        void update();
+        window.addEventListener("auth-changed", update);
+        window.addEventListener("profileUpdated", update);
+        return () => {
+            cancelled = true;
+            window.removeEventListener("auth-changed", update);
+            window.removeEventListener("profileUpdated", update);
+        };
+    }, []);
+
+    useEffect(() => {
+        const onKey = (event: KeyboardEvent) => {
+            if (event.key === "Escape") { onClose(); setThemeOpen(false); setLanguageOpen(false); }
+        };
+        document.addEventListener("keydown", onKey);
+        return () => document.removeEventListener("keydown", onKey);
+    }, [onClose]);
+
     const navItems = [
-        {name: t('nav_home'), icon: HomeIcon, path: '/home'},
-        {name: t('nav_feed'), icon: Rocket, path: '/feed'},
-        {name: t('nav_stats'), icon: BarChart2, path: '/stats'},
-        {name: t('nav_library'), icon: Library, path: '/library'},
-        {name: t('nav_shop', 'Boutique'), icon: ShoppingBag, path: '/shop'},
+        {key: "nav_home", icon: Compass, path: "/home"},
+        {key: "nav_feed", icon: Rocket, path: "/feed"},
+        {key: "nav_library", icon: Library, path: "/library"},
+        {key: "nav_journal", icon: BookHeart, path: "/journal"},
+        {key: "nav_rooms", icon: Radio, path: "/rooms"},
+        {key: "nav_stats", icon: BarChart2, path: "/stats"},
+        {key: "nav_shop", icon: ShoppingBag, path: "/shop"},
     ];
+    const currentPremium = PREMIUM_THEMES.find(p => p.value === theme);
+    const themeLabel = currentPremium ? t(currentPremium.labelKey, currentPremium.labelFallback) : t(theme === "light" ? "light_mode" : "dark_mode");
+    const chooseTheme = (value: Theme) => { setTheme(value); setThemeOpen(false); };
+    const navClass = ({isActive}: {isActive: boolean}) => `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${isActive ? "bg-accent-soft text-accent" : "text-muted hover:bg-raised hover:text-ink"}`;
 
-    const languages = [
-        {code: 'fr', label: t('lang_fr', 'Français')},
-        {code: 'en', label: t('lang_en', 'English')},
-        {code: 'es', label: t('lang_es', 'Español')},
-        {code: 'de', label: t('lang_de', 'Deutsch')},
-        {code: 'it', label: t('lang_it', 'Italiano')}
-    ];
-
-    const handleNavigation = (path: string): void => {
-        navigate(path);
-        onClose();
-    };
-
-    const changeLanguage = (code: string): void => {
-        i18n.changeLanguage(code);
-        setIsLangMenuOpen(false);
-    };
-
-    const currentLangCode: string = i18n.language?.substring(0, 2) || 'fr';
-    const currentLangLabel: string = languages.find(l => l.code === currentLangCode)?.label || 'Français';
-
-    return (
-        <>
-            {isOpen && (
-                <div
-                    className="fixed inset-0 bg-black/60 z-30 transition-opacity"
-                    onClick={onClose}
-                />
-            )}
-
-            <aside
-                className={`fixed top-0 left-0 h-full w-64 z-40 transform transition-all duration-300 flex flex-col
-          bg-[#1C1C28] border-r border-gray-800 
-          dark:bg-white dark:border-gray-200
-          ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}
-            >
-                <div
-                    className="h-16 flex items-center justify-between px-6 border-b border-gray-800 dark:border-gray-200">
-                    <span
-                        className="text-xl font-bold text-white dark:text-gray-900 tracking-widest">{t('menu_title')}</span>
-                    <button onClick={onClose}
-                            className="text-gray-400 hover:text-white dark:hover:text-gray-900 transition-colors">
-                        <X size={24}/>
+    return <>
+        {isOpen && <div className="sidebar-backdrop fixed inset-0 bg-black/60 backdrop-blur-sm z-30" onClick={onClose}/>}
+        <aside ref={sidebarRef} inert={!visible} role={isOpen && !desktop ? "dialog" : undefined} aria-modal={isOpen && !desktop ? true : undefined} aria-label={t("menu_title")} className={`app-sidebar fixed top-0 left-0 h-dvh w-[248px] z-40 border-r flex flex-col transition-transform duration-200 ${visible ? "translate-x-0" : "-translate-x-full"}`}>
+            <div className="h-[76px] flex items-center justify-between px-6 shrink-0">
+                <NavLink to="/home" onClick={onClose} className="flex items-center gap-2.5">
+                    <img src="/logo.png" alt="" className="w-9 h-9 rounded-xl"/>
+                    <span className="brand-word">melodia<span className="text-accent">.</span></span>
+                </NavLink>
+                <button className="sidebar-close icon-button" onClick={onClose} aria-label={t("design_close")}><X size={20}/></button>
+            </div>
+            <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
+                <p className="sidebar-caption">{t("design_your_space")}</p>
+                {navItems.map(item => <NavLink key={item.path} to={item.path} className={navClass} onClick={onClose}>
+                    <item.icon size={19} strokeWidth={1.7}/><span>{t(item.key)}</span>
+                </NavLink>)}
+                {authenticated && <div className="pt-6">
+                    <p className="sidebar-caption">{t("design_account")}</p>
+                    <NavLink to="/settings" onClick={onClose} className={navClass}><Settings size={19}/>{t("nav_settings")}</NavLink>
+                    {isAdmin && <NavLink to="/admindashboard" onClick={onClose} className={navClass}><Shield size={19}/>{t("nav_admin")}</NavLink>}
+                </div>}
+            </nav>
+            <div className="p-3 border-t border-line space-y-1">
+                <div className="relative">
+                    <button onClick={() => {setLanguageOpen(!languageOpen); setThemeOpen(false);}} aria-expanded={languageOpen} className="flex items-center gap-3 p-3 w-full rounded-xl text-sm text-muted hover:bg-raised">
+                        <Globe size={18}/><span className="flex-1 text-left">{LANGUAGE_NAMES[i18n.resolvedLanguage || "fr"] || LANGUAGE_NAMES.fr}</span><ChevronDown size={14}/>
                     </button>
+                    {languageOpen && <div className="absolute bottom-full left-0 w-full bg-panel border border-line rounded-xl p-2 shadow-xl mb-2 z-50">
+                        {["fr", "en", "es", "de", "it"].map(code => <button key={code} onClick={() => {void i18n.changeLanguage(code); setLanguageOpen(false);}} className="block w-full text-left p-2 rounded-lg text-sm text-ink hover:bg-raised">{LANGUAGE_NAMES[code]}</button>)}
+                    </div>}
                 </div>
-
-                <nav className="p-4 space-y-2 mt-2 overflow-y-auto flex-1">
-                    {navItems.map((item) => {
-                        const isActive:boolean = location.pathname === item.path;
-                        return (
-                            <button
-                                key={item.name}
-                                onClick={() => handleNavigation(item.path)}
-                                className={`flex items-center justify-between w-full p-3 rounded-xl transition-all ${
-                                    isActive
-                                        ? 'bg-[#2A2A38] text-white dark:bg-indigo-50 dark:text-indigo-600'
-                                        : 'text-gray-400 hover:text-white hover:bg-[#2A2A38]/50 dark:text-gray-500 dark:hover:bg-gray-100 dark:hover:text-gray-900'
-                                }`}
-                            >
-                                <div className="flex items-center gap-4">
-                                    <item.icon size={20}
-                                               className={isActive ? 'text-indigo-400 dark:text-indigo-600' : ''}/>
-                                    <span className="font-semibold text-sm">{item.name}</span>
-                                </div>
-                            </button>
-                        );
-                    })}
-                </nav>
-
-                <div className="p-4 border-t border-gray-800/50 dark:border-gray-200 space-y-2">
-                    {isAuthenticated && (
-                        <button
-                            onClick={() => handleNavigation('/settings')}
-                            className={`flex items-center gap-4 w-full p-3 rounded-xl transition-colors ${
-                                location.pathname === '/settings'
-                                    ? 'bg-[#2A2A38] text-white dark:bg-indigo-50 dark:text-indigo-600'
-                                    : 'text-gray-400 hover:text-white hover:bg-[#2A2A38]/50 dark:text-gray-500 dark:hover:bg-gray-100 dark:hover:text-gray-900'
-                            }`}
-                        >
-                            <Settings size={20}
-                                      className={location.pathname === '/settings' ? 'text-indigo-400 dark:text-indigo-600' : ''}/>
-                            <span className="font-semibold text-sm">{t('nav_settings', 'Paramètres')}</span>
-                        </button>
-                    )}
-
-                    {isAuthenticated && isAdmin && (
-                        <button
-                            onClick={() => handleNavigation('/admindashboard')}
-                            className={`flex items-center gap-4 w-full p-3 rounded-xl transition-colors ${
-                                location.pathname === '/admindashboard'
-                                    ? 'bg-[#2A2A38] text-white dark:bg-indigo-50 dark:text-indigo-600'
-                                    : 'text-gray-400 hover:text-white hover:bg-[#2A2A38]/50 dark:text-gray-500 dark:hover:bg-gray-100 dark:hover:text-gray-900'
-                            }`}
-                        >
-                            <Shield size={20}
-                                    className={location.pathname === '/admindashboard' ? 'text-indigo-400 dark:text-indigo-600' : ''}/>
-                            <span className="font-semibold text-sm">{t('nav_admin', 'Admin Dashboard')}</span>
-                        </button>
-                    )}
-
-                    <div className="relative">
-                        <button
-                            onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
-                            className="flex items-center justify-between w-full p-3 rounded-xl transition-colors text-gray-400 hover:text-white hover:bg-[#2A2A38]/50 dark:text-gray-500 dark:hover:bg-gray-100 dark:hover:text-gray-900"
-                        >
-                            <div className="flex items-center gap-4">
-                                <Globe size={20}/>
-                                <span className="font-semibold text-sm">{currentLangLabel}</span>
-                            </div>
-                            <ChevronRight size={16}
-                                          className={`transition-transform duration-200 ${isLangMenuOpen ? 'rotate-90' : ''}`}/>
-                        </button>
-
-                        {isLangMenuOpen && (
-                            <div
-                                className="absolute left-[105%] bottom-0 w-48 bg-[#1C1C28] dark:bg-white border border-gray-800 dark:border-gray-200 rounded-xl p-2 space-y-1 shadow-xl animate-in fade-in slide-in-from-left-2 duration-200 z-50">
-                                {languages.map((lng) => (
-                                    <button
-                                        key={lng.code}
-                                        onClick={() => changeLanguage(lng.code)}
-                                        className={`block w-full text-left p-2 rounded-lg text-sm transition-colors ${
-                                            currentLangCode === lng.code
-                                                ? 'text-white font-bold bg-[#2A2A38] dark:text-indigo-600 dark:bg-indigo-50'
-                                                : 'text-gray-400 hover:text-white hover:bg-[#2A2A38]/50 dark:text-gray-500 dark:hover:text-gray-900 dark:hover:bg-gray-100'
-                                        }`}
-                                    >
-                                        {lng.label}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="relative">
-                        <button
-                            onClick={() => setIsThemeMenuOpen(!isThemeMenuOpen)}
-                            className="flex items-center justify-between w-full p-3 rounded-xl transition-colors text-gray-400 hover:text-white hover:bg-[#2A2A38]/50 dark:text-gray-500 dark:hover:bg-gray-100 dark:hover:text-gray-900"
-                        >
-                            <div className="flex items-center gap-4">
-                                {theme === 'light' ? (
-                                    <Sun size={20} className="text-yellow-400"/>
-                                ) : currentPremium ? (
-                                    <Palette size={20} className={currentPremium.accentClass}/>
-                                ) : (
-                                    <Moon size={20} className="text-indigo-600"/>
-                                )}
-                                <span className="font-semibold text-sm">{currentThemeLabel}</span>
-                            </div>
-                            <ChevronRight size={16}
-                                          className={`transition-transform duration-200 ${isThemeMenuOpen ? 'rotate-90' : ''}`}/>
-                        </button>
-
-                        {isThemeMenuOpen && (
-                            <div
-                                className="absolute left-[105%] bottom-0 w-52 bg-[#1C1C28] dark:bg-white border border-gray-800 dark:border-gray-200 rounded-xl p-2 space-y-1 shadow-xl animate-in fade-in slide-in-from-left-2 duration-200 z-50">
-                                <button
-                                    onClick={() => selectTheme('dark')}
-                                    className={`flex items-center gap-3 w-full text-left p-2 rounded-lg text-sm transition-colors ${theme === 'dark' ? 'text-white font-bold bg-[#2A2A38] dark:text-indigo-600 dark:bg-indigo-50' : 'text-gray-400 hover:text-white hover:bg-[#2A2A38]/50 dark:text-gray-500 dark:hover:text-gray-900 dark:hover:bg-gray-100'}`}
-                                >
-                                    <Moon size={16}/> {t('dark_mode')}
-                                </button>
-                                <button
-                                    onClick={() => selectTheme('light')}
-                                    className={`flex items-center gap-3 w-full text-left p-2 rounded-lg text-sm transition-colors ${theme === 'light' ? 'text-white font-bold bg-[#2A2A38] dark:text-indigo-600 dark:bg-indigo-50' : 'text-gray-400 hover:text-white hover:bg-[#2A2A38]/50 dark:text-gray-500 dark:hover:text-gray-900 dark:hover:bg-gray-100'}`}
-                                >
-                                    <Sun size={16}/> {t('light_mode')}
-                                </button>
-                                {PREMIUM_THEMES.map((pt) =>
-                                    ownedCosmetics.includes(pt.cosmeticId) ? (
-                                        <button
-                                            key={pt.value}
-                                            onClick={() => selectTheme(pt.value)}
-                                            className={`flex items-center gap-3 w-full text-left p-2 rounded-lg text-sm transition-colors ${theme === pt.value ? `${pt.accentClass} font-bold bg-white/5` : 'text-gray-400 hover:text-white hover:bg-[#2A2A38]/50 dark:text-gray-500 dark:hover:text-gray-900 dark:hover:bg-gray-100'}`}
-                                        >
-                                            <Palette size={16} className={pt.accentClass}/> {t(pt.labelKey, pt.labelFallback)}
-                                        </button>
-                                    ) : (
-                                        <button
-                                            key={pt.value}
-                                            onClick={() => handleNavigation('/shop')}
-                                            className="flex items-center gap-3 w-full text-left p-2 rounded-lg text-sm text-gray-500 hover:text-white hover:bg-[#2A2A38]/50 dark:hover:text-gray-900 dark:hover:bg-gray-100 transition-colors"
-                                        >
-                                            <ShoppingBag size={16}/> {t(pt.labelKey, pt.labelFallback)} ({t('shop_title', 'Boutique')})
-                                        </button>
-                                    ),
-                                )}
-                            </div>
-                        )}
-                    </div>
+                <div className="relative">
+                    <button onClick={() => {setThemeOpen(!themeOpen); setLanguageOpen(false);}} aria-expanded={themeOpen} className="flex items-center gap-3 p-3 w-full rounded-xl text-sm text-muted hover:bg-raised">
+                        {theme === "light" ? <Sun size={18}/> : <Moon size={18}/>}<span className="flex-1 text-left">{themeLabel}</span><ChevronDown size={14}/>
+                    </button>
+                    {themeOpen && <div className="absolute bottom-full left-0 w-full bg-panel border border-line rounded-xl p-2 shadow-xl mb-2 z-50">
+                        {(["dark", "light"] as const).map(value => <button key={value} className="block w-full text-left p-2 rounded-lg text-sm text-ink hover:bg-raised" onClick={() => chooseTheme(value)}>{t(value === "dark" ? "dark_mode" : "light_mode")}</button>)}
+                        {PREMIUM_THEMES.map(pt => <button key={pt.value} className="flex items-center gap-2 w-full text-left p-2 rounded-lg text-sm text-ink hover:bg-raised" onClick={() => owned.includes(pt.cosmeticId) ? chooseTheme(pt.value) : (navigate("/shop"), onClose())}>
+                            <Palette size={15}/>{t(pt.labelKey, pt.labelFallback)}{!owned.includes(pt.cosmeticId) && <ShoppingBag size={12}/>}
+                        </button>)}
+                    </div>}
                 </div>
-            </aside>
-        </>
-    );
-};
-
-export default Sidebar;
+            </div>
+        </aside>
+    </>;
+}

@@ -45,7 +45,7 @@ export const ConfirmProvider = ({children}: { children: React.ReactNode }) => {
                     onClick={() => handleClose(false)}
                 >
                     <div
-                        className="w-full max-w-sm bg-[#1a1d26] dark:bg-white border border-slate-800 dark:border-slate-200 rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150"
+                        className="w-full max-w-sm bg-panel dark:bg-panel border border-line dark:border-line rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div className="p-6">
@@ -60,11 +60,11 @@ export const ConfirmProvider = ({children}: { children: React.ReactNode }) => {
                                     <AlertTriangle size={22}/>
                                 </div>
                                 <div className="flex-1 pt-0.5">
-                                    <h3 className="text-lg font-bold text-white dark:text-gray-900 mb-1">
+                                    <h3 className="text-lg font-bold text-ink mb-1">
                                         {options.title || t("confirm_title", "Confirmation")}
                                     </h3>
                                     {options.message && (
-                                        <p className="text-sm text-slate-400 dark:text-gray-600 leading-relaxed">
+                                        <p className="text-sm text-muted dark:text-muted leading-relaxed">
                                             {options.message}
                                         </p>
                                     )}
@@ -73,7 +73,7 @@ export const ConfirmProvider = ({children}: { children: React.ReactNode }) => {
                             <div className="flex gap-3 mt-6">
                                 <button
                                     onClick={() => handleClose(false)}
-                                    className="flex-1 py-2.5 rounded-xl font-semibold text-sm bg-slate-800 dark:bg-gray-100 text-slate-200 dark:text-gray-700 hover:bg-slate-700 dark:hover:bg-gray-200 transition-colors"
+                                    className="flex-1 py-2.5 rounded-xl font-semibold text-sm bg-raised dark:bg-raised text-slate-200 dark:text-gray-700 hover:bg-slate-700 dark:hover:bg-gray-200 transition-colors"
                                 >
                                     {options.cancelText || t("cancel", "Annuler")}
                                 </button>

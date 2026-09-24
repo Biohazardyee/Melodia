@@ -211,7 +211,7 @@ const AlbumTrackList: React.FC<AlbumTrackListProps> = ({tracks, artist}) => {
 
     return (
         <section>
-            <h3 className="text-xl font-bold mb-4 border-b border-gray-800 dark:border-gray-200 pb-2 w-fit max-w-2xl">
+            <h3 className="text-xl font-bold mb-4 border-b border-line dark:border-line pb-2 w-fit max-w-2xl">
                 {t("tracklist_title", "Titres de l'album")}
             </h3>
             <ul className="divide-y divide-gray-800 dark:divide-gray-200 max-w-2xl">
@@ -227,8 +227,8 @@ const AlbumTrackList: React.FC<AlbumTrackListProps> = ({tracks, artist}) => {
                             <span className="text-gray-500 w-6 text-sm text-right flex-shrink-0">{idx + 1}</span>
                             <button
                                 onClick={() => handleRowClick(idx)}
-                                className={`w-9 h-9 flex items-center justify-center rounded-full bg-[#1a1b26] dark:bg-white border transition-colors flex-shrink-0 ${
-                                    isActive ? "border-purple-500 text-purple-400" : "border-gray-700 dark:border-gray-200 text-white dark:text-gray-900 hover:border-purple-500"
+                                className={`w-9 h-9 flex items-center justify-center rounded-full bg-panel dark:bg-panel border transition-colors flex-shrink-0 ${
+                                    isActive ? "border-purple-500 text-purple-400" : "border-line dark:border-line text-ink hover:border-purple-500"
                                 }`}
                                 title={t("play_preview", "Écouter un extrait")}
                             >

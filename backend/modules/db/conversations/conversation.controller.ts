@@ -1,7 +1,7 @@
 import type {Request, Response, NextFunction} from 'express';
 
 import {Controller} from '../../controller.js';
-import {BadRequest} from '../../../utils/errors.js';
+import {BadRequest, Forbidden} from '../../../utils/errors.js';
 import {ConversationService, conversationService} from './conversation.service.js';
 import {
     ConversationAddDto,
@@ -19,7 +19,7 @@ class ConversationController extends Controller {
         try {
 
             const addData: ConversationAddDto = {
-                user1_id: req.body.user1_id,
+                user1_id: req.user!.id,
                 user2_id: req.body.user2_id
             }
 
@@ -63,6 +63,7 @@ class ConversationController extends Controller {
                 throw new BadRequest('ID is required');
             }
 
+            await this.service.requireParticipant(req.params.id, req.user!.id);
             const conversation: ConversationResponseDto = await this.service.getById(req.params.id);
 
             res.status(201).json({
@@ -77,12 +78,13 @@ class ConversationController extends Controller {
     async getUserConversation(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const { userId } = req.params;
+            if (userId !== req.user!.id) throw new Forbidden("Conversation access denied");
 
             if (!userId) {
                 throw new BadRequest('User ID is required');
             }
             
-            const conversations: UserConversationResponseDto[] = await this.service.getUserConversations(userId);
+            const conversations: UserConversationResponseDto[] = await this.service.getUserConversations(userId, typeof req.query.include === "string" ? req.query.include : undefined);
 
             res.status(200).json({
                 message: 'User conversations retrieved successfully',
@@ -91,6 +93,12 @@ class ConversationController extends Controller {
         } catch (err) {
             next(err);
         }
+    }
+
+    async respond(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            res.json({conversation: await this.service.respond(req.params.id, req.user!.id, req.body.action)});
+        } catch (err) { next(err); }
     }
 
     async update(_req: Request, _res: Response, _next: NextFunction): Promise<null> {

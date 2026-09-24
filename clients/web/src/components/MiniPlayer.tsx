@@ -141,9 +141,9 @@ const MiniPlayer: React.FC<MiniPlayerProps> = ({
     const VolumeIcon = volume === 0 ? VolumeX : volume < 0.5 ? Volume1 : Volume2;
 
     return (
-        <div className="fixed bottom-4 left-4 z-50 w-80 max-w-[calc(100vw-2rem)] bg-[#1a1b26] dark:bg-white border border-gray-800 dark:border-gray-200 rounded-2xl shadow-2xl p-4">
+        <div className="fixed bottom-4 left-4 z-50 w-80 max-w-[calc(100vw-2rem)] bg-panel dark:bg-panel border border-line dark:border-line rounded-2xl shadow-2xl p-4">
             <div className="flex items-center gap-3 mb-3">
-                <div className="w-12 h-12 rounded-lg overflow-hidden bg-[#0f1117] dark:bg-gray-100 flex items-center justify-center flex-shrink-0">
+                <div className="w-12 h-12 rounded-lg overflow-hidden bg-canvas dark:bg-raised flex items-center justify-center flex-shrink-0">
                     {artworkUrl ? (
                         <img src={artworkUrl} alt="" className="w-full h-full object-cover"/>
                     ) : (
@@ -151,7 +151,7 @@ const MiniPlayer: React.FC<MiniPlayerProps> = ({
                     )}
                 </div>
                 <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-white dark:text-gray-900 truncate">{trackName}</p>
+                    <p className="text-sm font-bold text-ink truncate">{trackName}</p>
                     <p className="text-xs text-gray-500 truncate">{artist}</p>
                 </div>
                 <button
@@ -187,7 +187,7 @@ const MiniPlayer: React.FC<MiniPlayerProps> = ({
             <div className="flex items-center justify-center gap-6">
                 <button
                     onClick={onPrev}
-                    className="text-gray-400 hover:text-white dark:hover:text-gray-900 transition-colors"
+                    className="text-muted hover:text-white dark:hover:text-gray-900 transition-colors"
                     title={t("prev_track", "Titre précédent")}
                 >
                     <ChevronLeft size={22}/>
@@ -209,14 +209,14 @@ const MiniPlayer: React.FC<MiniPlayerProps> = ({
                 <button
                     onClick={onNext}
                     disabled={!hasNext}
-                    className="text-gray-400 hover:text-white dark:hover:text-gray-900 transition-colors disabled:opacity-30 disabled:hover:text-gray-400"
+                    className="text-muted hover:text-white dark:hover:text-gray-900 transition-colors disabled:opacity-30 disabled:hover:text-muted"
                     title={t("next_track", "Titre suivant")}
                 >
                     <ChevronRight size={22}/>
                 </button>
             </div>
 
-            <div className="flex items-center gap-2.5 mt-3 pt-3 border-t border-gray-800 dark:border-gray-200">
+            <div className="flex items-center gap-2.5 mt-3 pt-3 border-t border-line dark:border-line">
                 <VolumeIcon size={14} className="text-gray-500 flex-shrink-0"/>
                 <div className="flex-1">
                     <ScrubBar ratio={volume} onDrag={onVolumeChange} onCommit={onVolumeChange}/>

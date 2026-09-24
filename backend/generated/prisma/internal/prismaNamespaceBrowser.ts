@@ -52,6 +52,7 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   Users: 'Users',
+  JournalEntries: 'JournalEntries',
   SpotifyAccounts: 'SpotifyAccounts',
   Medias: 'Medias',
   Reviews: 'Reviews',
@@ -68,7 +69,10 @@ export const ModelName = {
   Notifications: 'Notifications',
   BannedUsers: 'BannedUsers',
   Conversations: 'Conversations',
-  Messages: 'Messages'
+  Messages: 'Messages',
+  Rooms: 'Rooms',
+  RoomParticipants: 'RoomParticipants',
+  RoomQueueItems: 'RoomQueueItems'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -127,6 +131,22 @@ export const UsersScalarFieldEnum = {
 export type UsersScalarFieldEnum = (typeof UsersScalarFieldEnum)[keyof typeof UsersScalarFieldEnum]
 
 
+export const JournalEntriesScalarFieldEnum = {
+  id: 'id',
+  user_id: 'user_id',
+  title: 'title',
+  artist: 'artist',
+  listened_on: 'listened_on',
+  mood: 'mood',
+  rating: 'rating',
+  note: 'note',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type JournalEntriesScalarFieldEnum = (typeof JournalEntriesScalarFieldEnum)[keyof typeof JournalEntriesScalarFieldEnum]
+
+
 export const SpotifyAccountsScalarFieldEnum = {
   id: 'id',
   user_id: 'user_id',
@@ -135,6 +155,9 @@ export const SpotifyAccountsScalarFieldEnum = {
   access_token: 'access_token',
   refresh_token: 'refresh_token',
   expires_at: 'expires_at',
+  product: 'product',
+  scope: 'scope',
+  country: 'country',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
@@ -311,7 +334,10 @@ export const ConversationsScalarFieldEnum = {
   id: 'id',
   user1_id: 'user1_id',
   user2_id: 'user2_id',
-  created_at: 'created_at'
+  created_at: 'created_at',
+  status: 'status',
+  initiated_by: 'initiated_by',
+  invitation_sent: 'invitation_sent'
 } as const
 
 export type ConversationsScalarFieldEnum = (typeof ConversationsScalarFieldEnum)[keyof typeof ConversationsScalarFieldEnum]
@@ -327,6 +353,52 @@ export const MessagesScalarFieldEnum = {
 } as const
 
 export type MessagesScalarFieldEnum = (typeof MessagesScalarFieldEnum)[keyof typeof MessagesScalarFieldEnum]
+
+
+export const RoomsScalarFieldEnum = {
+  id: 'id',
+  host_id: 'host_id',
+  name: 'name',
+  is_public: 'is_public',
+  password: 'password',
+  current_track_uri: 'current_track_uri',
+  current_track_name: 'current_track_name',
+  current_artist_name: 'current_artist_name',
+  current_album_art_url: 'current_album_art_url',
+  current_duration_ms: 'current_duration_ms',
+  position_ms: 'position_ms',
+  is_playing: 'is_playing',
+  position_updated_at: 'position_updated_at',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type RoomsScalarFieldEnum = (typeof RoomsScalarFieldEnum)[keyof typeof RoomsScalarFieldEnum]
+
+
+export const RoomParticipantsScalarFieldEnum = {
+  room_id: 'room_id',
+  user_id: 'user_id',
+  joined_at: 'joined_at'
+} as const
+
+export type RoomParticipantsScalarFieldEnum = (typeof RoomParticipantsScalarFieldEnum)[keyof typeof RoomParticipantsScalarFieldEnum]
+
+
+export const RoomQueueItemsScalarFieldEnum = {
+  id: 'id',
+  room_id: 'room_id',
+  added_by_id: 'added_by_id',
+  track_uri: 'track_uri',
+  track_name: 'track_name',
+  artist_name: 'artist_name',
+  album_art_url: 'album_art_url',
+  duration_ms: 'duration_ms',
+  position: 'position',
+  created_at: 'created_at'
+} as const
+
+export type RoomQueueItemsScalarFieldEnum = (typeof RoomQueueItemsScalarFieldEnum)[keyof typeof RoomQueueItemsScalarFieldEnum]
 
 
 export const SortOrder = {

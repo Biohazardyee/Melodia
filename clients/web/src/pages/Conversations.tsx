@@ -4,14 +4,15 @@ import React, {
     useEffect,
     useCallback,
     useMemo,
+    lazy,
+    Suspense,
 } from "react";
 import {Search, MoreVertical, Send, MessageSquare, Smile, Plus, X, PenSquare} from "lucide-react";
-import Picker from "@emoji-mart/react";
-import data from "@emoji-mart/data";
+const MessageEmojiPicker = lazy(() => import("../components/MessageEmojiPicker"));
 import {useTranslation} from "react-i18next";
 import {jwtDecode} from "jwt-decode";
 import {io, Socket} from "socket.io-client";
-import {useNavigate} from "react-router-dom";
+import {useNavigate, useSearchParams} from "react-router-dom";
 import {toast} from "react-toastify";
 import apiClient from "../api/client";
 import UserAvatar from "../components/UserAvatar";
@@ -40,6 +41,9 @@ interface BackendMessage {
 
 interface BackendConversation {
     id: string;
+    status?: "ACCEPTED" | "PENDING" | "DECLINED";
+    initiated_by?: string | null;
+    invitation_sent?: boolean;
     user1_id: string;
     user2_id: string;
     user1?: BackendUser;
@@ -56,6 +60,8 @@ const BACKEND_URL = import.meta.env.VITE_API_URL;
 const Conversations: React.FC = () => {
     const {t, i18n} = useTranslation();
     const navigate = useNavigate();
+    const [params, setParams] = useSearchParams();
+    const openedTarget = useRef<string | null>(null);
 
     const GAP_MINUTES = 30;
 
@@ -88,8 +94,13 @@ const Conversations: React.FC = () => {
 
     const [hiddenConvIds, setHiddenConvIds] = useState<Set<string>>(new Set());
     const [showNewConvModal, setShowNewConvModal] = useState(false);
-    const [mutualUsers, setMutualUsers] = useState<BackendUser[]>([]);
-    const [loadingMutuals, setLoadingMutuals] = useState(false);
+    const [contactUsers, setContactUsers] = useState<BackendUser[]>([]);
+    const [loadingContacts, setLoadingContacts] = useState(false);
+    const [contactQuery, setContactQuery] = useState("");
+    const [inboxTab, setInboxTab] = useState<"inbox" | "requests">("inbox");
+    const [sending, setSending] = useState(false);
+    const [responding, setResponding] = useState(false);
+    const isIncomingRequest = (conv: BackendConversation) => !!conv.status && conv.status !== "ACCEPTED" && conv.initiated_by !== userId;
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const selectedConvIdRef = useRef<string | null>(null);
@@ -115,7 +126,7 @@ const Conversations: React.FC = () => {
     const fetchConversations = useCallback(async (): Promise<void> => {
         if (!userId) return;
         try {
-            const res = await apiClient.get(`/conversations/user/${userId}`);
+            const res = await apiClient.get(`/conversations/user/${userId}`, {params: {include: selectedConvIdRef.current || undefined}});
             const data: BackendConversation[] =
                 res.data.conversations || res.data || [];
 
@@ -214,15 +225,29 @@ const Conversations: React.FC = () => {
     };
 
     const openNewConvModal = (): void => {
+        setContactQuery("");
         setShowNewConvModal(true);
-        if (!userId) return;
-        setLoadingMutuals(true);
-        apiClient
-            .get(`/follows/mutuals/${userId}`)
-            .then((res) => setMutualUsers(res.data.data || res.data || []))
-            .catch((e) => console.error("Erreur chargement des contacts:", e))
-            .finally(() => setLoadingMutuals(false));
     };
+
+    useEffect(() => {
+        if (!showNewConvModal || !userId) return;
+        const controller = new AbortController();
+        setLoadingContacts(true);
+        const timer = setTimeout(async () => {
+            try {
+                const query = contactQuery.trim();
+                const res = await apiClient.get(query
+                    ? `/users/search?q=${encodeURIComponent(query)}`
+                    : `/follows/following/${userId}/users`, {signal: controller.signal});
+                if (!controller.signal.aborted) setContactUsers((res.data.users || res.data.data || []).filter((u: BackendUser) => u.id !== userId));
+            } catch {
+                if (!controller.signal.aborted) setContactUsers([]);
+            } finally {
+                if (!controller.signal.aborted) setLoadingContacts(false);
+            }
+        }, 250);
+        return () => { clearTimeout(timer); controller.abort(); };
+    }, [showNewConvModal, contactQuery, userId]);
 
     const openConversationWith = async (targetUserId: string): Promise<void> => {
         if (!userId) return;
@@ -234,9 +259,11 @@ const Conversations: React.FC = () => {
             const conv = res.data.conversation || res.data.data || res.data;
             const convId: string = conv.id;
             unhideConversation(convId);
+            selectedConvIdRef.current = convId;
             await fetchConversations();
             setSelectedConvId(convId);
             setShowNewConvModal(false);
+            setNewMessage("");
         } catch (e: any) {
             console.error("Erreur ouverture conversation:", e);
             toast.error(
@@ -245,6 +272,13 @@ const Conversations: React.FC = () => {
             );
         }
     };
+
+    useEffect(() => {
+        const target = params.get("to");
+        if (!target || !userId || openedTarget.current === target) return;
+        openedTarget.current = target;
+        void openConversationWith(target).finally(() => setParams({}, {replace: true}));
+    }, [params, userId]);
 
     useEffect(() => {
         const token: string | null = localStorage.getItem("token");
@@ -294,7 +328,11 @@ const Conversations: React.FC = () => {
             }
         });
 
+        socket.on("conversation_updated", fetchConversations);
+        socket.on("connect", fetchConversations);
         socket.on("update_conversation_list", (message: BackendMessage): void => {
+            unhideConversation(message.conversation_id);
+            void fetchConversations();
             setConversations((prevConvs: BackendConversation[]): BackendConversation[] => {
                 const index = prevConvs.findIndex(
                     (conv: BackendConversation): boolean => String(conv.id) === String(message.conversation_id),
@@ -342,6 +380,8 @@ const Conversations: React.FC = () => {
         );
 
         return () => {
+            socket.off("conversation_updated", fetchConversations);
+            socket.off("connect", fetchConversations);
             socket.off("receive_message");
             socket.off("update_conversation_list");
             socket.off("conversation_marked_read");
@@ -367,9 +407,12 @@ const Conversations: React.FC = () => {
         };
     }, [socket, selectedConvId]);
 
-    useEffect((): void => {
+    useEffect(() => {
         if (!selectedConvId) return;
 
+        let cancelled = false;
+        setMessages([]);
+        setNewMessage("");
         const fetchMessages = async (): Promise<void> => {
             try {
                 const res = await apiClient.get(
@@ -386,13 +429,14 @@ const Conversations: React.FC = () => {
                     (a: BackendMessage, b: BackendMessage) =>
                         new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
                 );
-                setMessages(sortedMessages);
+                if (!cancelled) setMessages(prev => [...new Map([...sortedMessages, ...prev].map((m: BackendMessage) => [m.id, m])).values()].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()));
             } catch (e) {
                 console.error("Erreur de récupération des messages:", e);
             }
         };
 
         fetchMessages();
+        return () => { cancelled = true; };
     }, [selectedConvId]);
 
     useEffect((): void => {
@@ -410,17 +454,19 @@ const Conversations: React.FC = () => {
     const filteredConversations: BackendConversation[] = useMemo(() => {
         return conversations.filter((conv: BackendConversation) => {
             if (hiddenConvIds.has(conv.id)) return false;
+            if (conv.status === "DECLINED" && conv.initiated_by !== userId) return false;
+            if (isIncomingRequest(conv) !== (inboxTab === "requests")) return false;
             const otherUser: BackendUser | undefined = getOtherUser(conv);
             const lowerQuery: string = searchQuery.toLowerCase();
             const displayLastMessage: string =
-                conv.lastMessage || t("no_messages_yet", "Aucun message");
+                conv.lastMessage || t("dm_no_messages");
             const name: string = (otherUser?.pseudo || otherUser?.username || "").toLowerCase();
             return (
                 name.includes(lowerQuery) ||
                 displayLastMessage.toLowerCase().includes(lowerQuery)
             );
         });
-    }, [conversations, searchQuery, getOtherUser, t, hiddenConvIds]);
+    }, [conversations, searchQuery, getOtherUser, t, hiddenConvIds, inboxTab, userId]);
 
     useEffect(() => {
         if (!showEmojiPicker) return;
@@ -442,15 +488,37 @@ const Conversations: React.FC = () => {
         setShowEmojiPicker(false);
     };
 
+    const incomingRequest = selectedConversation ? isIncomingRequest(selectedConversation) : false;
+    const sendBlocked = !!selectedConversation && selectedConversation.status !== undefined && selectedConversation.status !== "ACCEPTED" &&
+        (incomingRequest || selectedConversation.status === "DECLINED" || selectedConversation.invitation_sent);
+    const respondToRequest = async (action: "accept" | "decline") => {
+        if (!selectedConvId || responding) return;
+        setResponding(true);
+        try {
+            await apiClient.patch(`/conversations/${selectedConvId}/request`, {action});
+            if (action === "decline") hideConversation(selectedConvId);
+            else {setInboxTab("inbox"); socket?.emit("mark_as_read", {conversation_id: selectedConvId});}
+            await fetchConversations();
+        } catch { toast.error(t("dm_action_error")); }
+        finally { setResponding(false); }
+    };
+
     const handleSendMessage = (): void => {
-        if (!newMessage.trim() || !selectedConvId || !socket) return;
+        if (!newMessage.trim() || !selectedConvId || sending || sendBlocked) return;
+        if (!socket?.connected) { toast.error(t("dm_send_error")); return; }
 
-        socket.emit("send_message", {
+        setSending(true);
+        const sentText = newMessage.trim();
+        const sentConversation = selectedConvId;
+        socket.timeout(10000).emit("send_message", {
             conversation_id: selectedConvId,
-            content: newMessage.trim(),
+            content: sentText,
+        }, (err: Error | null, result?: {ok: boolean}) => {
+            setSending(false);
+            if (err || !result?.ok) {toast.error(t("dm_send_error")); void fetchConversations(); return;}
+            if (selectedConvIdRef.current === sentConversation) setNewMessage(prev => prev.trim() === sentText ? "" : prev);
+            void fetchConversations();
         });
-
-        setNewMessage("");
         // Réinitialise la hauteur du textarea auto-grandissant
         if (messageInputRef.current) {
             messageInputRef.current.style.height = "auto";
@@ -462,15 +530,15 @@ const Conversations: React.FC = () => {
 
     return (
         <div
-            className="flex h-[calc(100vh-70px)] bg-[#13131A] dark:bg-slate-50 text-slate-200 dark:text-slate-900 overflow-hidden font-sans transition-colors duration-300">
+            className="flex h-full bg-canvas text-ink overflow-hidden font-sans transition-colors duration-300">
             <aside
-                className={`w-full md:w-80 lg:w-96 border-r border-slate-800 dark:border-slate-200 flex flex-col ${selectedConvId ? "hidden md:flex" : "flex"}`}
+                className={`w-full md:w-80 lg:w-96 border-r border-line dark:border-line flex flex-col ${selectedConvId ? "hidden md:flex" : "flex"}`}
             >
                 <div className="p-6">
                     <div className="flex items-center justify-between mb-6">
                         <h1
-                            className="text-3xl font-bold text-white dark:text-gray-900"
-                            style={{fontFamily: "'Orbitron', sans-serif"}}
+                            className="text-3xl font-bold text-ink"
+
                         >
                             {t("messages_title")}
                         </h1>
@@ -482,6 +550,16 @@ const Conversations: React.FC = () => {
                             <PenSquare size={18}/>
                         </button>
                     </div>
+                    <div className="flex gap-2 mb-4">
+                        {(["inbox", "requests"] as const).map(tab => (
+                            <button key={tab} onClick={() => {setInboxTab(tab); setSelectedConvId(null);}}
+                                aria-pressed={inboxTab === tab}
+                                className={inboxTab === tab ? "primary-action flex-1" : "secondary-action flex-1"}>
+                                {t(tab === "inbox" ? "dm_inbox" : "dm_requests")}
+                                {tab === "requests" && ` (${conversations.filter(c => isIncomingRequest(c) && c.status === "PENDING").length})`}
+                            </button>
+                        ))}
+                    </div>
                     <div className="relative group">
                         <Search
                             className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-500 transition-colors"
@@ -492,12 +570,13 @@ const Conversations: React.FC = () => {
                             placeholder={t("search_conv_placeholder")}
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full bg-[#1a1d26] dark:bg-white border border-slate-800 dark:border-slate-200 rounded-lg py-2.5 pl-10 pr-4 text-sm dark:text-gray-900 focus:outline-none focus:border-blue-500/50 transition-all shadow-sm"
+                            className="w-full bg-panel dark:bg-panel border border-line dark:border-line rounded-lg py-2.5 pl-10 pr-4 text-sm dark:text-gray-900 focus:outline-none focus:border-blue-500/50 transition-all shadow-sm"
                         />
                     </div>
                 </div>
 
                 <div className="flex-1 overflow-y-auto">
+                    {!loadingConv && filteredConversations.length === 0 && <p className="p-6 text-sm text-muted">{t("dm_empty")}</p>}
                     {loadingConv ? (
                         <div className="p-6 text-center text-sm text-slate-500">
                             {t("loading", "Chargement...")}
@@ -514,7 +593,7 @@ const Conversations: React.FC = () => {
                                 <div key={conv.id} className="relative group">
                                 <button
                                     onClick={() => setSelectedConvId(conv.id)}
-                                    className={`w-full flex items-center gap-4 p-4 transition-all hover:bg-[#1a1d26] dark:hover:bg-slate-100 ${String(selectedConvId) === String(conv.id) ? "bg-[#1a1d26] dark:bg-slate-100 border-l-4 border-blue-500" : "border-l-4 border-transparent"}`}
+                                    className={`w-full flex items-center gap-4 p-4 transition-all hover:bg-panel dark:hover:bg-slate-100 ${String(selectedConvId) === String(conv.id) ? "bg-panel dark:bg-raised border-l-4 border-blue-500" : "border-l-4 border-transparent"}`}
                                 >
                                     <div className="relative shrink-0">
                                         <AvatarBorder borderId={otherUser?.equipped_avatar_border} compact>
@@ -522,11 +601,11 @@ const Conversations: React.FC = () => {
                                                 <img
                                                     src={otherUser.profile_picture}
                                                     alt={usernameDisplay}
-                                                    className="w-12 h-12 rounded-full object-cover border border-slate-700 dark:border-indigo-200"
+                                                    className="w-12 h-12 rounded-full object-cover border border-line dark:border-indigo-200"
                                                 />
                                             ) : (
                                                 <div
-                                                    className="w-12 h-12 rounded-full bg-[#2a2e3d] dark:bg-indigo-100 flex items-center justify-center text-blue-400 dark:text-blue-600 font-bold border border-slate-700 dark:border-indigo-200">
+                                                    className="w-12 h-12 rounded-full bg-raised dark:bg-indigo-100 flex items-center justify-center text-blue-400 dark:text-blue-600 font-bold border border-line dark:border-indigo-200">
                                                     {getAvatarText(otherUser?.pseudo || otherUser?.username)}
                                                 </div>
                                             )}
@@ -542,7 +621,7 @@ const Conversations: React.FC = () => {
                         {usernameDisplay}
                       </span>
                                             <span
-                                                className={`text-[10px] ${hasUnread ? "font-bold text-blue-400" : "text-slate-500 dark:text-slate-400"}`}
+                                                className={`text-[10px] ${hasUnread ? "font-bold text-blue-400" : "text-slate-500 dark:text-muted"}`}
                                             >
                         {conv.time}
                       </span>
@@ -550,10 +629,10 @@ const Conversations: React.FC = () => {
 
                                         <div className="flex justify-between items-center gap-2">
                                             <p
-                                                className={`text-xs truncate flex-1 ${hasUnread ? "font-semibold text-slate-200 dark:text-slate-900" : "text-slate-400 dark:text-slate-600"}`}
+                                                className={`text-xs truncate flex-1 ${hasUnread ? "font-semibold text-slate-200 dark:text-slate-900" : "text-muted dark:text-muted"}`}
                                             >
                                                 {conv.lastMessage ||
-                                                    t("no_messages_yet", "Aucun message")}
+                                                    t("dm_no_messages")}
                                             </p>
                                             {hasUnread && (
                                                 <span
@@ -567,7 +646,7 @@ const Conversations: React.FC = () => {
                                     <button
                                         onClick={(e) => hideConversation(conv.id, e)}
                                         title={t("delete_conversation", "Retirer de la liste")}
-                                        className="absolute top-1/2 -translate-y-1/2 right-2 p-1.5 rounded-full bg-[#1a1d26] dark:bg-slate-100 text-slate-500 hover:text-red-500 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-all z-10 shadow-sm"
+                                        className="absolute top-1/2 -translate-y-1/2 right-2 p-1.5 rounded-full bg-panel dark:bg-raised text-slate-500 hover:text-red-500 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-all z-10 shadow-sm"
                                     >
                                         <X size={16}/>
                                     </button>
@@ -576,20 +655,20 @@ const Conversations: React.FC = () => {
                         })
                     )}
                     {!loadingConv && filteredConversations.length === 0 && (
-                        <div className="p-6 text-center text-sm text-slate-500 dark:text-slate-400">
+                        <div className="p-6 text-center text-sm text-slate-500 dark:text-muted">
                             {t("no_conv_found")}
                         </div>
                     )}
                 </div>
             </aside>
 
-            <main
-                className={`flex-1 flex flex-col bg-[#13131A] dark:bg-white ${!selectedConvId ? "hidden md:flex" : "flex"}`}
+            <section
+                className={`flex-1 flex flex-col bg-canvas dark:bg-panel ${!selectedConvId ? "hidden md:flex" : "flex"}`}
             >
                 {selectedConversation ? (
                     <>
                         <header
-                            className="p-4 border-b border-slate-800 dark:border-slate-200 flex justify-between items-center bg-[#13131A]/50 dark:bg-white/50 backdrop-blur-md">
+                            className="p-4 border-b border-line dark:border-line flex justify-between items-center bg-canvas/50 dark:bg-panel/50 backdrop-blur-md">
                             <div className="flex items-center gap-3">
                                 <button
                                     onClick={() => setSelectedConvId(null)}
@@ -621,11 +700,11 @@ const Conversations: React.FC = () => {
                                                 <img
                                                     src={activeChatUser.profile_picture}
                                                     alt={activeChatUser.pseudo || activeChatUser.username}
-                                                    className="w-10 h-10 rounded-full object-cover border border-slate-700 dark:border-indigo-200 transition-transform group-hover:scale-105"
+                                                    className="w-10 h-10 rounded-full object-cover border border-line dark:border-indigo-200 transition-transform group-hover:scale-105"
                                                 />
                                             ) : (
                                                 <div
-                                                    className="w-10 h-10 rounded-full bg-[#2a2e3d] dark:bg-indigo-100 flex items-center justify-center text-blue-400 dark:text-blue-600 text-sm font-bold border border-slate-700 dark:border-indigo-200 transition-transform group-hover:scale-105">
+                                                    className="w-10 h-10 rounded-full bg-raised dark:bg-indigo-100 flex items-center justify-center text-blue-400 dark:text-blue-600 text-sm font-bold border border-line dark:border-indigo-200 transition-transform group-hover:scale-105">
                                                     {getAvatarText(activeChatUser?.pseudo || activeChatUser?.username)}
                                                 </div>
                                             )}
@@ -633,7 +712,7 @@ const Conversations: React.FC = () => {
                                     </div>
                                     <div>
                                         <h2
-                                            className={`text-sm font-bold group-hover:underline ${getTextEffectClassName(activeChatUser?.equipped_text_effect) || "text-white dark:text-gray-900"}`}
+                                            className={`text-sm font-bold group-hover:underline ${getTextEffectClassName(activeChatUser?.equipped_text_effect) || "text-ink"}`}
                                             style={{fontFamily: getPseudoFontFamily(activeChatUser?.equipped_font) || undefined}}
                                         >
                                             {activeChatUser
@@ -641,7 +720,7 @@ const Conversations: React.FC = () => {
                                                 : t("unknown_user", "Utilisateur anonyme")}
                                         </h2>
                                         {activeChatUser && (
-                                            <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                                            <p className="text-[11px] text-slate-500 dark:text-muted">
                                                 @{activeChatUser.username}
                                             </p>
                                         )}
@@ -657,10 +736,10 @@ const Conversations: React.FC = () => {
                         <div className="flex-1 overflow-y-auto p-6 space-y-4 flex flex-col">
                             {messages.length === 0 ? (
                                 <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center select-none">
-                                    <div className="w-16 h-16 rounded-full bg-[#1a1d26] dark:bg-slate-100 border border-slate-700 dark:border-slate-200 flex items-center justify-center">
-                                        <MessageSquare size={28} className="text-slate-500 dark:text-slate-400"/>
+                                    <div className="w-16 h-16 rounded-full bg-panel dark:bg-raised border border-line dark:border-line flex items-center justify-center">
+                                        <MessageSquare size={28} className="text-slate-500 dark:text-muted"/>
                                     </div>
-                                    <p className="text-sm text-slate-400 dark:text-slate-500 max-w-[220px] leading-relaxed">
+                                    <p className="text-sm text-muted dark:text-muted max-w-[220px] leading-relaxed">
                                         {t("conv_no_messages")}
                                     </p>
                                 </div>
@@ -678,7 +757,7 @@ const Conversations: React.FC = () => {
                                     <React.Fragment key={msg.id}>
                                         {showSeparator && (
                                             <div className="flex items-center justify-center my-2">
-                                                <span className="text-[11px] text-slate-400 dark:text-slate-500 bg-[#1a1d26] dark:bg-slate-100 border border-slate-700 dark:border-slate-200 px-3 py-1 rounded-full select-none">
+                                                <span className="text-[11px] text-muted dark:text-muted bg-panel dark:bg-raised border border-line dark:border-line px-3 py-1 rounded-full select-none">
                                                     {formatSeparatorDate(msg.created_at)}
                                                 </span>
                                             </div>
@@ -695,11 +774,11 @@ const Conversations: React.FC = () => {
                                             )}
                                             <div className={`flex flex-col ${isMe ? "items-end" : "items-start"}`}>
                                                 <div
-                                                    className={`px-4 py-2.5 rounded-2xl text-sm whitespace-pre-wrap break-words ${isMe ? "bg-blue-600 text-white rounded-tr-none shadow-md" : "bg-[#1a1d26] dark:bg-slate-100 text-slate-200 dark:text-gray-800 border border-slate-800 dark:border-slate-200 rounded-tl-none"}`}
+                                                    className={`px-4 py-2.5 rounded-2xl text-sm whitespace-pre-wrap break-words ${isMe ? "bg-blue-600 text-white rounded-tr-none shadow-md" : "bg-panel dark:bg-raised text-slate-200 dark:text-gray-800 border border-line dark:border-line rounded-tl-none"}`}
                                                 >
                                                     {msg.content}
                                                 </div>
-                                                <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 px-1">
+                                                <span className="text-[10px] text-slate-500 dark:text-muted mt-1 px-1">
                                                     {messageTime}
                                                 </span>
                                             </div>
@@ -710,20 +789,29 @@ const Conversations: React.FC = () => {
                             <div ref={messagesEndRef}/>
                         </div>
 
-                        <footer className="p-4 bg-[#13131A] dark:bg-white relative">
+                        <footer className="p-4 bg-canvas dark:bg-panel relative">
+                            {selectedConversation?.status && selectedConversation.status !== "ACCEPTED" && (
+                                <div className="mb-3 p-4 rounded-xl border border-line bg-panel text-sm">
+                                    <p className="text-muted">{t(incomingRequest ? "dm_incoming" : sendBlocked ? "dm_waiting" : "dm_invite_hint")}</p>
+                                    {incomingRequest && <div className="flex gap-2 mt-3">
+                                        <button disabled={responding} onClick={() => respondToRequest("accept")} className="primary-action">{t("dm_accept")}</button>
+                                        <button disabled={responding} onClick={() => respondToRequest("decline")} className="secondary-action">{t("dm_decline")}</button>
+                                    </div>}
+                                </div>
+                            )}
                             {showEmojiPicker && (
                                 <div ref={emojiPickerRef} className="absolute bottom-full mb-2 left-4 z-50">
-                                    <Picker
-                                        data={data}
-                                        onEmojiSelect={handleEmojiSelect}
+                                    <Suspense fallback={<div role="status" className="bg-panel rounded-xl p-6">{t("loading")}</div>}>
+                                    <MessageEmojiPicker
+                                        onSelect={handleEmojiSelect}
                                         theme={document.documentElement.classList.contains("dark") ? "light" : "dark"}
                                         locale={["fr", "de", "it"].includes(i18n.language.substring(0, 2)) ? i18n.language.substring(0, 2) : "en"}
-                                        previewPosition="none"
                                     />
+                                    </Suspense>
                                 </div>
                             )}
                             <div
-                                className="flex items-end gap-2 bg-[#1a1d26] dark:bg-slate-100 border border-slate-800 dark:border-slate-200 rounded-xl px-4 py-2 focus-within:border-blue-500/50 transition-all">
+                                className="flex items-end gap-2 bg-panel dark:bg-raised border border-line dark:border-line rounded-xl px-4 py-2 focus-within:border-blue-500/50 transition-all">
                                 <button
                                     ref={emojiButtonRef}
                                     onClick={() => setShowEmojiPicker((v) => !v)}
@@ -734,6 +822,8 @@ const Conversations: React.FC = () => {
                                 </button>
                                 <textarea
                                     ref={messageInputRef}
+                                    disabled={sendBlocked || sending}
+                                    maxLength={1000}
                                     rows={1}
                                     placeholder={t("type_message_placeholder")}
                                     value={newMessage}
@@ -753,6 +843,8 @@ const Conversations: React.FC = () => {
                                 />
                                 <button
                                     onClick={handleSendMessage}
+                                    disabled={sendBlocked || sending || !newMessage.trim()}
+                                    aria-label={t("dm_send")}
                                     className="text-blue-500 hover:text-blue-400 p-1 mb-1 transition-transform hover:scale-110"
                                 >
                                     <Send size={18}/>
@@ -763,78 +855,82 @@ const Conversations: React.FC = () => {
                 ) : (
                     <div className="flex-1 flex flex-col items-center justify-center text-center p-10">
                         <div
-                            className="w-20 h-20 bg-[#1a1d26] dark:bg-slate-100 rounded-full flex items-center justify-center mb-6 border border-slate-800 dark:border-slate-200 shadow-xl">
+                            className="w-20 h-20 bg-panel dark:bg-raised rounded-full flex items-center justify-center mb-6 border border-line dark:border-line shadow-xl">
                             <Search size={32} className="text-slate-600"/>
                         </div>
                         <h2
-                            className="text-2xl font-bold text-white dark:text-gray-900 mb-2"
-                            style={{fontFamily: "'Orbitron', sans-serif"}}
+                            className="text-2xl font-bold text-ink mb-2"
+
                         >
                             {t("select_conv_title")}
                         </h2>
                     </div>
                 )}
-            </main>
+            </section>
 
-            {/* Modal "Nouvelle conversation" — liste des follows mutuels */}
+            {/* Modal "Nouvelle conversation" — recherche et abonnements */}
             {showNewConvModal && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
                     onClick={() => setShowNewConvModal(false)}
                 >
                     <div
-                        className="w-full max-w-md bg-[#1a1d26] dark:bg-white border border-slate-800 dark:border-slate-200 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-label={t("new_conversation")}
+                        className="w-full max-w-md bg-panel dark:bg-panel border border-line dark:border-line rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <div className="flex items-center justify-between p-5 border-b border-slate-800 dark:border-slate-200">
-                            <h2 className="text-lg font-bold text-white dark:text-gray-900">
+                        <div className="flex items-center justify-between p-5 border-b border-line dark:border-line">
+                            <h2 className="text-lg font-bold text-ink">
                                 {t("new_conversation", "Nouvelle conversation")}
                             </h2>
                             <button
                                 onClick={() => setShowNewConvModal(false)}
-                                className="p-1.5 rounded-full text-slate-500 hover:text-white dark:hover:text-gray-900 hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors"
+                                className="p-1.5 rounded-full text-slate-500 hover:text-white dark:hover:text-gray-900 hover:bg-raised dark:hover:bg-slate-100 transition-colors"
                             >
                                 <X size={20}/>
                             </button>
                         </div>
 
+                        <input value={contactQuery} onChange={e => setContactQuery(e.target.value)} placeholder={t("dm_find_people")} aria-label={t("dm_find_people")} className="m-4 p-3 bg-raised rounded-xl text-ink" autoFocus />
                         <div className="overflow-y-auto p-2">
-                            {loadingMutuals ? (
+                            {loadingContacts ? (
                                 <div className="p-8 text-center text-sm text-slate-500">
                                     {t("loading", "Chargement...")}
                                 </div>
-                            ) : mutualUsers.length === 0 ? (
+                            ) : contactUsers.length === 0 ? (
                                 <div className="p-8 text-center">
-                                    <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-slate-800 dark:bg-slate-100 flex items-center justify-center">
+                                    <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-raised dark:bg-raised flex items-center justify-center">
                                         <MessageSquare size={24} className="text-slate-600"/>
                                     </div>
-                                    <p className="text-sm text-slate-400 dark:text-slate-500">
-                                        {t("no_mutuals", "Personne pour l'instant. Suivez-vous mutuellement pour discuter !")}
+                                    <p className="text-sm text-muted dark:text-muted">
+                                        {t("dm_find_hint")}
                                     </p>
                                 </div>
                             ) : (
-                                mutualUsers.map((u: BackendUser) => (
+                                contactUsers.map((u: BackendUser) => (
                                     <button
                                         key={u.id}
                                         onClick={() => openConversationWith(u.id)}
-                                        className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-[#13131A] dark:hover:bg-slate-100 transition-colors text-left"
+                                        className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-canvas dark:hover:bg-slate-100 transition-colors text-left"
                                     >
                                         {u.profile_picture ? (
                                             <img
                                                 src={u.profile_picture}
                                                 alt={u.pseudo || u.username}
-                                                className="w-11 h-11 rounded-full object-cover border border-slate-700 dark:border-indigo-200 shrink-0"
+                                                className="w-11 h-11 rounded-full object-cover border border-line dark:border-indigo-200 shrink-0"
                                             />
                                         ) : (
-                                            <div className="w-11 h-11 rounded-full bg-[#2a2e3d] dark:bg-indigo-100 flex items-center justify-center text-blue-400 dark:text-blue-600 font-bold border border-slate-700 dark:border-indigo-200 shrink-0">
+                                            <div className="w-11 h-11 rounded-full bg-raised dark:bg-indigo-100 flex items-center justify-center text-blue-400 dark:text-blue-600 font-bold border border-line dark:border-indigo-200 shrink-0">
                                                 {getAvatarText(u.pseudo || u.username)}
                                             </div>
                                         )}
                                         <div className="flex-1 overflow-hidden">
-                                            <p className="text-sm font-bold text-white dark:text-gray-900 truncate">
+                                            <p className="text-sm font-bold text-ink truncate">
                                                 {u.pseudo || u.username}
                                             </p>
-                                            <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                                            <p className="text-xs text-slate-500 dark:text-muted truncate">
                                                 @{u.username}
                                             </p>
                                         </div>

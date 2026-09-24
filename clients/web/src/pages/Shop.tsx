@@ -53,6 +53,8 @@ const Shop: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(true);
     const [busyId, setBusyId] = useState<string | null>(null);
 
+    const itemName = (item: CatalogItem): string => t(`cosmetic_item_${item.id}`, item.name);
+
     useEffect(() => {
         const load = async (): Promise<void> => {
             try {
@@ -98,7 +100,7 @@ const Shop: React.FC = () => {
         const ok = await confirm({
             title: t("confirm_purchase_title", "Confirmer l'achat"),
             message: t("confirm_purchase", {
-                name: item.name,
+                name: itemName(item),
                 price: item.price,
                 defaultValue: 'Acheter "{{name}}" pour {{price}} points ?',
             }),
@@ -155,7 +157,7 @@ const Shop: React.FC = () => {
 
     const Preview: React.FC<{ borderId: string }> = ({borderId}) => (
         <AvatarBorder borderId={borderId}>
-            <div className="w-20 h-20 rounded-full overflow-hidden bg-slate-800 dark:bg-gray-100 flex items-center justify-center">
+            <div className="w-20 h-20 rounded-full overflow-hidden bg-raised dark:bg-raised flex items-center justify-center">
                 {profilePic ? (
                     <img src={profilePic} alt="" className="w-full h-full object-cover"/>
                 ) : (
@@ -166,15 +168,15 @@ const Shop: React.FC = () => {
     );
 
     return (
-        <div className="min-h-screen bg-transparent dark:bg-slate-50 text-white dark:text-gray-900 p-6 md:p-10 transition-colors duration-300">
+        <div className="min-h-screen bg-transparent dark:bg-canvas text-ink p-6 md:p-10 transition-colors duration-300">
             <div className="max-w-5xl mx-auto">
                 {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-10">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-10 page-heading">
                     <div>
-                        <h1 className="text-4xl font-bold mb-2 text-white dark:text-gray-900">
+                        <h1 className="page-title text-4xl font-bold mb-2 text-ink">
                             {t("shop_title", "Boutique")}
                         </h1>
-                        <p className="text-gray-400 dark:text-gray-600 text-lg">
+                        <p className="text-muted dark:text-muted text-lg">
                             {t("shop_subtitle", "Dépensez vos points pour personnaliser votre profil")}
                         </p>
                     </div>
@@ -189,6 +191,10 @@ const Shop: React.FC = () => {
                     </div>
                 </div>
 
+                <nav className="shop-categories" aria-label={t("shop_title")}>
+                    {["borders","themes","fonts","titles","text_effects","banners","patterns"].map(section => <a key={section} href={`#shop-${section}`}>{t(`shop_section_${section}`)}</a>)}
+                </nav>
+
                 {/* Info */}
                 <div className="mb-8 flex items-center gap-3 bg-blue-500/10 dark:bg-blue-50 border border-blue-500/20 dark:border-blue-200 rounded-xl px-5 py-4">
                     <Sparkles size={20} className="text-blue-400 dark:text-blue-500 shrink-0"/>
@@ -197,12 +203,12 @@ const Shop: React.FC = () => {
                     </p>
                 </div>
 
-                <h2 className="text-xl font-bold mb-5 text-white dark:text-gray-900">
-                    {t("shop_section_borders", "Contours de photo de profil")}
+                <h2 id="shop-borders" className="shop-section-title text-xl font-bold mb-5 text-ink">
+                            {t("shop_section_borders", "Contours de photo de profil")}
                 </h2>
 
                 {/* Grille des contours */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
                     {catalog.filter((c) => c.type === "avatar_border").map((item) => {
                         const isOwned: boolean = owned.includes(item.id);
                         const isEquipped: boolean = equipped === item.id;
@@ -211,10 +217,10 @@ const Shop: React.FC = () => {
                         return (
                             <div
                                 key={item.id}
-                                className={`relative bg-[#1a1d26] dark:bg-white border rounded-2xl p-6 flex flex-col items-center text-center shadow-sm transition-all ${
+                                className={`relative bg-panel dark:bg-panel border rounded-2xl p-6 flex flex-col items-center text-center shadow-sm transition-all ${
                                     isEquipped
                                         ? "border-purple-500 dark:border-purple-400"
-                                        : "border-slate-800 dark:border-gray-200"
+                                        : "border-line dark:border-line"
                                 }`}
                             >
                                 {isEquipped && (
@@ -228,8 +234,8 @@ const Shop: React.FC = () => {
                                     <Preview borderId={item.id}/>
                                 </div>
 
-                                <h3 className="font-bold text-white dark:text-gray-900 mb-2">
-                                    {item.name}
+                                <h3 className="font-bold text-ink mb-2">
+                                    {itemName(item)}
                                 </h3>
 
                                 <div className="flex items-center gap-1.5 text-amber-400 dark:text-amber-500 font-bold mb-4">
@@ -254,7 +260,7 @@ const Shop: React.FC = () => {
                                     <button
                                         onClick={() => handleEquip(null)}
                                         disabled={busy}
-                                        className="w-full py-2.5 rounded-xl font-semibold text-sm bg-slate-800 dark:bg-gray-100 text-slate-300 dark:text-gray-700 hover:bg-slate-700 dark:hover:bg-gray-200 transition-colors disabled:opacity-40"
+                                        className="w-full py-2.5 rounded-xl font-semibold text-sm bg-raised dark:bg-raised text-slate-300 dark:text-gray-700 hover:bg-slate-700 dark:hover:bg-gray-200 transition-colors disabled:opacity-40"
                                     >
                                         {busy ? "…" : t("unequip", "Retirer")}
                                     </button>
@@ -275,7 +281,7 @@ const Shop: React.FC = () => {
                 {/* Section thèmes */}
                 {catalog.some((c) => c.type === "theme") && (
                     <>
-                        <h2 className="text-xl font-bold mt-12 mb-5 text-white dark:text-gray-900">
+                        <h2 id="shop-themes" className="shop-section-title text-xl font-bold mt-12 mb-5 text-ink">
                             {t("shop_section_themes", "Thèmes du site")}
                         </h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -288,8 +294,8 @@ const Shop: React.FC = () => {
                                 return (
                                     <div
                                         key={item.id}
-                                        className={`relative bg-[#1a1d26] dark:bg-white border rounded-2xl p-6 shadow-sm transition-all ${
-                                            isActive ? "border-blue-500" : "border-slate-800 dark:border-gray-200"
+                                        className={`relative bg-panel dark:bg-panel border rounded-2xl p-6 shadow-sm transition-all ${
+                                            isActive ? "border-blue-500" : "border-line dark:border-line"
                                         }`}
                                     >
                                         {/* Aperçu du thème */}
@@ -303,9 +309,9 @@ const Shop: React.FC = () => {
                                         </div>
 
                                         <div className="flex items-center justify-between mb-4">
-                                            <h3 className="font-bold text-white dark:text-gray-900 flex items-center gap-2">
+                                            <h3 className="font-bold text-ink flex items-center gap-2">
                                                 <Palette size={16} className={def?.accentClass || "text-purple-500"}/>
-                                                {item.name}
+                                                {itemName(item)}
                                             </h3>
                                             <div className="flex items-center gap-1.5 text-amber-400 dark:text-amber-500 font-bold">
                                                 <Coins size={16}/>
@@ -324,7 +330,7 @@ const Shop: React.FC = () => {
                                         ) : isActive ? (
                                             <button
                                                 onClick={() => setTheme("dark")}
-                                                className="w-full py-2.5 rounded-xl font-semibold text-sm bg-slate-800 dark:bg-gray-100 text-slate-300 dark:text-gray-700 hover:bg-slate-700 dark:hover:bg-gray-200 transition-colors"
+                                                className="w-full py-2.5 rounded-xl font-semibold text-sm bg-raised dark:bg-raised text-slate-300 dark:text-gray-700 hover:bg-slate-700 dark:hover:bg-gray-200 transition-colors"
                                             >
                                                 {t("deactivate_theme", "Revenir au thème sombre")}
                                             </button>
@@ -346,7 +352,7 @@ const Shop: React.FC = () => {
                 {/* Section polices (pseudo sur le profil) */}
                 {catalog.some((c) => c.type === "font") && (
                     <>
-                        <h2 className="text-xl font-bold mt-12 mb-5 text-white dark:text-gray-900">
+                        <h2 id="shop-fonts" className="shop-section-title text-xl font-bold mt-12 mb-5 text-ink">
                             {t("shop_section_fonts", "Polices du pseudo")}
                         </h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -358,14 +364,14 @@ const Shop: React.FC = () => {
                                 return (
                                     <div
                                         key={item.id}
-                                        className={`relative bg-[#1a1d26] dark:bg-white border rounded-2xl p-6 shadow-sm transition-all ${
-                                            isEquipped ? "border-purple-500" : "border-slate-800 dark:border-gray-200"
+                                        className={`relative bg-panel dark:bg-panel border rounded-2xl p-6 shadow-sm transition-all ${
+                                            isEquipped ? "border-purple-500" : "border-line dark:border-line"
                                         }`}
                                     >
                                         {/* Aperçu du pseudo dans la police */}
-                                        <div className="h-24 rounded-xl mb-4 flex items-center justify-center bg-slate-900/60 dark:bg-gray-50 px-3 overflow-hidden">
+                                        <div className="h-24 rounded-xl mb-4 flex items-center justify-center bg-panel/60 dark:bg-canvas px-3 overflow-hidden">
                                             <span
-                                                className="text-3xl text-white dark:text-gray-900 truncate"
+                                                className="text-3xl text-ink truncate"
                                                 style={{fontFamily: getPseudoFontFamily(item.id)}}
                                             >
                                                 {pseudo}
@@ -373,9 +379,9 @@ const Shop: React.FC = () => {
                                         </div>
 
                                         <div className="flex items-center justify-between mb-4">
-                                            <h3 className="font-bold text-white dark:text-gray-900 flex items-center gap-2">
+                                            <h3 className="font-bold text-ink flex items-center gap-2">
                                                 <Type size={16} className="text-purple-400"/>
-                                                {item.name}
+                                                {itemName(item)}
                                             </h3>
                                             <div className="flex items-center gap-1.5 text-amber-400 dark:text-amber-500 font-bold">
                                                 <Coins size={16}/>
@@ -395,7 +401,7 @@ const Shop: React.FC = () => {
                                             <button
                                                 onClick={() => handleEquip(null, "font")}
                                                 disabled={busy}
-                                                className="w-full py-2.5 rounded-xl font-semibold text-sm bg-slate-800 dark:bg-gray-100 text-slate-300 dark:text-gray-700 hover:bg-slate-700 dark:hover:bg-gray-200 transition-colors disabled:opacity-40"
+                                                className="w-full py-2.5 rounded-xl font-semibold text-sm bg-raised dark:bg-raised text-slate-300 dark:text-gray-700 hover:bg-slate-700 dark:hover:bg-gray-200 transition-colors disabled:opacity-40"
                                             >
                                                 {busy ? "…" : t("unequip", "Retirer")}
                                             </button>
@@ -418,7 +424,7 @@ const Shop: React.FC = () => {
                 {/* Section titres (badge à côté du pseudo) */}
                 {catalog.some((c) => c.type === "title") && (
                     <>
-                        <h2 className="text-xl font-bold mt-12 mb-5 text-white dark:text-gray-900">
+                        <h2 id="shop-titles" className="shop-section-title text-xl font-bold mt-12 mb-5 text-ink">
                             {t("shop_section_titles", "Titres de profil")}
                         </h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -431,21 +437,21 @@ const Shop: React.FC = () => {
                                 return (
                                     <div
                                         key={item.id}
-                                        className={`relative bg-[#1a1d26] dark:bg-white border rounded-2xl p-6 shadow-sm transition-all ${
-                                            isEquipped ? "border-purple-500" : "border-slate-800 dark:border-gray-200"
+                                        className={`relative bg-panel dark:bg-panel border rounded-2xl p-6 shadow-sm transition-all ${
+                                            isEquipped ? "border-purple-500" : "border-line dark:border-line"
                                         }`}
                                     >
                                         {/* Aperçu du badge */}
-                                        <div className="h-24 rounded-xl mb-4 flex items-center justify-center bg-slate-900/60 dark:bg-gray-50 px-3 overflow-hidden">
+                                        <div className="h-24 rounded-xl mb-4 flex items-center justify-center bg-panel/60 dark:bg-canvas px-3 overflow-hidden">
                                             <span className={`inline-flex items-center px-3 py-1.5 rounded-full border text-sm font-bold ${def?.className || "bg-slate-700 text-slate-200 border-slate-600"}`}>
-                                                {def?.label || item.name}
+                                                {itemName(item)}
                                             </span>
                                         </div>
 
                                         <div className="flex items-center justify-between mb-4">
-                                            <h3 className="font-bold text-white dark:text-gray-900 flex items-center gap-2">
+                                            <h3 className="font-bold text-ink flex items-center gap-2">
                                                 <Tag size={16} className="text-purple-400"/>
-                                                {item.name}
+                                                {itemName(item)}
                                             </h3>
                                             <div className="flex items-center gap-1.5 text-amber-400 dark:text-amber-500 font-bold">
                                                 <Coins size={16}/>
@@ -465,7 +471,7 @@ const Shop: React.FC = () => {
                                             <button
                                                 onClick={() => handleEquip(null, "title")}
                                                 disabled={busy}
-                                                className="w-full py-2.5 rounded-xl font-semibold text-sm bg-slate-800 dark:bg-gray-100 text-slate-300 dark:text-gray-700 hover:bg-slate-700 dark:hover:bg-gray-200 transition-colors disabled:opacity-40"
+                                                className="w-full py-2.5 rounded-xl font-semibold text-sm bg-raised dark:bg-raised text-slate-300 dark:text-gray-700 hover:bg-slate-700 dark:hover:bg-gray-200 transition-colors disabled:opacity-40"
                                             >
                                                 {busy ? "…" : t("unequip", "Retirer")}
                                             </button>
@@ -488,7 +494,7 @@ const Shop: React.FC = () => {
                 {/* Section effets de texte (pseudo) */}
                 {catalog.some((c) => c.type === "text_effect") && (
                     <>
-                        <h2 className="text-xl font-bold mt-12 mb-5 text-white dark:text-gray-900">
+                        <h2 id="shop-text_effects" className="shop-section-title text-xl font-bold mt-12 mb-5 text-ink">
                             {t("shop_section_text_effects", "Effets de texte du pseudo")}
                         </h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -500,21 +506,21 @@ const Shop: React.FC = () => {
                                 return (
                                     <div
                                         key={item.id}
-                                        className={`relative bg-[#1a1d26] dark:bg-white border rounded-2xl p-6 shadow-sm transition-all ${
-                                            isEquipped ? "border-purple-500" : "border-slate-800 dark:border-gray-200"
+                                        className={`relative bg-panel dark:bg-panel border rounded-2xl p-6 shadow-sm transition-all ${
+                                            isEquipped ? "border-purple-500" : "border-line dark:border-line"
                                         }`}
                                     >
                                         {/* Aperçu de l'effet sur le pseudo */}
-                                        <div className="h-24 rounded-xl mb-4 flex items-center justify-center bg-slate-900/60 dark:bg-gray-50 px-3 overflow-hidden">
+                                        <div className="h-24 rounded-xl mb-4 flex items-center justify-center bg-panel/60 dark:bg-canvas px-3 overflow-hidden">
                                             <span className={`text-3xl font-bold truncate ${getTextEffectClassName(item.id)}`}>
                                                 {pseudo}
                                             </span>
                                         </div>
 
                                         <div className="flex items-center justify-between mb-4">
-                                            <h3 className="font-bold text-white dark:text-gray-900 flex items-center gap-2">
+                                            <h3 className="font-bold text-ink flex items-center gap-2">
                                                 <Wand2 size={16} className="text-purple-400"/>
-                                                {item.name}
+                                                {itemName(item)}
                                             </h3>
                                             <div className="flex items-center gap-1.5 text-amber-400 dark:text-amber-500 font-bold">
                                                 <Coins size={16}/>
@@ -534,7 +540,7 @@ const Shop: React.FC = () => {
                                             <button
                                                 onClick={() => handleEquip(null, "text_effect")}
                                                 disabled={busy}
-                                                className="w-full py-2.5 rounded-xl font-semibold text-sm bg-slate-800 dark:bg-gray-100 text-slate-300 dark:text-gray-700 hover:bg-slate-700 dark:hover:bg-gray-200 transition-colors disabled:opacity-40"
+                                                className="w-full py-2.5 rounded-xl font-semibold text-sm bg-raised dark:bg-raised text-slate-300 dark:text-gray-700 hover:bg-slate-700 dark:hover:bg-gray-200 transition-colors disabled:opacity-40"
                                             >
                                                 {busy ? "…" : t("unequip", "Retirer")}
                                             </button>
@@ -557,7 +563,7 @@ const Shop: React.FC = () => {
                 {/* Section bannières premium */}
                 {catalog.some((c) => c.type === "banner") && (
                     <>
-                        <h2 className="text-xl font-bold mt-12 mb-5 text-white dark:text-gray-900">
+                        <h2 id="shop-banners" className="shop-section-title text-xl font-bold mt-12 mb-5 text-ink">
                             {t("shop_section_banners", "Bannières premium")}
                         </h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -570,17 +576,17 @@ const Shop: React.FC = () => {
                                 return (
                                     <div
                                         key={item.id}
-                                        className={`relative bg-[#1a1d26] dark:bg-white border rounded-2xl p-6 shadow-sm transition-all ${
-                                            isEquipped ? "border-purple-500" : "border-slate-800 dark:border-gray-200"
+                                        className={`relative bg-panel dark:bg-panel border rounded-2xl p-6 shadow-sm transition-all ${
+                                            isEquipped ? "border-purple-500" : "border-line dark:border-line"
                                         }`}
                                     >
                                         {/* Aperçu animé de la bannière */}
                                         <div className={`h-24 rounded-xl mb-4 overflow-hidden ${def?.className || ""}`}/>
 
                                         <div className="flex items-center justify-between mb-4">
-                                            <h3 className="font-bold text-white dark:text-gray-900 flex items-center gap-2">
+                                            <h3 className="font-bold text-ink flex items-center gap-2">
                                                 <ImageIcon size={16} className="text-purple-400"/>
-                                                {item.name}
+                                                {itemName(item)}
                                             </h3>
                                             <div className="flex items-center gap-1.5 text-amber-400 dark:text-amber-500 font-bold">
                                                 <Coins size={16}/>
@@ -600,7 +606,7 @@ const Shop: React.FC = () => {
                                             <button
                                                 onClick={() => handleEquip(null, "banner")}
                                                 disabled={busy}
-                                                className="w-full py-2.5 rounded-xl font-semibold text-sm bg-slate-800 dark:bg-gray-100 text-slate-300 dark:text-gray-700 hover:bg-slate-700 dark:hover:bg-gray-200 transition-colors disabled:opacity-40"
+                                                className="w-full py-2.5 rounded-xl font-semibold text-sm bg-raised dark:bg-raised text-slate-300 dark:text-gray-700 hover:bg-slate-700 dark:hover:bg-gray-200 transition-colors disabled:opacity-40"
                                             >
                                                 {busy ? "…" : t("unequip", "Retirer")}
                                             </button>
@@ -623,7 +629,7 @@ const Shop: React.FC = () => {
                 {/* Section motifs de fond (page profil) */}
                 {catalog.some((c) => c.type === "pattern") && (
                     <>
-                        <h2 className="text-xl font-bold mt-12 mb-5 text-white dark:text-gray-900">
+                        <h2 id="shop-patterns" className="shop-section-title text-xl font-bold mt-12 mb-5 text-ink">
                             {t("shop_section_patterns", "Motifs de profil")}
                         </h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -636,16 +642,16 @@ const Shop: React.FC = () => {
                                 return (
                                     <div
                                         key={item.id}
-                                        className={`relative bg-[#1a1d26] dark:bg-white border rounded-2xl p-6 shadow-sm transition-all ${
-                                            isEquipped ? "border-purple-500" : "border-slate-800 dark:border-gray-200"
+                                        className={`relative bg-panel dark:bg-panel border rounded-2xl p-6 shadow-sm transition-all ${
+                                            isEquipped ? "border-purple-500" : "border-line dark:border-line"
                                         }`}
                                     >
-                                        <div className={`h-24 rounded-xl mb-4 bg-slate-900/60 dark:bg-gray-50 ${def?.className || ""}`}/>
+                                        <div className={`h-24 rounded-xl mb-4 bg-panel/60 dark:bg-canvas ${def?.className || ""}`}/>
 
                                         <div className="flex items-center justify-between mb-4">
-                                            <h3 className="font-bold text-white dark:text-gray-900 flex items-center gap-2">
+                                            <h3 className="font-bold text-ink flex items-center gap-2">
                                                 <LayoutGrid size={16} className="text-purple-400"/>
-                                                {item.name}
+                                                {itemName(item)}
                                             </h3>
                                             <div className="flex items-center gap-1.5 text-amber-400 dark:text-amber-500 font-bold">
                                                 <Coins size={16}/>
@@ -665,7 +671,7 @@ const Shop: React.FC = () => {
                                             <button
                                                 onClick={() => handleEquip(null, "pattern")}
                                                 disabled={busy}
-                                                className="w-full py-2.5 rounded-xl font-semibold text-sm bg-slate-800 dark:bg-gray-100 text-slate-300 dark:text-gray-700 hover:bg-slate-700 dark:hover:bg-gray-200 transition-colors disabled:opacity-40"
+                                                className="w-full py-2.5 rounded-xl font-semibold text-sm bg-raised dark:bg-raised text-slate-300 dark:text-gray-700 hover:bg-slate-700 dark:hover:bg-gray-200 transition-colors disabled:opacity-40"
                                             >
                                                 {busy ? "…" : t("unequip", "Retirer")}
                                             </button>

@@ -108,7 +108,7 @@ const SpotifyPlaylistImport: React.FC<SpotifyPlaylistImportProps> = ({onImported
         <div className="mb-8">
             <div className="flex items-center gap-2 mb-4">
                 <Music2 size={20} className="text-emerald-500"/>
-                <h3 className="text-lg font-bold text-white dark:text-gray-900">
+                <h3 className="text-lg font-bold text-ink">
                     {t("spotify_library_title", "Bibliothèque Spotify")}
                 </h3>
             </div>
@@ -116,12 +116,12 @@ const SpotifyPlaylistImport: React.FC<SpotifyPlaylistImportProps> = ({onImported
             {!connected ? (
                 <button
                     onClick={() => navigate("/settings")}
-                    className="w-full text-left flex items-center gap-4 bg-[#1a1d26] dark:bg-white border border-slate-800 dark:border-gray-200 p-5 rounded-2xl hover:border-emerald-500/50 transition-colors"
+                    className="w-full text-left flex items-center gap-4 bg-panel dark:bg-panel border border-line dark:border-line p-5 rounded-2xl hover:border-emerald-500/50 transition-colors"
                 >
                     <div className="w-11 h-11 rounded-full bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
                         <Music2 size={20} className="text-emerald-500"/>
                     </div>
-                    <span className="text-slate-400 dark:text-gray-500 text-sm">
+                    <span className="text-muted dark:text-muted text-sm">
                         {t("spotify_connect_cta", "Lie ton compte Spotify dans les paramètres pour importer tes playlists.")}
                     </span>
                 </button>
@@ -141,9 +141,9 @@ const SpotifyPlaylistImport: React.FC<SpotifyPlaylistImportProps> = ({onImported
                         return (
                             <div
                                 key={playlist.id}
-                                className="flex items-center gap-4 bg-[#1a1d26] dark:bg-white border border-slate-800/80 dark:border-gray-200 p-4 rounded-xl"
+                                className="flex items-center gap-4 bg-panel dark:bg-panel border border-line/80 dark:border-line p-4 rounded-xl"
                             >
-                                <div className="w-14 h-14 rounded-lg bg-slate-800 dark:bg-gray-100 overflow-hidden flex items-center justify-center flex-shrink-0">
+                                <div className="w-14 h-14 rounded-lg bg-raised dark:bg-raised overflow-hidden flex items-center justify-center flex-shrink-0">
                                     {playlist.image ? (
                                         <img src={playlist.image} alt="" className="w-full h-full object-cover"/>
                                     ) : (
@@ -151,8 +151,8 @@ const SpotifyPlaylistImport: React.FC<SpotifyPlaylistImportProps> = ({onImported
                                     )}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <p className="font-bold text-white dark:text-gray-900 truncate">{playlist.name}</p>
-                                    <p className="text-xs text-slate-400 dark:text-gray-500">
+                                    <p className="font-bold text-ink truncate">{playlist.name}</p>
+                                    <p className="text-xs text-muted dark:text-muted">
                                         {playlist.tracksTotal} {t("spotify_tracks_count", "titres")}
                                     </p>
                                 </div>
@@ -181,28 +181,28 @@ const SpotifyPlaylistImport: React.FC<SpotifyPlaylistImportProps> = ({onImported
                     onClick={() => !importing && setImportTarget(null)}
                 >
                     <div
-                        className="w-full max-w-sm bg-[#1a1d26] dark:bg-white border border-slate-800 dark:border-gray-200 rounded-2xl shadow-2xl p-6 space-y-4"
+                        className="w-full max-w-sm bg-panel dark:bg-panel border border-line dark:border-line rounded-2xl shadow-2xl p-6 space-y-4"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div className="flex items-center justify-between">
-                            <h4 className="font-bold text-white dark:text-gray-900">
+                            <h4 className="font-bold text-ink">
                                 {t("spotify_import_modal_title", "Importer la playlist")}
                             </h4>
                             <button onClick={() => !importing && setImportTarget(null)} disabled={importing}>
-                                <X size={18} className="text-slate-400"/>
+                                <X size={18} className="text-muted"/>
                             </button>
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold text-slate-400 mb-2 uppercase">
+                            <label className="block text-xs font-bold text-muted mb-2 uppercase">
                                 {t("label_playlist_name", "Nom de la playlist")}
                             </label>
                             <input
                                 value={importName}
                                 onChange={(e) => e.target.value.length <= PLAYLIST_NAME_MAX && setImportName(e.target.value)}
-                                className="w-full bg-[#13131A] dark:bg-gray-50 border border-slate-800 dark:border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-emerald-500 text-white dark:text-gray-900"
+                                className="w-full bg-canvas dark:bg-canvas border border-line dark:border-line rounded-xl px-4 py-3 text-sm outline-none focus:border-emerald-500 text-ink"
                             />
-                            <p className="text-[11px] text-slate-500 dark:text-gray-400 mt-1.5">
+                            <p className="text-[11px] text-slate-500 dark:text-muted mt-1.5">
                                 {importName.length}/{PLAYLIST_NAME_MAX}
                             </p>
                         </div>
@@ -217,7 +217,7 @@ const SpotifyPlaylistImport: React.FC<SpotifyPlaylistImportProps> = ({onImported
                             {t("label_public_playlist", "Rendre cette playlist publique")}
                         </label>
 
-                        <p className="text-xs text-slate-500 dark:text-gray-400">
+                        <p className="text-xs text-slate-500 dark:text-muted">
                             {t("spotify_import_hint", "Les titres de cette playlist Spotify seront regroupés par album, comme sur le reste du site.")}
                         </p>
 

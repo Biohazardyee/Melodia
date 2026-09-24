@@ -601,14 +601,6 @@ export type ActivitiesUncheckedUpdateManyWithoutReviewNestedInput = {
   deleteMany?: Prisma.ActivitiesScalarWhereInput | Prisma.ActivitiesScalarWhereInput[]
 }
 
-export type NullableIntFieldUpdateOperationsInput = {
-  set?: number | null
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type EnumActivityActionsFieldUpdateOperationsInput = {
   set?: $Enums.ActivityActions
 }

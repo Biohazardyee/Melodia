@@ -1,14 +1,16 @@
 import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
 import { PrismaDb } from '../../config/database.js';
-import { BadRequest, InternalError, Unauthorized } from '../../utils/errors.js';
+import { BadRequest, Forbidden, InternalError, Unauthorized } from '../../utils/errors.js';
 import {
     SpotifyAlbumRef,
     SpotifyNowPlaying,
     SpotifyPlaylistAlbumsResult,
     SpotifyPlaylistSummary,
     SpotifyProfile,
+    SpotifyStatusDto,
     SpotifyTokenResponse,
+    SpotifyTrackSummary,
 } from '../../types/spotify/spotify.dto.js';
 
 dotenv.config();
@@ -16,7 +18,11 @@ dotenv.config();
 const CLIENT_ID: string | undefined = process.env.SPOTIFY_CLIENT_ID;
 const CLIENT_SECRET: string | undefined = process.env.SPOTIFY_CLIENT_SECRET;
 const CALLBACK_URL: string | undefined = process.env.SPOTIFY_CALLBACK_URL;
-const SCOPES = 'user-read-email user-read-private playlist-read-private playlist-read-collaborative user-read-currently-playing';
+const SCOPES = 'user-read-email user-read-private playlist-read-private playlist-read-collaborative user-read-currently-playing streaming user-read-playback-state user-modify-playback-state';
+
+// Scopes required for Listening Rooms (Web Playback SDK). Accounts linked before
+// these scopes existed have `scope: null` and are flagged via needs_relink.
+const ROOM_REQUIRED_SCOPES = ['streaming', 'user-read-playback-state', 'user-modify-playback-state'];
 
 const MAX_PLAYLISTS_PAGES = 5; // 5 * 50 = 250 playlists max
 const MAX_TRACKS_PAGES = 5; // 5 * 100 = 500 tracks max par playlist
@@ -116,6 +122,9 @@ export class SpotifyService {
                 access_token: tokenData.access_token,
                 refresh_token: tokenData.refresh_token,
                 expires_at: new Date(Date.now() + tokenData.expires_in * 1000),
+                product: profile.product ?? null,
+                scope: tokenData.scope ?? null,
+                country: profile.country ?? null,
             },
             create: {
                 user_id: userId,
@@ -124,18 +133,29 @@ export class SpotifyService {
                 access_token: tokenData.access_token,
                 refresh_token: tokenData.refresh_token,
                 expires_at: new Date(Date.now() + tokenData.expires_in * 1000),
+                product: profile.product ?? null,
+                scope: tokenData.scope ?? null,
+                country: profile.country ?? null,
             },
         });
     }
 
-    async getStatus(userId: string): Promise<{ connected: boolean; display_name?: string | null }> {
+    async getStatus(userId: string): Promise<SpotifyStatusDto> {
         const account = await PrismaDb.spotifyAccounts.findUnique({ where: { user_id: userId } });
 
         if (!account) {
             return { connected: false };
         }
 
-        return { connected: true, display_name: account.display_name };
+        const grantedScopes: string[] = (account.scope || '').split(' ');
+        const needsRelink: boolean = ROOM_REQUIRED_SCOPES.some((s) => !grantedScopes.includes(s));
+
+        return {
+            connected: true,
+            display_name: account.display_name,
+            product: account.product,
+            needs_relink: needsRelink,
+        };
     }
 
     async disconnect(userId: string): Promise<void> {
@@ -310,6 +330,62 @@ export class SpotifyService {
             durationMs: data.item.duration_ms || 0,
             spotifyUrl: data.item.external_urls?.spotify || null,
         };
+    }
+
+    /**
+     * Vérifie que le compte est Premium et dispose des scopes Web Playback SDK
+     * avant de laisser l'utilisateur créer/rejoindre un Listening Room.
+     */
+    async assertRoomEligible(userId: string): Promise<void> {
+        const status = await this.getStatus(userId);
+
+        if (!status.connected) {
+            throw new Forbidden('Lie ton compte Spotify pour utiliser les Salons d\'écoute.');
+        }
+        if (status.product !== 'premium') {
+            throw new Forbidden('Spotify Premium est requis pour utiliser les Salons d\'écoute.');
+        }
+        if (status.needs_relink) {
+            throw new Forbidden('Reconnecte ton compte Spotify pour activer les Salons d\'écoute.');
+        }
+    }
+
+    /**
+     * Jeton d'accès pour le Web Playback SDK (callback getOAuthToken côté front).
+     */
+    async getPlaybackToken(userId: string): Promise<string> {
+        await this.assertRoomEligible(userId);
+        return this.getValidAccessToken(userId);
+    }
+
+    async searchTracks(userId: string, query: string): Promise<SpotifyTrackSummary[]> {
+        const accessToken: string = await this.getValidAccessToken(userId);
+
+        const account = await PrismaDb.spotifyAccounts.findUnique({ where: { user_id: userId } });
+        const market: string = account?.country || 'US';
+
+        // NB : cette app Spotify (mode "Development") est plafonnée à limit<=10 sur
+        // /v1/search — au-delà, Spotify répond 400 "Invalid limit" (message trompeur,
+        // ce n'est pas une valeur hors bornes au sens de la doc publique). Passer en
+        // "Extended Quota Mode" sur le dashboard développeur lèverait cette limite.
+        const url = `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=10&market=${encodeURIComponent(market)}`;
+        const response: Response = await fetch(url, {
+            headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        const data: any = await response.json();
+
+        if (!response.ok) {
+            throw new BadRequest(data.error?.message || 'Failed to search Spotify tracks');
+        }
+
+        return (data.tracks?.items || []).map((track: any): SpotifyTrackSummary => ({
+            uri: track.uri,
+            name: track.name,
+            artist: (track.artists || []).map((a: any) => a.name).join(', ') || 'Artiste inconnu',
+            album: track.album?.name || '',
+            albumArt: track.album?.images?.[0]?.url || null,
+            durationMs: track.duration_ms || 0,
+        }));
     }
 }
 

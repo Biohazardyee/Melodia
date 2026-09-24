@@ -32,4 +32,12 @@ router.get('/now-playing/:userId', authGuard, function (req: Request, res: Respo
     spotifyController.nowPlaying(req, res, next);
 });
 
+router.get('/playback-token', authGuard, function (req: Request, res: Response, next: NextFunction): void {
+    spotifyController.playbackToken(req, res, next);
+});
+
+router.get('/search-tracks', authGuard, function (req: Request, res: Response, next: NextFunction): void {
+    spotifyController.searchTracks(req, res, next);
+});
+
 export default router;

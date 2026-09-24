@@ -32,6 +32,9 @@ export type SpotifyAccountsMinAggregateOutputType = {
   access_token: string | null
   refresh_token: string | null
   expires_at: Date | null
+  product: string | null
+  scope: string | null
+  country: string | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -44,6 +47,9 @@ export type SpotifyAccountsMaxAggregateOutputType = {
   access_token: string | null
   refresh_token: string | null
   expires_at: Date | null
+  product: string | null
+  scope: string | null
+  country: string | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -56,6 +62,9 @@ export type SpotifyAccountsCountAggregateOutputType = {
   access_token: number
   refresh_token: number
   expires_at: number
+  product: number
+  scope: number
+  country: number
   created_at: number
   updated_at: number
   _all: number
@@ -70,6 +79,9 @@ export type SpotifyAccountsMinAggregateInputType = {
   access_token?: true
   refresh_token?: true
   expires_at?: true
+  product?: true
+  scope?: true
+  country?: true
   created_at?: true
   updated_at?: true
 }
@@ -82,6 +94,9 @@ export type SpotifyAccountsMaxAggregateInputType = {
   access_token?: true
   refresh_token?: true
   expires_at?: true
+  product?: true
+  scope?: true
+  country?: true
   created_at?: true
   updated_at?: true
 }
@@ -94,6 +109,9 @@ export type SpotifyAccountsCountAggregateInputType = {
   access_token?: true
   refresh_token?: true
   expires_at?: true
+  product?: true
+  scope?: true
+  country?: true
   created_at?: true
   updated_at?: true
   _all?: true
@@ -179,6 +197,9 @@ export type SpotifyAccountsGroupByOutputType = {
   access_token: string
   refresh_token: string
   expires_at: Date
+  product: string | null
+  scope: string | null
+  country: string | null
   created_at: Date
   updated_at: Date
   _count: SpotifyAccountsCountAggregateOutputType | null
@@ -212,6 +233,9 @@ export type SpotifyAccountsWhereInput = {
   access_token?: Prisma.StringFilter<"SpotifyAccounts"> | string
   refresh_token?: Prisma.StringFilter<"SpotifyAccounts"> | string
   expires_at?: Prisma.DateTimeFilter<"SpotifyAccounts"> | Date | string
+  product?: Prisma.StringNullableFilter<"SpotifyAccounts"> | string | null
+  scope?: Prisma.StringNullableFilter<"SpotifyAccounts"> | string | null
+  country?: Prisma.StringNullableFilter<"SpotifyAccounts"> | string | null
   created_at?: Prisma.DateTimeFilter<"SpotifyAccounts"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"SpotifyAccounts"> | Date | string
   user?: Prisma.XOR<Prisma.UsersScalarRelationFilter, Prisma.UsersWhereInput>
@@ -225,6 +249,9 @@ export type SpotifyAccountsOrderByWithRelationInput = {
   access_token?: Prisma.SortOrder
   refresh_token?: Prisma.SortOrder
   expires_at?: Prisma.SortOrder
+  product?: Prisma.SortOrderInput | Prisma.SortOrder
+  scope?: Prisma.SortOrderInput | Prisma.SortOrder
+  country?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   user?: Prisma.UsersOrderByWithRelationInput
@@ -241,6 +268,9 @@ export type SpotifyAccountsWhereUniqueInput = Prisma.AtLeast<{
   access_token?: Prisma.StringFilter<"SpotifyAccounts"> | string
   refresh_token?: Prisma.StringFilter<"SpotifyAccounts"> | string
   expires_at?: Prisma.DateTimeFilter<"SpotifyAccounts"> | Date | string
+  product?: Prisma.StringNullableFilter<"SpotifyAccounts"> | string | null
+  scope?: Prisma.StringNullableFilter<"SpotifyAccounts"> | string | null
+  country?: Prisma.StringNullableFilter<"SpotifyAccounts"> | string | null
   created_at?: Prisma.DateTimeFilter<"SpotifyAccounts"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"SpotifyAccounts"> | Date | string
   user?: Prisma.XOR<Prisma.UsersScalarRelationFilter, Prisma.UsersWhereInput>
@@ -254,6 +284,9 @@ export type SpotifyAccountsOrderByWithAggregationInput = {
   access_token?: Prisma.SortOrder
   refresh_token?: Prisma.SortOrder
   expires_at?: Prisma.SortOrder
+  product?: Prisma.SortOrderInput | Prisma.SortOrder
+  scope?: Prisma.SortOrderInput | Prisma.SortOrder
+  country?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   _count?: Prisma.SpotifyAccountsCountOrderByAggregateInput
@@ -272,6 +305,9 @@ export type SpotifyAccountsScalarWhereWithAggregatesInput = {
   access_token?: Prisma.StringWithAggregatesFilter<"SpotifyAccounts"> | string
   refresh_token?: Prisma.StringWithAggregatesFilter<"SpotifyAccounts"> | string
   expires_at?: Prisma.DateTimeWithAggregatesFilter<"SpotifyAccounts"> | Date | string
+  product?: Prisma.StringNullableWithAggregatesFilter<"SpotifyAccounts"> | string | null
+  scope?: Prisma.StringNullableWithAggregatesFilter<"SpotifyAccounts"> | string | null
+  country?: Prisma.StringNullableWithAggregatesFilter<"SpotifyAccounts"> | string | null
   created_at?: Prisma.DateTimeWithAggregatesFilter<"SpotifyAccounts"> | Date | string
   updated_at?: Prisma.DateTimeWithAggregatesFilter<"SpotifyAccounts"> | Date | string
 }
@@ -283,6 +319,9 @@ export type SpotifyAccountsCreateInput = {
   access_token: string
   refresh_token: string
   expires_at: Date | string
+  product?: string | null
+  scope?: string | null
+  country?: string | null
   created_at?: Date | string
   updated_at?: Date | string
   user: Prisma.UsersCreateNestedOneWithoutSpotify_accountInput
@@ -296,6 +335,9 @@ export type SpotifyAccountsUncheckedCreateInput = {
   access_token: string
   refresh_token: string
   expires_at: Date | string
+  product?: string | null
+  scope?: string | null
+  country?: string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -307,6 +349,9 @@ export type SpotifyAccountsUpdateInput = {
   access_token?: Prisma.StringFieldUpdateOperationsInput | string
   refresh_token?: Prisma.StringFieldUpdateOperationsInput | string
   expires_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  product?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  scope?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UsersUpdateOneRequiredWithoutSpotify_accountNestedInput
@@ -320,6 +365,9 @@ export type SpotifyAccountsUncheckedUpdateInput = {
   access_token?: Prisma.StringFieldUpdateOperationsInput | string
   refresh_token?: Prisma.StringFieldUpdateOperationsInput | string
   expires_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  product?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  scope?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -332,6 +380,9 @@ export type SpotifyAccountsCreateManyInput = {
   access_token: string
   refresh_token: string
   expires_at: Date | string
+  product?: string | null
+  scope?: string | null
+  country?: string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -343,6 +394,9 @@ export type SpotifyAccountsUpdateManyMutationInput = {
   access_token?: Prisma.StringFieldUpdateOperationsInput | string
   refresh_token?: Prisma.StringFieldUpdateOperationsInput | string
   expires_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  product?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  scope?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -355,6 +409,9 @@ export type SpotifyAccountsUncheckedUpdateManyInput = {
   access_token?: Prisma.StringFieldUpdateOperationsInput | string
   refresh_token?: Prisma.StringFieldUpdateOperationsInput | string
   expires_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  product?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  scope?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -372,6 +429,9 @@ export type SpotifyAccountsCountOrderByAggregateInput = {
   access_token?: Prisma.SortOrder
   refresh_token?: Prisma.SortOrder
   expires_at?: Prisma.SortOrder
+  product?: Prisma.SortOrder
+  scope?: Prisma.SortOrder
+  country?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -384,6 +444,9 @@ export type SpotifyAccountsMaxOrderByAggregateInput = {
   access_token?: Prisma.SortOrder
   refresh_token?: Prisma.SortOrder
   expires_at?: Prisma.SortOrder
+  product?: Prisma.SortOrder
+  scope?: Prisma.SortOrder
+  country?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -396,6 +459,9 @@ export type SpotifyAccountsMinOrderByAggregateInput = {
   access_token?: Prisma.SortOrder
   refresh_token?: Prisma.SortOrder
   expires_at?: Prisma.SortOrder
+  product?: Prisma.SortOrder
+  scope?: Prisma.SortOrder
+  country?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -439,6 +505,9 @@ export type SpotifyAccountsCreateWithoutUserInput = {
   access_token: string
   refresh_token: string
   expires_at: Date | string
+  product?: string | null
+  scope?: string | null
+  country?: string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -450,6 +519,9 @@ export type SpotifyAccountsUncheckedCreateWithoutUserInput = {
   access_token: string
   refresh_token: string
   expires_at: Date | string
+  product?: string | null
+  scope?: string | null
+  country?: string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -477,6 +549,9 @@ export type SpotifyAccountsUpdateWithoutUserInput = {
   access_token?: Prisma.StringFieldUpdateOperationsInput | string
   refresh_token?: Prisma.StringFieldUpdateOperationsInput | string
   expires_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  product?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  scope?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -488,6 +563,9 @@ export type SpotifyAccountsUncheckedUpdateWithoutUserInput = {
   access_token?: Prisma.StringFieldUpdateOperationsInput | string
   refresh_token?: Prisma.StringFieldUpdateOperationsInput | string
   expires_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  product?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  scope?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -502,6 +580,9 @@ export type SpotifyAccountsSelect<ExtArgs extends runtime.Types.Extensions.Inter
   access_token?: boolean
   refresh_token?: boolean
   expires_at?: boolean
+  product?: boolean
+  scope?: boolean
+  country?: boolean
   created_at?: boolean
   updated_at?: boolean
   user?: boolean | Prisma.UsersDefaultArgs<ExtArgs>
@@ -515,6 +596,9 @@ export type SpotifyAccountsSelectCreateManyAndReturn<ExtArgs extends runtime.Typ
   access_token?: boolean
   refresh_token?: boolean
   expires_at?: boolean
+  product?: boolean
+  scope?: boolean
+  country?: boolean
   created_at?: boolean
   updated_at?: boolean
   user?: boolean | Prisma.UsersDefaultArgs<ExtArgs>
@@ -528,6 +612,9 @@ export type SpotifyAccountsSelectUpdateManyAndReturn<ExtArgs extends runtime.Typ
   access_token?: boolean
   refresh_token?: boolean
   expires_at?: boolean
+  product?: boolean
+  scope?: boolean
+  country?: boolean
   created_at?: boolean
   updated_at?: boolean
   user?: boolean | Prisma.UsersDefaultArgs<ExtArgs>
@@ -541,11 +628,14 @@ export type SpotifyAccountsSelectScalar = {
   access_token?: boolean
   refresh_token?: boolean
   expires_at?: boolean
+  product?: boolean
+  scope?: boolean
+  country?: boolean
   created_at?: boolean
   updated_at?: boolean
 }
 
-export type SpotifyAccountsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "user_id" | "spotify_id" | "display_name" | "access_token" | "refresh_token" | "expires_at" | "created_at" | "updated_at", ExtArgs["result"]["spotifyAccounts"]>
+export type SpotifyAccountsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "user_id" | "spotify_id" | "display_name" | "access_token" | "refresh_token" | "expires_at" | "product" | "scope" | "country" | "created_at" | "updated_at", ExtArgs["result"]["spotifyAccounts"]>
 export type SpotifyAccountsInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UsersDefaultArgs<ExtArgs>
 }
@@ -569,6 +659,9 @@ export type $SpotifyAccountsPayload<ExtArgs extends runtime.Types.Extensions.Int
     access_token: string
     refresh_token: string
     expires_at: Date
+    product: string | null
+    scope: string | null
+    country: string | null
     created_at: Date
     updated_at: Date
   }, ExtArgs["result"]["spotifyAccounts"]>
@@ -1002,6 +1095,9 @@ export interface SpotifyAccountsFieldRefs {
   readonly access_token: Prisma.FieldRef<"SpotifyAccounts", 'String'>
   readonly refresh_token: Prisma.FieldRef<"SpotifyAccounts", 'String'>
   readonly expires_at: Prisma.FieldRef<"SpotifyAccounts", 'DateTime'>
+  readonly product: Prisma.FieldRef<"SpotifyAccounts", 'String'>
+  readonly scope: Prisma.FieldRef<"SpotifyAccounts", 'String'>
+  readonly country: Prisma.FieldRef<"SpotifyAccounts", 'String'>
   readonly created_at: Prisma.FieldRef<"SpotifyAccounts", 'DateTime'>
   readonly updated_at: Prisma.FieldRef<"SpotifyAccounts", 'DateTime'>
 }

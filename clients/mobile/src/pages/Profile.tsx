@@ -532,6 +532,14 @@ const ProfileScreen = () => {
                                     </Text>
                                 </TouchableOpacity>
 
+                                <TouchableOpacity style={[styles.editButton, {borderColor: theme.border}]} onPress={async () => {
+                                    try {
+                                        const res = await apiClient.post("/conversations", {user2_id: userProfil.id});
+                                        router.push({pathname: "/detailsConversations", params: {conversationId: res.data.conversation.id, userName: userProfil.username, userProfilePic: userProfil.profile_picture || ""}});
+                                    } catch { Alert.alert(t("dm_action_error")); }
+                                }}>
+                                    <Text style={{color: theme.text}}>{t("dm_message")}</Text>
+                                </TouchableOpacity>
                                 <View style={{justifyContent: "center"}}>
                                     <ReportUserButton
                                         targetUserId={userProfil?.id}

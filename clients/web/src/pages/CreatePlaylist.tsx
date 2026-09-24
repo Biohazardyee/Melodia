@@ -127,15 +127,15 @@ const CreatePlaylist: React.FC = () => {
   };
 
   return (
-      <div className="min-h-screen bg-slate-950 dark:bg-slate-50 text-slate-50 dark:text-slate-900 flex flex-col font-sans transition-colors duration-300">
-        <div className="flex justify-between items-center p-6 border-b border-slate-800 dark:border-slate-200">
+      <div className="min-h-screen bg-slate-950 dark:bg-canvas text-slate-50 dark:text-slate-900 flex flex-col font-sans transition-colors duration-300">
+        <div className="flex justify-between items-center p-6 border-b border-line dark:border-line">
           <button
               onClick={goBack}
-              className="p-2 hover:bg-slate-800 dark:hover:bg-slate-200 rounded-full transition-colors text-slate-50 dark:text-slate-700"
+              className="p-2 hover:bg-raised dark:hover:bg-slate-200 rounded-full transition-colors text-slate-50 dark:text-slate-700"
           >
             <X size={28} />
           </button>
-          <h1 className="text-lg font-bold">
+          <h1 className="page-title text-lg font-bold">
             {isEditing ? t("edit_playlist") : t("new_playlist")}
           </h1>
           <div className="w-12"></div>
@@ -143,7 +143,7 @@ const CreatePlaylist: React.FC = () => {
 
         <div className="flex flex-col items-center grow pt-16 px-6">
           <div
-              className="w-56 h-56 bg-slate-900 dark:bg-white border-2 border-slate-800 dark:border-slate-3300 border-dashed rounded-xl overflow-hidden flex flex-col justify-center items-center cursor-pointer mb-12 shadow-lg hover:border-slate-700 dark:hover:border-slate-400 transition-colors"
+              className="w-56 h-56 bg-panel dark:bg-panel border-2 border-line dark:border-slate-3300 border-dashed rounded-xl overflow-hidden flex flex-col justify-center items-center cursor-pointer mb-12 shadow-lg hover:border-line dark:hover:border-slate-400 transition-colors"
               onClick={() => fileInputRef.current?.click()}
           >
             {image ? (
@@ -166,7 +166,7 @@ const CreatePlaylist: React.FC = () => {
             ) : (
                 <div className="flex flex-col items-center">
                   <Camera size={48} className="text-slate-500 mb-3" />
-                  <span className="text-slate-400 dark:text-slate-500 font-medium">
+                  <span className="text-muted dark:text-muted font-medium">
                 {t("add_cover")}
               </span>
                 </div>
@@ -186,21 +186,21 @@ const CreatePlaylist: React.FC = () => {
               placeholder={t("playlist_name_placeholder")}
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full max-w-md bg-transparent border-b-2 border-slate-700 dark:border-slate-300 focus:border-blue-500 dark:focus:border-blue-500 text-white dark:text-slate-900 text-3xl text-center py-3 mb-8 outline-none font-bold transition-colors"
+              className="w-full max-w-md bg-transparent border-b-2 border-line dark:border-line focus:border-blue-500 dark:focus:border-blue-500 text-ink text-3xl text-center py-3 mb-8 outline-none font-bold transition-colors"
           />
 
           <button
               type="button"
               onClick={() => setIsPublic((prev: boolean) => !prev)}
-              className="w-full max-w-md flex justify-between items-center bg-slate-900 dark:bg-white border border-slate-800 dark:border-slate-200 hover:border-slate-700 dark:hover:border-slate-300 rounded-xl px-5 py-4 mb-12 transition-all shadow-md group select-none text-left"
+              className="w-full max-w-md flex justify-between items-center bg-panel dark:bg-panel border border-line dark:border-line hover:border-line dark:hover:border-slate-300 rounded-xl px-5 py-4 mb-12 transition-all shadow-md group select-none text-left"
           >
             <div className="flex flex-col">
-            <span className="font-bold text-white dark:text-slate-900 text-base">
+            <span className="font-bold text-ink text-base">
               {isPublic
                   ? t("playlist_public", "Playlist publique")
                   : t("playlist_private", "Playlist privée")}
             </span>
-              <span className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+              <span className="text-xs text-muted dark:text-muted mt-0.5">
               {isPublic
                   ? t("playlist_public_desc", "Visible par tous les utilisateurs")
                   : t("playlist_private_desc", "Visible uniquement par vous")}
@@ -230,7 +230,7 @@ const CreatePlaylist: React.FC = () => {
               className={`px-10 py-4 rounded-full font-bold text-lg transition-all shadow-lg ${
                   name.trim()
                       ? "bg-blue-600 hover:bg-blue-500 text-white"
-                      : "bg-slate-800 dark:bg-slate-200 text-slate-500 dark:text-slate-400 cursor-not-allowed"
+                      : "bg-raised dark:bg-slate-200 text-slate-500 dark:text-muted cursor-not-allowed"
               }`}
           >
             {loading ? (

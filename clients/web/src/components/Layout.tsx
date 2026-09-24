@@ -1,20 +1,26 @@
-import React, {useState} from 'react';
-import {Outlet} from 'react-router-dom';
+import React, {Suspense, useState} from 'react';
+import {Outlet, useLocation} from 'react-router-dom';
 import Header from './Header';
 import Sidebar from './Sidebar';
 import {Footer} from './Footer';
+import {useTranslation} from 'react-i18next';
 
 const Layout: React.FC = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const {t} = useTranslation();
+    const isMessaging = useLocation().pathname === '/conversations';
 
     return (
         <div
-            className="flex flex-col h-screen bg-[#13131A] dark:bg-slate-50 text-white dark:text-gray-900 overflow-hidden transition-colors duration-300">
+            className="app-shell text-ink overflow-hidden">
+            <a className="skip-link" href="#zone-de-scroll">{t('design_skip_content')}</a>
             <Header onMenuClick={() => setIsSidebarOpen(true)}/>
-            <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)}/>
-            <main id="zone-de-scroll" className="flex-1 overflow-y-auto">
-                <Outlet/>
-                <Footer/>
+            <Sidebar persistent isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)}/>
+            <main id="zone-de-scroll" tabIndex={-1} className="app-main">
+                <Suspense fallback={<div role="status" className="p-8 text-muted">{t('loading')}</div>}>
+                    <Outlet/>
+                </Suspense>
+                {!isMessaging && <Footer/>}
             </main>
         </div>
     );

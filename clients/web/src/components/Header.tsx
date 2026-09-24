@@ -1,4 +1,4 @@
-import {Menu, MessageSquare, LogIn, Coins} from "lucide-react";
+import {Menu, MessageSquare, LogIn, Coins, UserRound} from "lucide-react";
 import {NavigateFunction, useNavigate} from "react-router-dom";
 import {useState, useEffect, useCallback} from "react";
 import apiClient from "../api/client";
@@ -76,6 +76,7 @@ export const Header = ({onMenuClick}: HeaderProps) => {
         socket.on("update_conversation_list", fetchGlobalUnreadCount);
         // Messages marqués comme lus → recompte (badge -)
         socket.on("conversation_marked_read", fetchGlobalUnreadCount);
+        socket.on("conversation_updated", fetchGlobalUnreadCount);
 
         const handleManualReadUpdate = (): void => {
             fetchGlobalUnreadCount();
@@ -86,6 +87,7 @@ export const Header = ({onMenuClick}: HeaderProps) => {
         return (): void => {
             socket.off("update_conversation_list", fetchGlobalUnreadCount);
             socket.off("conversation_marked_read", fetchGlobalUnreadCount);
+            socket.off("conversation_updated", fetchGlobalUnreadCount);
             window.removeEventListener("messagesRead", handleManualReadUpdate);
         };
     }, [socket, fetchGlobalUnreadCount]);
@@ -95,101 +97,43 @@ export const Header = ({onMenuClick}: HeaderProps) => {
         checkUser();
         window.addEventListener("storage", handleUpdate);
         window.addEventListener("profileUpdated", handleUpdate);
+        window.addEventListener("auth-changed", handleUpdate);
         return () => {
             window.removeEventListener("storage", handleUpdate);
             window.removeEventListener("profileUpdated", handleUpdate);
+            window.removeEventListener("auth-changed", handleUpdate);
         };
     }, []);
 
+
     return (
-        <header
-            className="h-16 bg-[#1C1C28] dark:bg-white border-b border-gray-800 dark:border-gray-200 flex items-center justify-between px-6 shrink-0 z-20 relative transition-colors duration-300">
-            <div className="flex items-center z-10">
-                <button
-                    onClick={onMenuClick}
-                    className="text-gray-400 dark:text-gray-500 hover:text-white dark:hover:text-gray-900 transition-colors"
-                >
-                    <Menu size={28}/>
+        <header className="app-header flex items-center justify-between gap-3 shrink-0 z-20 relative">
+            <div className="flex items-center gap-3">
+                <button onClick={onMenuClick} className="icon-button menu-toggle" aria-label={t("menu_title")}><Menu size={22}/></button>
+                <button className="header-brand" onClick={() => navigate("/home")} aria-label="Melodia">
+                    <img src="/logo.png" alt="" className="w-8 h-8 rounded-lg"/><span className="brand-word hidden sm:block">melodia.</span>
                 </button>
+                <span className="eyebrow hidden xl:block">{t("design_header_note")}</span>
             </div>
-
-            <div
-                className="absolute left-1/2 -translate-x-1/2 flex items-center gap-3 cursor-pointer group z-10"
-                onClick={() => navigate("/home")}
-            >
-                <div className="w-10 h-10 flex items-center justify-center overflow-hidden rounded-xl">
-                    <img
-                        src="/logo.png"
-                        alt="Melodia Logo"
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                    />
-                </div>
-                <span
-                    className="text-2xl font-black tracking-widest bg-clip-text text-transparent bg-linear-to-r from-indigo-400 to-pink-500 hidden sm:block">
-          Melodia
-        </span>
-            </div>
-
-            <div className="flex items-center gap-6 text-gray-300 dark:text-gray-500 z-10">
-                {isLoggedIn ? (
-                    <>
-                        <GlobalSearch/>
-
-                        <button
-                            onClick={() => navigate("/shop")}
-                            title={t("shop_points_label", "points boutique")}
-                            className="hidden sm:flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/30 hover:border-amber-400/60 px-3 py-1.5 rounded-full transition-all"
-                        >
-                            <Coins size={16} className="text-amber-400 dark:text-amber-500"/>
-                            <span className="text-amber-300 dark:text-amber-600 font-bold text-sm">
-                                {shopPoints}
-                            </span>
-                        </button>
-
-                        <button
-                            onClick={() => navigate("/conversations")}
-                            className="relative hover:text-white dark:hover:text-gray-900 transition-colors cursor-pointer"
-                        >
-                            <MessageSquare size={22}/>
-                            {unreadMessagesCount > 0 && (
-                                <span
-                                    className="absolute -top-1.5 -right-1.5 bg-[#FF1E56] text-white text-[10px] font-bold min-w-4 h-4 px-1 rounded-full flex items-center justify-center border-2 border-[#1C1C28] dark:border-white animate-pulse">
-                  {unreadMessagesCount > 9 ? "9+" : unreadMessagesCount}
-                </span>
-                            )}
-                        </button>
-
-                        <NotificationBell/>
-
-                        <AvatarBorder borderId={borderId} compact>
-                            <button
-                                onClick={() => navigate("/profil")}
-                                className="w-10 h-10 rounded-full border-2 border-indigo-500/30 overflow-hidden bg-slate-800 dark:bg-indigo-50 flex items-center justify-center transition-colors"
-                            >
-                                {profilePic ? (
-                                    <img
-                                        src={profilePic}
-                                        alt="Profil"
-                                        className="w-full h-full object-cover"
-                                    />
-                                ) : (
-                                    <span className="text-xs font-bold text-indigo-300 dark:text-indigo-600">ME</span>
-                                )}
-                            </button>
-                        </AvatarBorder>
-                    </>
-                ) : (
-                    <button
-                        onClick={() => navigate("/login")}
-                        className="flex items-center gap-2 px-4 py-2 bg-linear-to-r from-indigo-600 to-pink-600 rounded-full text-white font-semibold text-sm hover:opacity-90 transition-opacity"
-                    >
-                        <LogIn size={18}/>
-                        <span className="hidden sm:inline">Connexion</span>
+            <div className="flex items-center gap-2 sm:gap-4">
+                <GlobalSearch/>
+                {isLoggedIn ? <>
+                    <button onClick={() => navigate("/shop")} title={t("shop_points_label")} className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-full border border-line text-sm text-accent">
+                        <Coins size={16}/>{shopPoints}
                     </button>
-                )}
+                    <button onClick={() => navigate("/conversations")} className="icon-button relative" aria-label={t("design_messages")}>
+                        <MessageSquare size={20}/>
+                        {unreadMessagesCount > 0 && <span className="absolute top-0 right-0 bg-violet-600 text-white text-[10px] min-w-4 h-4 px-1 rounded-full">{unreadMessagesCount > 9 ? "9+" : unreadMessagesCount}</span>}
+                    </button>
+                    <NotificationBell/>
+                    <AvatarBorder borderId={borderId} compact>
+                        <button onClick={() => navigate("/profil")} aria-label={t("design_profile")} className="w-9 h-9 rounded-full overflow-hidden bg-raised flex items-center justify-center text-accent">
+                            {profilePic ? <img src={profilePic} alt="" className="w-full h-full object-cover"/> : <UserRound size={18}/>}
+                        </button>
+                    </AvatarBorder>
+                </> : <button onClick={() => navigate("/login")} aria-label={t("design_sign_in")} className="primary-action text-sm"><LogIn size={17}/><span className="hidden sm:inline">{t("design_sign_in")}</span></button>}
             </div>
         </header>
     );
 };
-
 export default Header;

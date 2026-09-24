@@ -5,7 +5,7 @@ import {
   FaLock,
   FaGoogle,
   FaDiscord,
-  FaMusic, 
+  FaMusic,
 } from "react-icons/fa";
 import { Input } from "../components/Input";
 import { Button } from "../components/Button";
@@ -124,15 +124,15 @@ const Register: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#13131a] dark:bg-slate-50 text-white dark:text-gray-900 flex flex-col items-center justify-center p-6 font-sans transition-colors duration-300">
+    <div className="auth-page min-h-screen w-full bg-canvas dark:bg-canvas text-ink flex flex-col items-center justify-center p-6 font-sans transition-colors duration-300">
       <div className="mb-10 text-center">
         <div className="w-20 h-20 bg-linear-to-tr from-[#a855f7] to-[#ec4899] rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-purple-500/20">
           <span className="text-4xl text-white">♪</span>
         </div>
-        <h1 className="text-4xl font-bold tracking-tight mb-2 text-white dark:text-gray-900">
+        <h1 className="page-title text-4xl font-bold tracking-tight mb-2 text-ink">
           {t("register_title")}
         </h1>
-        <p className="text-gray-400 dark:text-gray-600 text-lg">
+        <p className="text-muted dark:text-muted text-lg">
           {t("register_subtitle")}
         </p>
       </div>
@@ -193,9 +193,9 @@ const Register: React.FC = () => {
             />
 
             {showSuggestions && (
-              <div className="absolute z-50 w-full mt-1 bg-[#1e1e2d] dark:bg-white border border-gray-700 dark:border-gray-300 rounded-lg shadow-xl max-h-60 overflow-y-auto">
+              <div className="absolute z-50 w-full mt-1 bg-panel dark:bg-panel border border-line dark:border-line rounded-lg shadow-xl max-h-60 overflow-y-auto">
                 {isSearching ? (
-                  <div className="p-3 text-center text-sm text-gray-400 dark:text-gray-500">
+                  <div className="p-3 text-center text-sm text-muted dark:text-muted">
                     Recherche en cours...
                   </div>
                 ) : suggestions.length > 0 ? (
@@ -211,7 +211,7 @@ const Register: React.FC = () => {
                       }}
                       className="p-3 text-sm text-gray-200 dark:text-gray-800 hover:bg-purple-600 hover:text-white dark:hover:bg-purple-100 cursor-pointer transition-colors duration-150 flex items-center gap-2"
                     >
-                      <FaMusic className="text-gray-400 dark:text-gray-500 text-xs" />
+                      <FaMusic className="text-muted dark:text-muted text-xs" />
                       {item.name}
                     </div>
                   ))
@@ -249,9 +249,9 @@ const Register: React.FC = () => {
             <input
               type="checkbox"
               required
-              className="w-5 h-5 rounded-md border-gray-700 dark:border-gray-300 bg-gray-800 dark:bg-white text-blue-500 cursor-pointer focus:ring-0"
+              className="w-5 h-5 rounded-md border-line dark:border-line bg-raised dark:bg-panel text-blue-500 cursor-pointer focus:ring-0"
             />
-            <p className="text-sm text-gray-400 dark:text-gray-600">
+            <p className="text-sm text-muted dark:text-muted">
               {t("register_terms_text")}{" "}
               <span className="text-blue-500 font-medium hover:underline cursor-pointer">
                 {t("register_terms_link")}
@@ -269,11 +269,11 @@ const Register: React.FC = () => {
         </form>
 
         <div className="relative flex items-center py-2">
-          <div className="grow border-t border-gray-800 dark:border-gray-200"></div>
+          <div className="grow border-t border-line dark:border-line"></div>
           <span className="mx-4 text-gray-500 text-sm uppercase tracking-wider">
             {t("register_separator")}
           </span>
-          <div className="grow border-t border-gray-800 dark:border-gray-200"></div>
+          <div className="grow border-t border-line dark:border-line"></div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -281,6 +281,7 @@ const Register: React.FC = () => {
             variant="social"
             type="button"
             onClick={() => handleOAuthRegister("google")}
+            aria-label="Google"
           >
             <FaGoogle />
           </Button>
@@ -288,12 +289,13 @@ const Register: React.FC = () => {
             variant="social"
             type="button"
             onClick={() => handleOAuthRegister("discord")}
+            aria-label="Discord"
           >
             <FaDiscord />
           </Button>
         </div>
 
-        <p className="text-center text-gray-400 dark:text-gray-600 text-base pt-2">
+        <p className="text-center text-muted dark:text-muted text-base pt-2">
           {t("register_already_account")}{" "}
           <span
             onClick={() => navigate("/login")}

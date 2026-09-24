@@ -34,24 +34,24 @@ function getCurrentUserId(): string | null {
 
 const SkeletonCard: React.FC = () => (
     <div
-        className="bg-[#1C1C28] dark:bg-white rounded-xl p-6 border border-gray-800 dark:border-gray-200 animate-pulse">
+        className="bg-panel dark:bg-panel rounded-xl p-6 border border-line dark:border-line animate-pulse">
         <div className="flex items-center gap-4 mb-5">
-            <div className="w-12 h-12 rounded-full bg-gray-800 dark:bg-gray-200"/>
+            <div className="w-12 h-12 rounded-full bg-raised dark:bg-gray-200"/>
             <div className="flex-1 space-y-2">
-                <div className="h-3 bg-gray-800 dark:bg-gray-200 rounded w-1/3"/>
-                <div className="h-2 bg-gray-800 dark:bg-gray-200 rounded w-1/4"/>
+                <div className="h-3 bg-raised dark:bg-gray-200 rounded w-1/3"/>
+                <div className="h-2 bg-raised dark:bg-gray-200 rounded w-1/4"/>
             </div>
         </div>
-        <div className="flex gap-4 bg-[#13131A] dark:bg-gray-50 p-4 rounded-xl mb-5">
-            <div className="w-20 h-20 rounded-md bg-gray-800 dark:bg-gray-200"/>
+        <div className="flex gap-4 bg-canvas dark:bg-canvas p-4 rounded-xl mb-5">
+            <div className="w-20 h-20 rounded-md bg-raised dark:bg-gray-200"/>
             <div className="flex-1 space-y-2 py-1">
-                <div className="h-4 bg-gray-800 dark:bg-gray-200 rounded w-2/3"/>
-                <div className="h-3 bg-gray-800 dark:bg-gray-200 rounded w-1/2"/>
+                <div className="h-4 bg-raised dark:bg-gray-200 rounded w-2/3"/>
+                <div className="h-3 bg-raised dark:bg-gray-200 rounded w-1/2"/>
             </div>
         </div>
         <div className="space-y-2">
-            <div className="h-3 bg-gray-800 dark:bg-gray-200 rounded"/>
-            <div className="h-3 bg-gray-800 dark:bg-gray-200 rounded w-5/6"/>
+            <div className="h-3 bg-raised dark:bg-gray-200 rounded"/>
+            <div className="h-3 bg-raised dark:bg-gray-200 rounded w-5/6"/>
         </div>
     </div>
 );
@@ -59,7 +59,7 @@ const SkeletonCard: React.FC = () => (
 const EmptyState: React.FC<{ tab: TabType }> = ({tab}) => (
     <div className="flex flex-col items-center justify-center py-20 text-center">
         <div
-            className="w-16 h-16 rounded-2xl bg-[#1C1C28] dark:bg-white border border-gray-800 dark:border-gray-200 flex items-center justify-center mb-4">
+            className="w-16 h-16 rounded-2xl bg-panel dark:bg-panel border border-line dark:border-line flex items-center justify-center mb-4">
             {tab === "following" ? (
                 <Users size={28} className="text-gray-600"/>
             ) : tab === "trending" ? (
@@ -68,14 +68,14 @@ const EmptyState: React.FC<{ tab: TabType }> = ({tab}) => (
                 <Music size={28} className="text-gray-600"/>
             )}
         </div>
-        <p className="text-gray-400 dark:text-gray-600 font-semibold mb-1">
+        <p className="text-muted dark:text-muted font-semibold mb-1">
             {tab === "following"
                 ? "Aucune activité de tes abonnements"
                 : tab === "trending"
                     ? "Aucune découverte disponible"
                     : "Aucune review pour le moment"}
         </p>
-        <p className="text-gray-600 dark:text-gray-400 text-sm">
+        <p className="text-gray-600 dark:text-muted text-sm">
             {tab === "following"
                 ? "Abonne-toi à des utilisateurs pour voir leur activité"
                 : "Reviens plus tard !"}
@@ -142,7 +142,7 @@ function useFeedTab(buildEndpoint: (offset: number) => string | null) {
         if (!loadingMoreRef.current && hasMoreRef.current) fetchPage(pageRef.current, true);
     }, [fetchPage]);
 
-    const refresh = useCallback((): void => fetchPage(0, false), [fetchPage]);
+    const refresh = useCallback((): void => { void fetchPage(0, false); }, [fetchPage]);
 
     return {items, setItems, loading, loadingMore, hasMore, loaded, ensureLoaded, loadMore, refresh};
 }
@@ -212,8 +212,8 @@ const FeedTabPanel: React.FC<{
         if (searchQuery) {
             return (
                 <div className="text-center py-12">
-                    <Search size={48} className="mx-auto text-gray-500 dark:text-gray-400 mb-4 opacity-50"/>
-                    <p className="text-gray-400 dark:text-gray-600 text-lg">
+                    <Search size={48} className="mx-auto text-gray-500 dark:text-muted mb-4 opacity-50"/>
+                    <p className="text-muted dark:text-muted text-lg">
                         {t("no_post_found", "Aucun résultat pour")} &quot;{searchQuery}&quot;
                     </p>
                 </div>
@@ -249,10 +249,10 @@ const FeedTabPanel: React.FC<{
                     {!tab.hasMore && displayedItems.length > 0 && (
                         <div className="text-center py-8">
                             <div
-                                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#1C1C28] dark:bg-white border border-gray-800 dark:border-gray-200">
+                                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-panel dark:bg-panel border border-line dark:border-line">
                                 <ChevronDown size={14} className="text-gray-600"/>
                                 <span
-                                    className="text-gray-600 dark:text-gray-400 text-xs font-semibold tracking-wide">FIN DU FIL</span>
+                                    className="text-gray-600 dark:text-muted text-xs font-semibold tracking-wide">FIN DU FIL</span>
                             </div>
                         </div>
                     )}
@@ -370,21 +370,21 @@ const Feed: React.FC = () => {
 
     return (
         <div
-            className="p-8 max-w-[2048px] mx-auto w-full font-sans min-h-screen bg-transparent dark:bg-slate-50 text-white dark:text-gray-900 transition-colors duration-300">
+            className="p-8 max-w-7xl mx-auto w-full font-sans min-h-screen bg-transparent dark:bg-canvas text-ink transition-colors duration-300">
             {/* Header */}
-            <div className="mb-8 flex items-start justify-between">
+            <div className="page-heading mb-8 flex flex-wrap gap-4 items-start justify-between">
                 <div>
-                    <h1 className="text-4xl font-bold mb-2 text-white dark:text-gray-900">
+                    <h1 className="page-title text-4xl font-bold mb-2 text-ink">
                         {t("feed_title", "Votre fil")}
                     </h1>
-                    <p className="text-gray-400 dark:text-gray-600 text-lg">
+                    <p className="text-muted dark:text-muted text-lg">
                         {t("feed_subtitle", "Restez informé(e) des tendances musicales de la communauté.")}
                     </p>
                 </div>
                 <button
                     onClick={handleRefresh}
                     disabled={isRefreshing}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#1C1C28] dark:bg-white border border-gray-800 dark:border-gray-200 text-gray-400 dark:text-gray-500 hover:text-white dark:hover:text-gray-900 hover:border-gray-700 transition-all text-sm disabled:opacity-50"
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-panel dark:bg-panel border border-line dark:border-line text-muted dark:text-muted hover:text-white dark:hover:text-gray-900 hover:border-line transition-all text-sm disabled:opacity-50"
                 >
                     <RefreshCw size={15} className={isRefreshing ? "animate-spin" : ""}/>
                     {t("refresh")}
@@ -401,7 +401,7 @@ const Feed: React.FC = () => {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder={t("search_feed_placeholder", "Rechercher un utilisateur, un album...")}
-                    className="w-full bg-[#1C1C28] dark:bg-white text-white dark:text-gray-900 text-sm rounded-xl py-3.5 pl-11 pr-4 border border-gray-800 dark:border-gray-200 outline-none transition-all shadow-lg"
+                    className="w-full bg-panel dark:bg-panel text-ink text-sm rounded-xl py-3.5 pl-11 pr-4 border border-line dark:border-line outline-none transition-all shadow-lg"
                 />
                 {searchQuery && (
                     <button
@@ -415,7 +415,7 @@ const Feed: React.FC = () => {
 
             {/* Tabs */}
             <div
-                className="flex bg-[#1C1C28] dark:bg-white rounded-xl p-1 mb-8 border border-gray-800 dark:border-gray-200 shadow-sm max-w-lg">
+                className="flex bg-panel dark:bg-panel rounded-xl p-1 mb-8 border border-line dark:border-line shadow-sm max-w-lg">
                 {([
                     {key: "all", label: t("tab_activities", "Activités"), icon: Sparkles},
                     {key: "following", label: t("tab_following", "Suivis"), icon: Users},
@@ -426,8 +426,8 @@ const Feed: React.FC = () => {
                         onClick={() => setActiveTab(key)}
                         className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg font-semibold text-sm transition-all ${
                             activeTab === key
-                                ? "bg-[#2A2A38] dark:bg-gray-100 text-white dark:text-gray-900 shadow"
-                                : "text-gray-400 dark:text-gray-500 hover:text-white dark:hover:text-gray-900"
+                                ? "bg-raised dark:bg-raised text-ink shadow"
+                                : "text-muted dark:text-muted hover:text-white dark:hover:text-gray-900"
                         }`}
                     >
                         <Icon size={18}/>

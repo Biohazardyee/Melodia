@@ -65,7 +65,17 @@ export const NotificationActions = {
   new_follow: 'new_follow',
   recommendation: 'recommendation',
   badge_earned: 'badge_earned',
-  playlist_collaborator_added: 'playlist_collaborator_added'
+  playlist_collaborator_added: 'playlist_collaborator_added',
+  room_invited: 'room_invited'
 } as const
 
 export type NotificationActions = (typeof NotificationActions)[keyof typeof NotificationActions]
+
+
+export const ConversationStatus = {
+  ACCEPTED: 'ACCEPTED',
+  PENDING: 'PENDING',
+  DECLINED: 'DECLINED'
+} as const
+
+export type ConversationStatus = (typeof ConversationStatus)[keyof typeof ConversationStatus]

@@ -1,6 +1,9 @@
 import { Messages } from "../../generated/prisma/browser.js";
 
 export interface ConversationResponseDto {
+  status: string;
+  initiated_by: string | null;
+  invitation_sent: boolean;
   id: string;
   user1_id: string;
   user2_id: string;
@@ -20,6 +23,9 @@ export interface ConversationUserDto {
 }
 
 export interface UserConversationResponseDto {
+  status: string;
+  initiated_by: string | null;
+  invitation_sent: boolean;
   id: string;
   user1: ConversationUserDto;
   user2: ConversationUserDto;

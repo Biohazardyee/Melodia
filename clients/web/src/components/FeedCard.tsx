@@ -217,9 +217,9 @@ const CommentItem: React.FC<CommentItemProps> = ({
 
     return (
         <div className={depth > 0 ? depthClass(depth) : undefined}>
-            <div className={depth > 0 ? "border-l-2 border-[#2A2A38] dark:border-gray-300 pl-4" : undefined}>
+            <div className={depth > 0 ? "border-l-2 border-[#2A2A38] dark:border-line pl-4" : undefined}>
                 <div
-                    className={`flex gap-3 bg-[#13131A] dark:bg-gray-50 p-4 rounded-xl border border-gray-800/50 dark:border-gray-200 transition-colors ${
+                    className={`flex gap-3 bg-canvas dark:bg-canvas p-4 rounded-xl border border-line/50 dark:border-line transition-colors ${
                         depth > 0 ? depthBorderClass(depth) : ""
                     }`}
                 >
@@ -227,7 +227,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
                     <AvatarBorder borderId={comment.equipped_avatar_border} compact className="shrink-0">
                         {comment.user_image && !hasImageError ? (
                             <div
-                                className={`rounded-full bg-[#2A2A38] dark:bg-slate-200 flex items-center justify-center font-bold text-blue-400 shrink-0 overflow-hidden ${depth === 0 ? "w-10 h-10 text-sm" : "w-8 h-8 text-xs"}`}>
+                                className={`rounded-full bg-raised dark:bg-slate-200 flex items-center justify-center font-bold text-blue-400 shrink-0 overflow-hidden ${depth === 0 ? "w-10 h-10 text-sm" : "w-8 h-8 text-xs"}`}>
                                 <img
                                     src={comment.user_image}
                                     alt={comment.user}
@@ -248,14 +248,14 @@ const CommentItem: React.FC<CommentItemProps> = ({
                         <div className="flex justify-between items-start mb-1 gap-2">
                             <div className="flex items-center gap-2 flex-wrap">
                                 <span
-                                    className={`font-bold text-sm ${getTextEffectClassName(comment.equipped_text_effect) || "text-white dark:text-gray-900"}`}
+                                    className={`font-bold text-sm ${getTextEffectClassName(comment.equipped_text_effect) || "text-ink"}`}
                                     style={{fontFamily: getPseudoFontFamily(comment.equipped_font) || undefined}}
                                 >
                                     {comment.user}
                                 </span>
                                 {parentComment && (
                                     <span
-                                        className="text-[10px] px-2 py-0.5 rounded bg-[#1C1C28] dark:bg-blue-50 text-[#3b82f6] font-medium border border-[#3b82f6]/20">
+                                        className="text-[10px] px-2 py-0.5 rounded bg-panel dark:bg-blue-50 text-[#3b82f6] font-medium border border-[#3b82f6]/20">
                                         @{parentComment.user}
                                     </span>
                                 )}
@@ -286,7 +286,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
                             </div>
                         </div>
 
-                        <p className="text-gray-300 dark:text-gray-600 text-sm mt-1 leading-relaxed">{comment.text}</p>
+                        <p className="text-gray-300 dark:text-muted text-sm mt-1 leading-relaxed">{comment.text}</p>
                     </div>
                 </div>
 
@@ -300,12 +300,12 @@ const CommentItem: React.FC<CommentItemProps> = ({
                                 value={replyInputs[comment.id] || ""}
                                 onChange={(e) => setReplyInputs((prev) => ({...prev, [comment.id]: e.target.value}))}
                                 onKeyDown={(e) => e.key === "Enter" && handleSubmitReply(replyTargetId)}
-                                className="w-full bg-[#13131A] dark:bg-gray-50 border border-gray-800 dark:border-gray-200 rounded-full py-2 pl-4 pr-10 text-sm text-white dark:text-gray-900 focus:outline-none transition-colors"
+                                className="w-full bg-canvas dark:bg-canvas border border-line dark:border-line rounded-full py-2 pl-4 pr-10 text-sm text-ink focus:outline-none transition-colors"
                             />
                             <button
                                 onClick={() => handleSubmitReply(replyTargetId)}
                                 disabled={submittingReply === comment.id}
-                                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#FF1E56] transition-colors p-1"
+                                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted hover:text-[#FF1E56] transition-colors p-1"
                             >
                                 {submittingReply === comment.id ? <Loader2 size={16} className="animate-spin"/> :
                                     <Send size={16}/>}
@@ -583,7 +583,7 @@ const FeedCard: React.FC<FeedCardProps> = ({
     return (
         <>
         <div
-            className="bg-[#1C1C28] dark:bg-white rounded-xl p-6 border border-gray-800 dark:border-gray-200 shadow-sm transition-colors">
+            className="bg-panel dark:bg-panel rounded-xl p-6 border border-line dark:border-line shadow-sm transition-colors">
             <div className="flex items-center justify-between mb-5">
                 <button
                     onClick={() => item.user_id && onNavigateToProfile(item.user_id)}
@@ -610,44 +610,44 @@ const FeedCard: React.FC<FeedCardProps> = ({
                     <div className="text-left">
                         <p className="font-bold">
                             <span
-                                className={getTextEffectClassName(item.equipped_text_effect) || "text-white dark:text-gray-900"}
+                                className={getTextEffectClassName(item.equipped_text_effect) || "text-ink"}
                                 style={{fontFamily: getPseudoFontFamily(item.equipped_font) || undefined}}
                             >
                                 {item.user_name || t("recommendation")}
                             </span>
-                            <span className="text-gray-400 dark:text-gray-500 font-normal text-sm ml-1">
+                            <span className="text-muted dark:text-muted font-normal text-sm ml-1">
                                 {isReview ? t("wrote_review") : t("new_album")}
                             </span>
                         </p>
-                        <p className="text-gray-500 dark:text-gray-400 text-sm">{isNew ? discoveryReasonText() : timeAgo(item.created_at, t)}</p>
+                        <p className="text-gray-500 dark:text-muted text-sm">{isNew ? discoveryReasonText() : timeAgo(item.created_at, t)}</p>
                     </div>
                 </button>
 
                 {isReview && item.rating != null && (
                     <div
-                        className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[#13131A] dark:bg-gray-50 rounded-lg border border-gray-800 dark:border-gray-200">
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 bg-canvas dark:bg-canvas rounded-lg border border-line dark:border-line">
                         <Star size={13} className="text-[#FF1E56] fill-[#FF1E56]"/>
-                        <span className="text-white dark:text-gray-900 text-sm font-bold">{item.rating}/5</span>
+                        <span className="text-ink text-sm font-bold">{item.rating}/5</span>
                     </div>
                 )}
             </div>
 
             <button
                 onClick={() => onNavigateToAlbum(item)}
-                className="w-full text-left flex items-center gap-5 bg-[#13131A] dark:bg-gray-50 p-4 rounded-xl border border-gray-800/50 dark:border-gray-200 hover:border-gray-700 dark:hover:border-gray-300 transition-all mb-5 pr-8"
+                className="w-full text-left flex items-center gap-5 bg-canvas dark:bg-canvas p-4 rounded-xl border border-line/50 dark:border-line hover:border-line dark:hover:border-gray-300 transition-all mb-5 pr-8"
             >
                 {item.cover ? (
                     <img src={item.cover} alt={item.album}
                          className="w-20 h-20 rounded-md object-cover shadow-md shrink-0"/>
                 ) : (
                     <div
-                        className="w-20 h-20 rounded-md bg-[#2a2e3f] dark:bg-gray-200 flex items-center justify-center shrink-0">
+                        className="w-20 h-20 rounded-md bg-raised dark:bg-gray-200 flex items-center justify-center shrink-0">
                         <Music size={28} className="text-gray-600"/>
                     </div>
                 )}
                 <div>
-                    <h3 className="font-bold text-lg text-white dark:text-gray-900 mb-1">{item.album}</h3>
-                    <p className="text-gray-400 dark:text-gray-600 text-sm mb-2">{item.artist}</p>
+                    <h3 className="font-bold text-lg text-ink mb-1">{item.album}</h3>
+                    <p className="text-muted dark:text-muted text-sm mb-2">{item.artist}</p>
                     <div className="flex items-center gap-2">
                         <StarRating rating={displayRating}/>
                         {item.hasReviewed && <span
@@ -659,7 +659,7 @@ const FeedCard: React.FC<FeedCardProps> = ({
             {isReview && item.content &&
                 <p className="text-gray-200 dark:text-gray-700 leading-relaxed text-[15px] mb-6">{item.content}</p>}
 
-            <div className="h-px w-full bg-gray-800 dark:bg-gray-200 mb-4"/>
+            <div className="h-px w-full bg-raised dark:bg-gray-200 mb-4"/>
 
             <div className="flex items-center gap-6">
                 {isReview ? (
@@ -668,7 +668,7 @@ const FeedCard: React.FC<FeedCardProps> = ({
                             onClick={() => onLike(item.id)}
                             disabled={isLiking}
                             className={`flex items-center gap-2 text-sm font-semibold transition-colors ${
-                                item.isLiked ? "text-[#FF1E56]" : "text-gray-400 dark:text-gray-500 hover:text-[#FF1E56]"
+                                item.isLiked ? "text-[#FF1E56]" : "text-muted dark:text-muted hover:text-[#FF1E56]"
                             }`}
                         >
                             {isLiking ? <Loader2 size={18} className="animate-spin"/> :
@@ -679,7 +679,7 @@ const FeedCard: React.FC<FeedCardProps> = ({
                         <button
                             onClick={handleToggleComments}
                             className={`flex items-center gap-2 text-sm font-semibold transition-colors ${
-                                commentsOpen ? "text-white dark:text-gray-900" : "text-gray-400 dark:text-gray-500 hover:text-white dark:hover:text-gray-900"
+                                commentsOpen ? "text-ink" : "text-muted dark:text-muted hover:text-white dark:hover:text-gray-900"
                             }`}
                         >
                             <MessageCircle size={18}/>
@@ -688,7 +688,7 @@ const FeedCard: React.FC<FeedCardProps> = ({
 
                         <button
                             onClick={() => setShowShareModal(true)}
-                            className="flex items-center gap-2 text-sm font-semibold text-gray-400 dark:text-gray-500 hover:text-white dark:hover:text-gray-900 transition-colors"
+                            className="flex items-center gap-2 text-sm font-semibold text-muted dark:text-muted hover:text-white dark:hover:text-gray-900 transition-colors"
                         >
                             <Share2 size={18}/>
                         </button>
@@ -708,14 +708,14 @@ const FeedCard: React.FC<FeedCardProps> = ({
 
             {commentsOpen && (
                 <div
-                    className="mt-6 pt-4 border-t border-gray-800/50 dark:border-gray-200 animate-in fade-in duration-200">
+                    className="mt-6 pt-4 border-t border-line/50 dark:border-line animate-in fade-in duration-200">
                     <div className="space-y-4 mb-4">
                         {commentsLoading ? (
                             <div className="flex items-center gap-2 text-gray-500 text-sm py-2">
                                 <Loader2 size={14} className="animate-spin"/> {t("loading")}
                             </div>
                         ) : rootComments.length === 0 ? (
-                            <p className="text-gray-600 dark:text-gray-400 text-sm py-2">{t("no_comments")}</p>
+                            <p className="text-gray-600 dark:text-muted text-sm py-2">{t("no_comments")}</p>
                         ) : (
                             rootComments.map((comment) => (
                                 <CommentItem
@@ -752,12 +752,12 @@ const FeedCard: React.FC<FeedCardProps> = ({
                                 value={commentInput}
                                 onChange={(e) => setCommentInput(e.target.value)}
                                 onKeyDown={(e) => e.key === "Enter" && handleSubmitComment()}
-                                className="w-full bg-[#13131A] dark:bg-gray-50 border border-gray-800 dark:border-gray-200 rounded-full py-3 pl-4 pr-12 text-sm text-white dark:text-gray-900 focus:outline-none transition-colors shadow-inner"
+                                className="w-full bg-canvas dark:bg-canvas border border-line dark:border-line rounded-full py-3 pl-4 pr-12 text-sm text-ink focus:outline-none transition-colors shadow-inner"
                             />
                             <button
                                 onClick={handleSubmitComment}
                                 disabled={submittingComment}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#FF1E56] transition-colors p-1"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-[#FF1E56] transition-colors p-1"
                             >
                                 {submittingComment ? <Loader2 size={18} className="animate-spin"/> : <Send size={18}/>}
                             </button>
