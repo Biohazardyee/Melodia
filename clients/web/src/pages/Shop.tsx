@@ -646,7 +646,7 @@ const Shop: React.FC = () => {
                                             isEquipped ? "border-purple-500" : "border-line dark:border-line"
                                         }`}
                                     >
-                                        <div className={`h-24 rounded-xl mb-4 bg-panel/60 dark:bg-canvas ${def?.className || ""}`}/>
+                                        <div aria-hidden="true" className={`pattern-preview rounded-xl mb-4 ${def?.className || ""}`}/>
 
                                         <div className="flex items-center justify-between mb-4">
                                             <h3 className="font-bold text-ink flex items-center gap-2">

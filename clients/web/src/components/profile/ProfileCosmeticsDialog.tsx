@@ -320,7 +320,7 @@ export default function ProfileCosmeticsDialog({ setShowCosmetics, userProfil, e
                                                         disabled={equipping !== null}
                                                         className={`flex flex-col items-center gap-1.5 p-2 rounded-xl border transition-all disabled:opacity-50 ${equippedPattern === id ? "border-purple-500" : "border-line dark:border-line hover:border-slate-600 dark:hover:border-gray-300"}`}
                                                     >
-                                                        <div className={`w-full h-10 rounded-lg bg-raised dark:bg-raised ${def?.className || ""}`} />
+                                                        <div aria-hidden="true" className={`pattern-preview pattern-preview-small w-full rounded-lg ${def?.className || ""}`} />
                                                         <span className={`text-[11px] truncate max-w-full ${equippedPattern === id ? "text-purple-400 dark:text-purple-500 font-bold" : "text-muted dark:text-muted"}`}>
                                                             {cosmeticLabel(id)}
                                                         </span>

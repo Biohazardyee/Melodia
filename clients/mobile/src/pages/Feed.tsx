@@ -7,19 +7,18 @@ import {
     TouchableOpacity,
     StatusBar,
     ActivityIndicator,
-    Image,
     Alert,
     FlatList,
 } from "react-native";
 import {Ionicons} from "@expo/vector-icons";
 import {useTranslation} from "react-i18next";
-import {useRouter, useFocusEffect, Router} from "expo-router";
+import {useFocusEffect} from "expo-router";
 import Header from "@/src/components/Header";
 import apiClient from "../api/client";
 import * as SecureStore from "expo-secure-store";
 import {jwtDecode} from "jwt-decode";
 import {AuthGuardWrapper} from "../components/AuthGuardMapper";
-import {getValidSource} from "@/helpers/helpers";
+import CommunityCard from "../components/CommunityCard";
 import {useTheme} from "../context/ThemeContext";
 
 type Filter = "Review" | "Abonnement" | "Tendances";
@@ -59,7 +58,6 @@ function timeAgo(dateStr: string | undefined, t: (key: string, opts?: any) => st
 
 const Feed = () => {
     const {t} = useTranslation();
-    const router: Router = useRouter();
     const {theme, isDarkMode} = useTheme();
     const [activeFilter, setActiveFilter] = useState<Filter>("Review");
     const [searchQuery, setSearchQuery] = useState("");
@@ -248,7 +246,7 @@ const Feed = () => {
             setFeedsCache((prev: FeedCache) => ({...prev, [activeFilter]: finalItems}));
         } catch (error) {
             console.error("Erreur toggle like:", error);
-            await fetchFeed(activeFilter, 0, false);
+            setFeedsCache(prev => ({...prev, [activeFilter]: prev[activeFilter].map(entry => entry.id === id ? item : entry)}));
             Alert.alert(t("error"), t("feed_like_update_error"));
         } finally {
             isInteracting.current = false;
@@ -277,191 +275,15 @@ const Feed = () => {
         );
     });
 
-    const renderItem = ({item}: { item: any; index: number }) => {
-        const liked: boolean = !!item.isLiked;
-        const displayRating: number =
-            item.userReviewRating ?? item.globalRating ?? item.rating ?? 0;
-
-        return (
-            <View style={[styles.card, {backgroundColor: theme.surface, borderColor: theme.border}]}>
-                <View style={styles.userRow}>
-                    <TouchableOpacity
-                        style={styles.userInfoClickable}
-                        onPress={(): void =>
-                            router.push({
-                                pathname: "/profile",
-                                params: {id: item.user_id},
-                            })
-                        }
-                    >
-                        {item.user_image ? (
-                            <Image source={{uri: item.user_image}} style={styles.avatar}/>
-                        ) : (
-                            <View
-                                style={[
-                                    styles.avatar,
-                                    {
-                                        backgroundColor:
-                                            item.type === "review" ? "#2563eb" : "#ec4899",
-                                    },
-                                ]}
-                            >
-                                <Text style={styles.avatarText}>
-                                    {item.user_name
-                                        ? item.user_name.substring(0, 2).toUpperCase()
-                                        : "AI"}
-                                </Text>
-                            </View>
-                        )}
-                        <View>
-                            <Text style={[styles.userName, {color: theme.text}]}>
-                                {(item.user_name || t("recommendation_label")) + " "}
-                                <Text style={[styles.actionText, {color: theme.placeholder}]}>
-                                    {item.type === "review"
-                                        ? t("action_wrote_review")
-                                        : t("action_new_album")}
-                                </Text>
-                            </Text>
-                            <Text style={[styles.timeText, {color: theme.placeholder}]}>
-                                {item.type === "recommendation" ? t("feed_ai_suggestion") : timeAgo(item.created_at, t)}
-                            </Text>
-                        </View>
-                    </TouchableOpacity>
-                </View>
-
-                <TouchableOpacity
-                    activeOpacity={0.8}
-                    onPress={(): void =>
-                        router.push({
-                            pathname: "/albumdetails",
-                            params: {
-                                id: item.api_id || item.media_id || "",
-                                artist: item.artist,
-                                album: item.album,
-                                cover: item.cover,
-                            },
-                        })
-                    }
-                >
-                    <View style={[styles.albumRow, {backgroundColor: theme.inputBg}]}>
-                        {item.cover ? (
-                            <Image
-                                source={getValidSource(item.cover)}
-                                style={styles.albumCover}
-                            />
-                        ) : (
-                            <View style={[styles.albumCover, styles.albumCoverPlaceholder, {backgroundColor: theme.card}]}>
-                                <Ionicons name="musical-notes" size={30} color={theme.placeholder}/>
-                            </View>
-                        )}
-                        <View style={styles.albumDetails}>
-                            <Text style={[styles.albumTitle, {color: theme.text}]} numberOfLines={1}>
-                                {item.album}
-                            </Text>
-                            <Text style={[styles.artistName, {color: theme.subText}]}>{item.artist}</Text>
-                            <View style={styles.starsRow}>
-                                {[...Array(5)].map((_, i: number) => (
-                                    <Ionicons
-                                        key={i}
-                                        name="star"
-                                        size={14}
-                                        color={i < displayRating ? "#ec4899" : theme.separator}
-                                    />
-                                ))}
-                                {item.hasReviewed && (
-                                    <Text style={styles.userRatingBadge}>{t("badge_your_rating")}</Text>
-                                )}
-                            </View>
-                        </View>
-                    </View>
-
-                    {item.type === "review" && item.content && (
-                        <View style={styles.reviewBody}>
-                            {item.title && (
-                                <Text style={[styles.reviewTitle, {color: theme.text}]}>{item.title}</Text>
-                            )}
-                            <Text style={[styles.postContent, {color: theme.subText}]} numberOfLines={3}>
-                                {item.content}
-                            </Text>
-                        </View>
-                    )}
-                </TouchableOpacity>
-
-                <View style={styles.cardFooter}>
-                    {item.type === "review" ? (
-                        <>
-                            <TouchableOpacity
-                                style={[styles.actionButton, {backgroundColor: theme.card}]}
-                                onPress={(): Promise<void> => handleLike(item.id)}
-                            >
-                                <Ionicons
-                                    name={liked ? "heart" : "heart-outline"}
-                                    size={20}
-                                    color={liked ? "#ec4899" : theme.subText}
-                                />
-                                <Text
-                                    style={[styles.actionCount, {color: theme.subText}, liked && {color: "#ec4899"}]}
-                                >
-                                    {item.likes_count || 0}
-                                </Text>
-                            </TouchableOpacity>
-
-                            <TouchableOpacity
-                                style={[styles.actionButton, {backgroundColor: theme.card}]}
-                                onPress={(): void =>
-                                    router.push(`/review/${item.review_id}/comments`)
-                                }
-                            >
-                                <Ionicons name="chatbubble-outline" size={18} color={theme.subText}/>
-                                <Text style={[styles.actionCount, {color: theme.subText}]}>
-                                    {item.comments_count || 0}
-                                </Text>
-                            </TouchableOpacity>
-                        </>
-                    ) : (
-                        <TouchableOpacity
-                            style={[
-                                styles.actionButton,
-                                styles.writeReviewBtn,
-                                item.hasReviewed && styles.alreadyReviewedBtn,
-                            ]}
-                            onPress={(): void =>
-                                router.push({
-                                    pathname: "/albumdetails",
-                                    params: {
-                                        id: item.api_id || item.media_id,
-                                        artist: item.artist,
-                                        album: item.album,
-                                        cover: typeof item.cover === "string" ? item.cover : "",
-                                    },
-                                })
-                            }
-                        >
-                            <Ionicons
-                                name={item.hasReviewed ? "checkmark-circle" : "create-outline"}
-                                size={18}
-                                color={item.hasReviewed ? "#10b981" : "#ec4899"}
-                            />
-                            <Text
-                                style={[
-                                    styles.actionCount,
-                                    {color: item.hasReviewed ? "#10b981" : "#ec4899"},
-                                ]}
-                            >
-                                {item.hasReviewed ? t("already_reviewed") : t("write_review")}
-                            </Text>
-                        </TouchableOpacity>
-                    )}
-                </View>
-            </View>
-        );
-    };
+    const renderItem = ({item}: {item: any}) => (
+        <CommunityCard item={item} dateLabel={timeAgo(item.created_at, t)} onLike={handleLike}/>
+    );
 
     const renderFooter = () => {
         if (!isLoadingMore) return <View style={{height: 20}}/>;
         return (
             <View style={styles.footerLoader}>
-                <ActivityIndicator size="small" color="#ec4899"/>
+                <ActivityIndicator size="small" color={theme.accent}/>
             </View>
         );
     };
@@ -469,7 +291,7 @@ const Feed = () => {
     if (isLoading && feedsCache[activeFilter].length === 0) {
         return (
             <View style={[styles.container, styles.center, {backgroundColor: theme.background}]}>
-                <ActivityIndicator size="large" color="#ec4899"/>
+                <ActivityIndicator size="large" color={theme.accent}/>
             </View>
         );
     }
@@ -564,10 +386,10 @@ const FilterButton = ({label, active, onPress, icon}: any) => {
 const styles = StyleSheet.create({
     container: {flex: 1},
     center: {justifyContent: "center", alignItems: "center"},
-    scrollContent: {paddingBottom: 40},
+    scrollContent: {paddingBottom: 40, width: "100%", maxWidth: 680, alignSelf: "center"},
     headerSection: {paddingHorizontal: 20, paddingTop: 10, marginBottom: 5},
-    title: {fontSize: 28, fontWeight: "bold"},
-    subtitle: {fontSize: 14, marginTop: 4},
+    title: {fontSize: 30, fontWeight: "700", letterSpacing: -0.8},
+    subtitle: {fontSize: 14, marginTop: 6, lineHeight: 22},
     searchContainer: {
         flexDirection: "row",
         alignItems: "center",
@@ -599,79 +421,6 @@ const styles = StyleSheet.create({
     filterBtnActive: {},
     filterBtnText: {fontSize: 12, fontWeight: "600"},
     filterBtnTextActive: {},
-    card: {
-        borderRadius: 20,
-        padding: 16,
-        marginBottom: 16,
-        marginHorizontal: 20,
-        borderWidth: 1,
-    },
-    userRow: {flexDirection: "row", alignItems: "center", marginBottom: 12},
-    userInfoClickable: {flexDirection: "row", alignItems: "center", gap: 10},
-    avatar: {
-        width: 36,
-        height: 36,
-        borderRadius: 18,
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    avatarText: {color: "#fff", fontWeight: "bold", fontSize: 12},
-    userName: {fontWeight: "bold", fontSize: 13},
-    actionText: {fontWeight: "400"},
-    timeText: {fontSize: 9, fontWeight: "bold", marginTop: 2},
-    albumRow: {
-        flexDirection: "row",
-        gap: 12,
-        marginBottom: 12,
-        padding: 10,
-        borderRadius: 12,
-    },
-    albumCover: {width: 70, height: 70, borderRadius: 8},
-    albumCoverPlaceholder: {
-        justifyContent: "center",
-        alignItems: "center",
-    },
-    albumDetails: {flex: 1, justifyContent: "center"},
-    albumTitle: {fontSize: 16, fontWeight: "bold"},
-    artistName: {fontSize: 13, marginBottom: 4},
-    starsRow: {flexDirection: "row", alignItems: "center", gap: 4},
-    reviewBody: {marginVertical: 8, paddingHorizontal: 4},
-    reviewTitle: {
-        fontSize: 15,
-        fontWeight: "700",
-        marginBottom: 4,
-    },
-    postContent: {fontSize: 13, lineHeight: 18},
-    cardFooter: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 12,
-        marginTop: 4,
-    },
-    actionButton: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 6,
-        paddingVertical: 6,
-        paddingHorizontal: 12,
-        borderRadius: 20,
-    },
-    writeReviewBtn: {
-        backgroundColor: "#ec489915",
-        borderColor: "#ec489930",
-        borderWidth: 1,
-    },
-    alreadyReviewedBtn: {
-        backgroundColor: "#10b98110",
-        borderColor: "#10b98130",
-    },
-    actionCount: {fontSize: 13, fontWeight: "600"},
-    userRatingBadge: {
-        color: "#ec4899",
-        fontSize: 8,
-        fontWeight: "bold",
-        marginLeft: 4,
-    },
     footerLoader: {
         verticalAlign: "middle",
         paddingVertical: 15,

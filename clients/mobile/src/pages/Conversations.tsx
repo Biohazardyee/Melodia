@@ -1,3 +1,4 @@
+import {brand} from '../design/tokens';
 import React, {useEffect, useState, useCallback, useRef} from "react";
 import {
     View,
@@ -9,7 +10,7 @@ import {
     ActivityIndicator,
     TouchableOpacity,
 } from "react-native";
-import {useNavigation, useFocusEffect} from "@react-navigation/native";
+import {useRouter, useFocusEffect} from "expo-router";
 import Header from "@/src/components/Header";
 import * as SecureStore from "expo-secure-store";
 import {jwtDecode} from "jwt-decode";
@@ -57,7 +58,7 @@ interface Conversation {
 }
 
 const Conversations = () => {
-    const navigation = useNavigation<any>();
+    const router = useRouter();
     const {t} = useTranslation();
     const {theme} = useTheme();
     const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -193,7 +194,7 @@ const Conversations = () => {
     if (loading) {
         return (
             <View style={[styles.safeArea, {backgroundColor: theme.background, justifyContent: "center"}]}>
-                <ActivityIndicator size="large" color="#4cc9f0"/>
+                <ActivityIndicator size="large" color={theme.accent}/>
             </View>
         );
     }
@@ -207,7 +208,7 @@ const Conversations = () => {
                     <RefreshControl
                         refreshing={refreshing}
                         onRefresh={onRefresh}
-                        tintColor="#4cc9f0"
+                        tintColor={brand.primary}
                     />
                 }
             >
@@ -287,11 +288,11 @@ const Conversations = () => {
 
                                     socketRef.current?.emit("mark_as_read", {conversation_id: conv.id});
 
-                                    navigation.navigate("detailsConversations", {
+                                    router.navigate({pathname: '/detailsConversations', params: {
                                         conversationId: conv.id,
                                         userName: otherUser.username,
                                         userProfilePic: otherUser.profile_picture || "",
-                                    });
+                                    }});
                                 }}
                             />
                         );
@@ -314,7 +315,7 @@ const styles = StyleSheet.create({
         marginVertical: 30,
         paddingLeft: 10,
         borderLeftWidth: 4,
-        borderLeftColor: "#4cc9f0",
+        borderLeftColor: brand.primary,
     },
     glitchTitleSub: {
         fontSize: 28,
@@ -352,7 +353,7 @@ const styles = StyleSheet.create({
     },
     avatarUnreadBorder: {
         borderWidth: 2,
-        borderColor: "#4cc9f0",
+        borderColor: brand.primary,
     },
     avatarText: {
         color: "#fff",
@@ -407,14 +408,14 @@ const styles = StyleSheet.create({
     },
 
     unreadBadge: {
-        backgroundColor: "#4cc9f0",
+        backgroundColor: brand.primary,
         minWidth: 22,
         height: 22,
         borderRadius: 11,
         justifyContent: "center",
         alignItems: "center",
         paddingHorizontal: 6,
-        shadowColor: "#4cc9f0",
+        shadowColor: brand.primary,
         shadowOpacity: 0.5,
         shadowRadius: 5,
         elevation: 5,

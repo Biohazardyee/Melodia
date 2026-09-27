@@ -1,14 +1,16 @@
 import React from 'react';
 import {View, Text, TouchableOpacity, StyleSheet, Image} from 'react-native';
 import {Ionicons} from "@expo/vector-icons";
-import {useRouter, Router} from "expo-router";
+import {useRouter} from "expo-router";
 import {useTheme} from '../context/ThemeContext';
+import {useTranslation} from 'react-i18next';
 
 
 const Header: React.FC = () => {
 
-    const router: Router = useRouter();
+    const router = useRouter();
     const {theme} = useTheme();
+    const {t} = useTranslation();
     return (
         <View style={[styles.header, {backgroundColor: theme.background}]}>
             <View style={styles.content}>
@@ -17,22 +19,22 @@ const Header: React.FC = () => {
                     style={styles.logoImage}
                 />
 
-                <Text style={styles.name}>Melodia</Text>
+                <Text style={[styles.name, {color: theme.text}]}>melodia.</Text>
             </View>
 
             <View style={styles.buttons}>
-                <TouchableOpacity onPress={(): void => router.push('/notifications')}>
+                <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('notifications_title')} style={[styles.action, {backgroundColor: theme.card, borderColor: theme.border}]} onPress={(): void => router.push('/notifications')}>
                     <Ionicons
                         name="notifications-outline"
-                        size={26}
+                        size={21}
                         color={theme.text}
                     />
                 </TouchableOpacity>
 
-                <TouchableOpacity onPress={(): void => router.push('/conversations')}>
+                <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('mobile_messages')} style={[styles.action, {backgroundColor: theme.card, borderColor: theme.border}]} onPress={(): void => router.push('/conversations')}>
                     <Ionicons
                         name="paper-plane-outline"
-                        size={26}
+                        size={21}
                         color={theme.text}
                     />
                 </TouchableOpacity>
@@ -51,8 +53,8 @@ const styles = StyleSheet.create({
         paddingBottom: 15,
     },
     logoImage: {
-        width: 50,
-        height: 50,
+        width: 32,
+        height: 32,
     },
     content: {
         flexDirection: 'row',
@@ -62,15 +64,14 @@ const styles = StyleSheet.create({
     name: {
         fontSize: 21,
         fontWeight: 'bold',
-        color: '#ad46ff',
-        letterSpacing: 0.5,
-        fontFamily: 'Pacifico_400Regular',
+        letterSpacing: -0.8,
     },
     buttons: {
         flexDirection: 'row',
-        gap: 15,
+        gap: 8,
         alignItems: 'center',
-    }
+    },
+    action: {width: 44, height: 44, borderRadius: 15, borderWidth: 1, alignItems: 'center', justifyContent: 'center'},
 });
 
 export default Header;

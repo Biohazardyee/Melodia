@@ -45,6 +45,12 @@ html.theme-cyan {
   --ui-canvas: #0b1219; --ui-panel: #111e29; --ui-raised: #192e3c;
   --ui-line: #294151; --ui-accent: #80dcea; --ui-accent-soft: #80dcea12; --ui-action: #137b92;
 }
+html.theme-amber {
+  --ui-canvas: #17120e; --ui-panel: #211a14; --ui-raised: #30251b;
+  --ui-line: #49392a; --ui-ink: #faf2e7; --ui-muted: #baaa96;
+  --ui-accent: #edc080; --ui-accent-soft: #edc08014; --ui-action: #91602c;
+  --ui-shadow: 0 14px 44px #08050230;
+}
 
 @layer base {
   body { margin: 0; background: var(--ui-canvas); color: var(--ui-ink); -webkit-font-smoothing: antialiased; }

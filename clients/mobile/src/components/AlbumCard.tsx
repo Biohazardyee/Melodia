@@ -1,9 +1,9 @@
 import React from "react";
-import {View, Text, StyleSheet, Image, TouchableOpacity} from "react-native";
+import {View, Text, StyleSheet, TouchableOpacity} from "react-native";
 import {Ionicons} from "@expo/vector-icons";
-import {Router, useRouter} from "expo-router";
-import {getValidSource} from "@/helpers/helpers";
+import {useRouter} from "expo-router";
 import {useTheme} from '../context/ThemeContext';
+import CoverImage from './CoverImage';
 
 type AlbumCardProps = {
     id: string | number;
@@ -21,7 +21,7 @@ const AlbumCard: React.FC<AlbumCardProps> = ({
                                                  rating,
                                                  cover,
                                              }: AlbumCardProps) => {
-    const router: Router = useRouter();
+    const router = useRouter();
     const {theme} = useTheme();
 
     const numericRating: number =
@@ -29,6 +29,8 @@ const AlbumCard: React.FC<AlbumCardProps> = ({
 
     return (
         <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel={`${title}, ${artist}`}
             style={[styles.albumCard, {backgroundColor: theme.card, borderColor: theme.border}]}
             onPress={(): void =>
                 router.push({
@@ -38,7 +40,7 @@ const AlbumCard: React.FC<AlbumCardProps> = ({
             }
         >
             <View>
-                <Image source={getValidSource(cover)} style={styles.albumCover}/>
+                <CoverImage uri={cover} style={styles.albumCover}/>
             </View>
 
             <View style={styles.albumInfo}>
@@ -57,12 +59,12 @@ const AlbumCard: React.FC<AlbumCardProps> = ({
                                 name="star"
                                 size={12}
                                 color={
-                                    i < Math.floor(numericRating || 0) ? "#ec4899" : theme.separator
+                                    i < Math.floor(numericRating || 0) ? theme.accent : theme.separator
                                 }
                             />
                         ))}
                         {numericRating > 0 && (
-                            <Text style={styles.ratingText}>{numericRating.toFixed(1)}</Text>
+                            <Text style={[styles.ratingText, {color: theme.accent}]}>{numericRating.toFixed(1)}</Text>
                         )}
                     </View>
                 </View>
@@ -74,14 +76,16 @@ const AlbumCard: React.FC<AlbumCardProps> = ({
 const styles = StyleSheet.create({
     albumCard: {
         width: "100%",
-        borderRadius: 15,
+        borderRadius: 18,
+        padding: 8,
         marginBottom: 20,
         overflow: "hidden",
         borderWidth: 1,
     },
     albumCover: {
         width: "100%",
-        height: 150,
+        aspectRatio: 1,
+        borderRadius: 12,
     },
     genreBadge: {
         position: "absolute",
@@ -98,7 +102,8 @@ const styles = StyleSheet.create({
         fontWeight: "bold",
     },
     albumInfo: {
-        padding: 12,
+        paddingHorizontal: 4,
+        paddingVertical: 12,
     },
     albumTitle: {
         fontWeight: "bold",

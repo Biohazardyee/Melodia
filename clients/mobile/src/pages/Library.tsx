@@ -1,15 +1,14 @@
 import React, {useState, useCallback} from "react";
 import {useTranslation} from "react-i18next";
-import {Router, useFocusEffect} from "expo-router";
+import {useFocusEffect} from "expo-router";
 import {
     View,
     Text,
     StyleSheet,
     FlatList,
     TouchableOpacity,
-    Dimensions,
     Alert,
-    ActivityIndicator,
+    useWindowDimensions,
 } from "react-native";
 import {Ionicons} from "@expo/vector-icons";
 import Header from "@/src/components/Header";
@@ -20,6 +19,7 @@ import apiClient from "../api/client";
 import * as SecureStore from "expo-secure-store";
 import {jwtDecode} from "jwt-decode";
 import {useTheme} from "../context/ThemeContext";
+import Skeleton from '../components/Skeleton';
 
 type Playlist = {
     id: string;
@@ -30,16 +30,20 @@ type Playlist = {
     is_public: boolean;
 };
 
-const {width} = Dimensions.get("window");
 
 const Library: React.FC = () => {
     const {t} = useTranslation();
-    const router: Router = useRouter();
+    const router = useRouter();
     const {theme} = useTheme();
+    const {width} = useWindowDimensions();
+    const columns = width >= 700 ? 3 : 2;
     const [playlists, setPlaylists] = useState<Playlist[]>([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
 
     const fetchUserPlaylists: () => Promise<void> = async (): Promise<void> => {
+        setError(false);
         try {
             const token: string | null = await SecureStore.getItemAsync("userToken");
             if (!token) {
@@ -56,18 +60,18 @@ const Library: React.FC = () => {
                         id: p.id,
                         title: p.name,
                         count: p.items?.length ?? 0,
-                        image:
-                            p.image_url ||
-                            "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=500",
+                        image: p.image_url || '',
                         is_public: p.is_public,
                     }),
                 );
                 setPlaylists(formattedPlaylists);
             }
         } catch (error) {
+            setError(true);
             console.error("Library Error:", error);
         } finally {
             setLoading(false);
+            setRefreshing(false);
         }
     };
 
@@ -127,14 +131,14 @@ const Library: React.FC = () => {
     const renderItem = ({item}: { item: Playlist }) => {
         if (item.isCreate) {
             return (
-                <View style={styles.card}>
+                <View style={[styles.card, {maxWidth: `${100 / columns}%`}]}>
                     <TouchableOpacity
                         style={[styles.createCard, {backgroundColor: theme.card, borderColor: theme.border}]}
                         onPress={(): void => router.push("/createplaylist")}
                         activeOpacity={0.7}
                     >
-                        <View style={styles.iconCircle}>
-                            <Ionicons name="add" size={32} color="#ec4899"/>
+                        <View style={[styles.iconCircle, {backgroundColor: theme.accentSoft}]}>
+                            <Ionicons name="add" size={32} color={theme.accent}/>
                         </View>
                         <Text style={[styles.createLabelInner, {color: theme.text}]}>{t("new_playlist")}</Text>
                     </TouchableOpacity>
@@ -143,7 +147,7 @@ const Library: React.FC = () => {
         }
 
         return (
-            <View style={styles.card}>
+            <View style={[styles.card, {maxWidth: `${100 / columns}%`}]}>
                 <PlaylistCard
                     title={item.title}
                     count={item.count}
@@ -168,27 +172,34 @@ const Library: React.FC = () => {
 
                 {loading ? (
                     <View style={styles.loaderContainer}>
-                        <ActivityIndicator size="large" color="#ec4899"/>
+                        <View style={{width: '100%', flexDirection: 'row', gap: 16, padding: 20}}>{[0,1].map(i => <Skeleton key={i} style={{flex: 1, aspectRatio: 0.8}}/>)}</View>
                         <Text style={[styles.loaderText, {color: theme.subText}]}>
                             {t("msg_loading_music")}
                         </Text>
                     </View>
                 ) : (
                     <FlatList
+                        key={columns}
                         data={dataWithCreate}
                         keyExtractor={(item: Playlist): string => item.id}
-                        numColumns={2}
+                        numColumns={columns}
+                        refreshing={refreshing}
+                        onRefresh={() => {setRefreshing(true); fetchUserPlaylists();}}
                         contentContainerStyle={styles.listContainer}
                         showsVerticalScrollIndicator={false}
                         renderItem={renderItem}
                         ListHeaderComponent={
                             <View style={styles.headerTextContainer}>
                                 <Text style={[styles.title, {color: theme.text}]}>{t("my_playlists_title")}</Text>
-                                <View style={styles.badge}>
-                                    <Text style={styles.subtitle}>
+                                <View style={[styles.badge, {backgroundColor: theme.accentSoft}]}>
+                                    <Text style={[styles.subtitle, {color: theme.accent}]}>
                                         {playlists.length} {t("library_playlists_created")}
                                     </Text>
                                 </View>
+                                {error && <TouchableOpacity accessibilityRole="button" onPress={fetchUserPlaylists} style={{paddingVertical: 16}}>
+                                    <Text style={{color: theme.danger}}>{t('mobile_load_error')}</Text>
+                                    <Text style={{color: theme.accent, marginTop: 8}}>{t('mobile_retry')}</Text>
+                                </TouchableOpacity>}
                             </View>
                         }
                     />
@@ -212,14 +223,14 @@ const styles = StyleSheet.create({
         fontSize: 14,
     },
     headerTextContainer: {
-        paddingHorizontal: 16,
+        paddingHorizontal: 8,
         marginTop: 25,
         marginBottom: 20,
     },
     title: {
         fontSize: 28,
         fontWeight: "800",
-        letterSpacing: 0.5,
+        letterSpacing: -0.8,
     },
     badge: {
         backgroundColor: "rgba(236, 72, 153, 0.1)",
@@ -240,8 +251,7 @@ const styles = StyleSheet.create({
     },
     card: {
         flex: 1,
-        margin: 8,
-        maxWidth: width / 2 - 20,
+        padding: 6,
     },
     createCard: {
         width: "100%",
@@ -252,9 +262,9 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         shadowColor: "#000",
         shadowOffset: {width: 0, height: 4},
-        shadowOpacity: 0.3,
+        shadowOpacity: 0,
         shadowRadius: 5,
-        elevation: 5,
+        elevation: 0,
     },
     iconCircle: {
         width: 60,

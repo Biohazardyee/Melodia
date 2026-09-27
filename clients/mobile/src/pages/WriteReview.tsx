@@ -1,4 +1,5 @@
-import React, {useEffect, useState} from "react";
+import {brand} from '../design/tokens';
+import React, {useEffect, useRef, useState} from "react";
 import {
     StyleSheet,
     View,
@@ -12,7 +13,7 @@ import {
 } from "react-native";
 import {Ionicons} from "@expo/vector-icons";
 import Header from "@/src/components/Header";
-import {Router, useLocalSearchParams, useRouter} from "expo-router";
+import {useLocalSearchParams, useRouter} from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import apiClient from "../api/client";
 import {useTranslation} from "react-i18next";
@@ -20,7 +21,7 @@ import {useTheme} from "../context/ThemeContext";
 
 const WriteReview = () => {
     const {t} = useTranslation();
-    const router: Router = useRouter();
+    const router = useRouter();
     const {theme} = useTheme();
 
     const {id, title, artist, cover, reviewId, editMode} =
@@ -30,6 +31,7 @@ const WriteReview = () => {
     const [reviewTitle, setReviewTitle] = useState("");
     const [review, setReview] = useState("");
     const [loading, setLoading] = useState(false);
+    const reviewInputRef = useRef<TextInput>(null);
 
     useEffect((): void => {
         const fetchReviewIfEdit: () => Promise<void> = async (): Promise<void> => {
@@ -122,7 +124,14 @@ const WriteReview = () => {
         <View style={[styles.safeArea, {backgroundColor: theme.background}]}>
             <Header/>
 
-            <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+            <ScrollView
+                style={styles.container}
+                contentContainerStyle={styles.scrollContent}
+                automaticallyAdjustKeyboardInsets
+                keyboardDismissMode="none"
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator
+            >
                 <View style={styles.headerRow}>
                     <View>
                         <Text style={[styles.title, {color: theme.text}]}>{t("write_comment")}</Text>
@@ -160,6 +169,10 @@ const WriteReview = () => {
                         onChangeText={setReviewTitle}
                         maxLength={100}
                         editable={!loading}
+                        returnKeyType="next"
+                        submitBehavior="submit"
+                        onSubmitEditing={() => reviewInputRef.current?.focus()}
+                        accessibilityLabel={t("review_title_label")}
                     />
                     <Text style={[styles.charCount, {color: theme.placeholder}]}>
                         {(reviewTitle || "").length}{t("char_limit_100")}
@@ -167,7 +180,9 @@ const WriteReview = () => {
 
                     <Text style={[styles.label, {color: theme.text}]}>{t("review_content_label")}</Text>
                     <TextInput
+                        ref={reviewInputRef}
                         style={[styles.input, styles.textArea, {backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.border}]}
+                        accessibilityLabel={t("review_content_label")}
                         placeholder={t("review_content_placeholder")}
                         placeholderTextColor={theme.placeholder}
                         multiline
@@ -219,6 +234,9 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     container: {
+        flex: 1,
+    },
+    scrollContent: {
         padding: 20,
     },
     headerRow: {
@@ -255,7 +273,7 @@ const styles = StyleSheet.create({
         fontWeight: "600",
     },
     artistName: {
-        color: "#4A90E2",
+        color: brand.primary,
         fontSize: 14,
     },
     formContainer: {
@@ -303,7 +321,7 @@ const styles = StyleSheet.create({
     },
     publishButton: {
         flexDirection: "row",
-        backgroundColor: "#3b82f6",
+        backgroundColor: brand.primary,
         paddingVertical: 12,
         paddingHorizontal: 25,
         borderRadius: 8,

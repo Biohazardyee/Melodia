@@ -1,3 +1,4 @@
+import {brand} from '../design/tokens';
 import React, {useEffect, useState, useRef} from "react";
 import {
     View,
@@ -148,11 +149,11 @@ const UpdateProfile = () => {
 
             {/* Avatar */}
             <TouchableOpacity style={styles.avatarWrapper} onPress={pickImage} activeOpacity={0.85}>
-                <View style={[styles.avatarRing, {borderColor: "#4A90E2"}]}>
+                <View style={[styles.avatarRing, {borderColor: brand.primary}]}>
                     {avatarUri ? (
                         <Image source={{uri: avatarUri}} style={styles.avatar}/>
                     ) : (
-                        <View style={[styles.avatarFallback, {backgroundColor: "#4A90E2"}]}>
+                        <View style={[styles.avatarFallback, {backgroundColor: brand.primary}]}>
                             <Text style={styles.avatarInitials}>
                                 {username?.substring(0, 2).toUpperCase() || "U"}
                             </Text>
@@ -211,7 +212,7 @@ const UpdateProfile = () => {
                     {showSuggestions && (
                         <View style={[styles.suggestions, {backgroundColor: theme.card, borderColor: theme.border}]}>
                             {isSearching ? (
-                                <ActivityIndicator color="#4A90E2" style={{padding: 14}}/>
+                                <ActivityIndicator color={theme.accent} style={{padding: 14}}/>
                             ) : (
                                 suggestions.map((item, i) => (
                                     <TouchableOpacity
@@ -227,7 +228,7 @@ const UpdateProfile = () => {
                                         }}
                                     >
                                         <View style={[styles.suggestionIcon, {backgroundColor: theme.surface}]}>
-                                            <Ionicons name="musical-notes" color="#4A90E2" size={14}/>
+                                            <Ionicons name="musical-notes" color={theme.accent} size={14}/>
                                         </View>
                                         <Text style={[styles.suggestionText, {color: theme.text}]}>
                                             {item.name}
@@ -345,7 +346,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         gap: 5,
-        backgroundColor: "#4A90E2",
+        backgroundColor: brand.primary,
         paddingHorizontal: 12,
         paddingVertical: 5,
         borderRadius: 20,
@@ -425,13 +426,13 @@ const styles = StyleSheet.create({
 
     /* Save button */
     saveButton: {
-        backgroundColor: "#4A90E2",
+        backgroundColor: brand.primary,
         marginHorizontal: 20,
         marginTop: 24,
         borderRadius: 14,
         paddingVertical: 15,
         alignItems: "center",
-        shadowColor: "#4A90E2",
+        shadowColor: brand.primary,
         shadowOffset: {width: 0, height: 4},
         shadowOpacity: 0.3,
         shadowRadius: 8,

@@ -4,35 +4,19 @@
     "slug": "melodia",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/logo.png",
+    "icon": "./assets/images/app-icon-square.png",
     "scheme": "projetsupcontentmobile",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
-    "splash": {
-      "image": "./assets/images/logo.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#1C1C28"
-    },
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/logo.png",
-        "backgroundColor": "#1C1C28"
+        "foregroundImage": "./assets/images/app-icon-square.png",
+        "backgroundColor": "#101114"
       },
-      "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.biohazardyesorganization.melodia"
-    },
-    "androidStatusBar": {
-      "backgroundColor": "#1C1C28",
-      "barStyle": "light-content",
-      "translucent": false
-    },
-    "androidNavigationBar": {
-      "backgroundColor": "#1C1C28",
-      "barStyle": "light-content"
     },
     "web": {
       "bundler": "metro",
@@ -44,7 +28,15 @@
       "expo-font",
       "expo-web-browser",
       "expo-localization",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-sharing",
+      ["expo-splash-screen", {
+        "image": "./assets/images/logo.png",
+        "imageWidth": 180,
+        "resizeMode": "contain",
+        "backgroundColor": "#101114"
+      }],
+      "expo-status-bar"
     ],
     "experiments": {
       "typedRoutes": true

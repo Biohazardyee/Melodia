@@ -1,24 +1,29 @@
 import React from 'react';
 import {TouchableOpacity, StyleSheet, ViewStyle} from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
-import {Router, useRouter} from 'expo-router';
+import {useRouter, type Href} from 'expo-router';
 import {useTheme} from '../context/ThemeContext';
+import {useTranslation} from 'react-i18next';
 
 type BackButtonProps = {
     style?: ViewStyle;
+    fallback?: Href;
 }
 
-const BackButton = ({style}: BackButtonProps) => {
-    const router: Router = useRouter();
+const BackButton = ({style, fallback = '/'}: BackButtonProps) => {
+    const router = useRouter();
     const {theme} = useTheme();
+    const {t} = useTranslation();
 
     return (
         <TouchableOpacity
-            style={[styles.button, style]}
-            onPress={(): void => router.back()}
+            accessibilityRole="button"
+            accessibilityLabel={t('back')}
+            style={[styles.button, {backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1}, style]}
+            onPress={(): void => router.canGoBack() ? router.back() : router.replace(fallback)}
             activeOpacity={0.7}
         >
-            <Ionicons name="chevron-back" size={30} color={theme.text}/>
+            <Ionicons name="chevron-back" size={22} color={theme.text}/>
         </TouchableOpacity>
     );
 };
@@ -29,7 +34,7 @@ const styles = StyleSheet.create({
         height: 45,
         justifyContent: 'center',
         alignItems: 'center',
-        borderRadius: 22.5,
+        borderRadius: 14,
     },
 });
 

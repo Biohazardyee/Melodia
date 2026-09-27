@@ -1,3 +1,4 @@
+import {brand} from '../design/tokens';
 import React, {useState, useEffect, useRef} from "react";
 import {
     View,
@@ -12,7 +13,7 @@ import {
     StatusBar,
     Alert,
 } from "react-native";
-import {Router, useLocalSearchParams, useRouter} from "expo-router";
+import {useLocalSearchParams, useRouter} from "expo-router";
 import {Ionicons} from "@expo/vector-icons";
 import apiClient from "../api/client";
 import * as SecureStore from "expo-secure-store";
@@ -25,7 +26,7 @@ const SOCKET_URL: string | undefined = process.env.EXPO_PUBLIC_API_URL;
 
 const DetailsConversations = () => {
     const {conversationId, userName, userProfilePic} = useLocalSearchParams();
-    const router: Router = useRouter();
+    const router = useRouter();
     const {t} = useTranslation();
     const {theme, isDarkMode} = useTheme();
     const [messages, setMessages] = useState<any[]>([]);
@@ -257,7 +258,7 @@ const DetailsConversations = () => {
                     onPress={(): void => router.back()}
                     style={styles.iconButton}
                 >
-                    <Ionicons name="chevron-back" size={28} color="#4cc9f0"/>
+                    <Ionicons name="chevron-back" size={28} color={theme.accent}/>
                 </TouchableOpacity>
                 <View style={styles.headerCenter}>
                     <View style={[styles.headerAvatar, {backgroundColor: theme.surface}]}>
@@ -411,9 +412,9 @@ const styles = StyleSheet.create({
         borderRadius: 20,
     },
     myBubble: {
-        backgroundColor: "#4cc9f0",
+        backgroundColor: brand.primary,
         borderBottomRightRadius: 4,
-        shadowColor: "#4cc9f0",
+        shadowColor: brand.primary,
         shadowOpacity: 0.2,
         shadowRadius: 10,
     },
@@ -440,7 +441,7 @@ const styles = StyleSheet.create({
     },
     input: {flex: 1, fontSize: 16, paddingHorizontal: 10},
     sendButton: {
-        backgroundColor: "#4cc9f0",
+        backgroundColor: brand.primary,
         width: 40,
         height: 40,
         borderRadius: 20,

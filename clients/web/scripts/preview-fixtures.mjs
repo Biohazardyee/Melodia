@@ -14,7 +14,7 @@ const journalEntries = [{id: "journal-demo", title: "Discovery", artist: "Daft P
 const token = ["eyJhbGciOiJub25lIn0", Buffer.from(JSON.stringify({id: "demo-user", role: "ADMIN", exp: Math.floor(Date.now()/1000)+86400})).toString("base64url"), "fixture"].join(".");
 const user = {id: "demo-user", username: "demo", pseudo: "Camille", email: "demo@example.test",
     bio: "Des vinyles, des découvertes et beaucoup de musique.", created_at: now, role: "ADMIN",
-    shop_points: 1250, owned_cosmetics: ["border_aurora", "theme_crimson", "theme_cyan"], profile_picture: null};
+    shop_points: 1250, owned_cosmetics: ["border_aurora", "theme_crimson", "theme_cyan", "theme_amber", ...COSMETICS.filter(c => c.type === "pattern").map(c => c.id)], equipped_pattern: "pattern_vinyl", profile_picture: null};
 const albums = ["Midnight Lines", "Soft Focus", "Blue Hour", "After the Rain"].map((name,i) => ({
     id: `demo-album-${i}`, api_id: `demo-${i}`, name, artist: ["Studio North", "June", "Parallel", "Mira"][i],
     cover: `/__fixtures/cover/${i}.svg`, rating: [4.7,4.2,4.9,3.8][i], mbid: "", year: 2026
@@ -31,6 +31,14 @@ const contacts = [
     {id: "demo-visitor", username: "alex", pseudo: "Alex", profile_picture: null},
     {id: "demo-new", username: "sam", pseudo: "Sam", profile_picture: null},
 ];
+const notificationActions = ["new_follow", "like_added", "comment_added", "new_message", "recommendation", "badge_earned", "playlist_collaborator_added", "room_invited", "review_added"];
+const inbox = Array.from({length:29}, (_, i) => {
+    const actor = contacts[i % contacts.length];
+    return {id:`demo-notification-${i}`, action:notificationActions[i % notificationActions.length], is_read:i % 3 === 0,
+        created_at:new Date(Date.now() - i * 5 * 3600000).toISOString(),
+        related_user_id:i % notificationActions.length === 5 ? null : actor.id,
+        related_user:i % notificationActions.length === 5 ? null : actor};
+});
 const message = (conv, sender, content) => ({id: crypto.randomUUID(), conversation_id: conv, sender_id: sender, content, created_at: new Date().toISOString(), is_read: false});
 const chats = [
     {id: "chat-friend", user1: user, user2: contacts[0], status: "ACCEPTED", initiated_by: null, invitation_sent: false, messages: [message("chat-friend", contacts[0].id, "Tu as écouté le nouvel album ?")]},
@@ -63,6 +71,27 @@ const server = await createServer({
             if (!url.pathname.startsWith("/__fixtures/")) return next();
             const path = url.pathname.slice("/__fixtures".length);
             const send = (body, status = 200) => {res.statusCode = status; res.setHeader("Content-Type", "application/json"); res.end(JSON.stringify(body));};
+            if (path === "/notifications/inbox") {
+                const filter = url.searchParams.get("filter") || "all";
+                const limit = Math.min(50, Math.max(1, Number(url.searchParams.get("limit") || 12)));
+                const updates = n => ["recommendation", "badge_earned"].includes(n.action);
+                const filtered = inbox.filter(n => filter === "unread" ? !n.is_read : filter === "updates" ? updates(n) : true);
+                const totalPages = Math.max(1, Math.ceil(filtered.length / limit));
+                const page = Math.min(totalPages, Math.max(1, Number(url.searchParams.get("page") || 1)));
+                return send({notifications:filtered.slice((page-1)*limit,page*limit),page,limit,total:filtered.length,totalPages,
+                    allCount:inbox.length,unreadCount:inbox.filter(n=>!n.is_read).length,updatesCount:inbox.filter(updates).length});
+            }
+            if (path === "/notifications/read-all" && req.method === "PUT") {
+                let count = 0;
+                inbox.forEach(n => {if (!n.is_read) {n.is_read = true; count++;}});
+                return send({count});
+            }
+            if (path.startsWith("/notifications/demo-notification-") && req.method === "PUT") {
+                const notification = inbox.find(n => path.endsWith(n.id));
+                if (!notification) return send({},404);
+                notification.is_read = true;
+                return send({notification});
+            }
             if (path === "/journal" && req.method === "GET") {
                 const q = (url.searchParams.get("q") || "").toLowerCase();
                 const mood = url.searchParams.get("mood"), month = url.searchParams.get("month");
@@ -131,6 +160,20 @@ const server = await createServer({
             if (path === "/rooms/mine") return send({rooms: []});
             if (path.endsWith("/join")) return send({message:"Ce salon est privé, un mot de passe est requis."}, 403);
             if (path.startsWith("/playlists/user/")) return send({playlists});
+            if ((path === "/playlists" && req.method === "POST") || (path.startsWith("/playlists/") && req.method === "PUT")) {
+                let body = ""; for await (const chunk of req) body += chunk;
+                const data = JSON.parse(body);
+                if (!data.name?.trim() || data.name.length > 30) return send({message:"Invalid playlist name"},400);
+                if (req.method === "POST") {
+                    const playlist = {id:`demo-playlist-${crypto.randomUUID()}`, user_id:user.id, user, items:[], collaborators:[], is_owner:true, ...data};
+                    playlists.push(playlist);
+                    return send({playlist},201);
+                }
+                const playlist = playlists.find(p => path.endsWith(p.id));
+                if (!playlist) return send({},404);
+                Object.assign(playlist,data);
+                return send({playlist});
+            }
             if (path.startsWith("/playlists/")) return send({playlist: playlists.find(p => path.endsWith(p.id)) || playlists[0]});
             if (path.startsWith("/medias/status/user/")) return send({mediasStatus: albums.map((media,i) => ({id:i, status:["listened","favorite","later","listened"][i], media, created_at:now}))});
             if (path === "/medias/trending") return send({medias: albums});

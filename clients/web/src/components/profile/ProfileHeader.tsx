@@ -139,7 +139,7 @@ export default function ProfileHeader({
                             <>
                                 <button
                                     onClick={openCosmetics}
-                                    className="flex items-center gap-2 bg-purple-600/90 hover:bg-purple-500 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all shadow-sm"
+                                    className="primary-action text-sm shadow-sm"
                                 >
                                     <Sparkles size={16} />
                                     {t("cosmetics", "Cosmétiques")}

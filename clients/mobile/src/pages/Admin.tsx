@@ -1,3 +1,4 @@
+import {brand} from '../design/tokens';
 import React, {useState} from 'react';
 import {View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput} from 'react-native';
 import Header from "@/src/components/Header";
@@ -26,9 +27,9 @@ const AdminDashboard = () => {
 
                 {/* STATS CARDS (Aperçu rapide) */}
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.statsScroll}>
-                    <StatCard label={t('admin_total_users')} value="12 847" color="#ad46ff"/>
-                    <StatCard label={t('admin_active_users')} value="8 923" color="#ad46ff"/>
-                    <StatCard label={t('admin_albums')} value="45 621" color="#ad46ff"/>
+                    <StatCard label={t('admin_total_users')} value="12 847" color={brand.primary}/>
+                    <StatCard label={t('admin_active_users')} value="8 923" color={brand.primary}/>
+                    <StatCard label={t('admin_albums')} value="45 621" color={brand.primary}/>
                 </ScrollView>
 
                 {/* NAVBAR TABS */}
@@ -127,7 +128,7 @@ const ReportsView = () => {
                     </View>
                 </View>
                 <Text style={styles.reportDetail}>
-                    {t('target')}: <Text style={{color: '#4cc9f0'}}>@spammer01</Text>
+                    {t('target')}: <Text style={{color: brand.primary}}>@spammer01</Text>
                 </Text>
                 <Text style={styles.reportDetail}>
                     {t('admin_report_reason', {reason: t('reason_inappropriate_language')})}
@@ -244,7 +245,7 @@ const styles = StyleSheet.create({
         color: '#fff'
     },
     tabBadge: {
-        backgroundColor: '#ad46ff',
+        backgroundColor: brand.primary,
         marginLeft: 5,
         borderRadius: 10,
         paddingHorizontal: 6
@@ -307,7 +308,7 @@ const styles = StyleSheet.create({
         fontSize: 12
     },
     userStats: {
-        color: '#4cc9f0',
+        color: brand.primary,
         fontSize: 11,
         marginTop: 4
     },

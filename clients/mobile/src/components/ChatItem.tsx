@@ -1,3 +1,4 @@
+import {brand} from '../design/tokens';
 import React, {useState, useEffect} from "react";
 import {View, Text, Image, TouchableOpacity, StyleSheet} from "react-native";
 import {useTheme} from "../context/ThemeContext";
@@ -44,9 +45,8 @@ const ChatItem = ({
                         onError={() => setHasError(true)}
                     />
                 ) : (
-                    <Text style={styles.avatarText}>{initials}</Text>
+                    <Text style={[styles.avatarText, {color: theme.accent}]}>{initials}</Text>
                 )}
-                <View style={[styles.onlineStatus, {borderColor: theme.card}]}/>
             </View>
 
             <View style={styles.chatInfo}>
@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
     },
     avatarUnreadBorder: {
         borderWidth: 2,
-        borderColor: "#4cc9f0",
+        borderColor: brand.primary,
     },
     avatarText: {
         color: "#fff",
@@ -146,14 +146,14 @@ const styles = StyleSheet.create({
     lastMsg: {fontSize: 14, flex: 1, marginRight: 10},
     lastMsgUnread: {fontWeight: "600"},
     unreadBadge: {
-        backgroundColor: "#4cc9f0",
+        backgroundColor: brand.primary,
         minWidth: 22,
         height: 22,
         borderRadius: 11,
         justifyContent: "center",
         alignItems: "center",
     },
-    unreadText: {color: "#000", fontSize: 11, fontWeight: "900"},
+    unreadText: {color: "#fff", fontSize: 11, fontWeight: "700"},
 });
 
 export default ChatItem;

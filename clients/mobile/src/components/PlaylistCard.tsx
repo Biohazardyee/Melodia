@@ -1,10 +1,10 @@
 import React from 'react';
-import {View, Text, StyleSheet, Image, TouchableOpacity, Dimensions} from 'react-native';
+import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
 import {useTheme} from '../context/ThemeContext';
 import {useTranslation} from 'react-i18next';
+import CoverImage from './CoverImage';
 
-const {width} = Dimensions.get('window');
 
 type PlaylistCardProps = {
     title: string;
@@ -27,8 +27,8 @@ const PlaylistCard: React.FC<PlaylistCardProps> = ({
     const {t} = useTranslation();
 
     return (
-        <TouchableOpacity style={styles.card} onPress={onPress}>
-            <Image source={{uri: image}} style={[styles.cardImage, {backgroundColor: theme.surface}]}/>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel={title} style={[styles.card, {backgroundColor: theme.card, borderColor: theme.border}]} onPress={onPress}>
+            <CoverImage uri={image} style={styles.cardImage}/>
 
             <View style={styles.footerCard}>
                 <View style={styles.textContainer}>
@@ -36,12 +36,14 @@ const PlaylistCard: React.FC<PlaylistCardProps> = ({
                         {title}
                     </Text>
                     <Text style={[styles.cardCount, {color: theme.subText}]}>
-                        {count} {t(count <= 1 ? "track_singular" : "track_plural")}
+                        {t('mobile_album_count', {count})}
                     </Text>
                 </View>
 
                 <TouchableOpacity
-                    onPress={onEdit}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('playlist_options_title')}
+                    onPress={event => {event.stopPropagation(); onEdit();}}
                     style={styles.moreButton}
                 >
                     <Ionicons name="ellipsis-vertical" size={20} color={theme.subText}/>
@@ -54,9 +56,9 @@ const PlaylistCard: React.FC<PlaylistCardProps> = ({
 const styles = StyleSheet.create({
     card: {
         flex: 1,
-        margin: 8,
-        marginBottom: 5,
-        maxWidth: (width / 2) - 24,
+        padding: 8,
+        borderRadius: 18,
+        borderWidth: 1,
     },
     cardImage: {
         width: '100%',
@@ -81,8 +83,10 @@ const styles = StyleSheet.create({
         marginTop: 2,
     },
     moreButton: {
-        paddingLeft: 10,
-        paddingVertical: 5,
+        minWidth: 44,
+        minHeight: 44,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
 });
 

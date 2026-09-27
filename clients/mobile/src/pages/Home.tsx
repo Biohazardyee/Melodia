@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useState, useRef, useEffect} from "react";
 import {
     View,
     Text,
@@ -8,11 +8,10 @@ import {
     TouchableOpacity,
     ActivityIndicator,
     Keyboard,
-    Alert,
 } from "react-native";
 import {Ionicons} from "@expo/vector-icons";
+import Skeleton from '../components/Skeleton';
 import Header from "@/src/components/Header";
-import {StatusBar} from "expo-status-bar";
 import AlbumCard from "@/src/components/AlbumCard";
 import apiClient from "../api/client";
 import {useTranslation} from "react-i18next";
@@ -20,7 +19,7 @@ import {useTheme} from "../context/ThemeContext";
 
 const Home: React.FC = () => {
     const {t} = useTranslation();
-    const {theme, isDarkMode} = useTheme();
+    const {theme} = useTheme();
 
     const SORT_OPTIONS = [
         {value: "az", label: t("sort_az")},
@@ -31,13 +30,20 @@ const Home: React.FC = () => {
     const [albums, setAlbums] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [selectedSort, setSelectedSort] = useState(SORT_OPTIONS[0]);
-    const [isSortOpen, setIsSortOpen] = useState(false);
+    const [hasSearched, setHasSearched] = useState(false);
+    const [searchError, setSearchError] = useState(false);
+    const request = useRef<AbortController | null>(null);
+    useEffect(() => () => {request.current?.abort();}, []);
     const [searchMode, setSearchMode] = useState<"artist" | "album">("artist");
 
     const handleSearch: () => Promise<void> = async (): Promise<void> => {
         const query: string = searchQuery.trim();
 
-        if (!query.trim()) return;
+        if (!query || request.current) return;
+        const controller = new AbortController();
+        request.current = controller;
+        setHasSearched(true);
+        setSearchError(false);
         setLoading(true);
         Keyboard.dismiss();
 
@@ -49,7 +55,7 @@ const Home: React.FC = () => {
                 url = `/api/search?query=${encodeURIComponent(query)}`;
             }
 
-            const response = await apiClient.get(url);
+            const response = await apiClient.get(url, {signal: controller.signal});
             let rawData: any[];
             if (searchMode === "artist") {
                 rawData = response.data?.topAlbums?.topalbums?.album || [];
@@ -92,7 +98,7 @@ const Home: React.FC = () => {
                             cover: album.cover,
                             mbid: album.mbid,
                         })),
-                    });
+                    }, {signal: controller.signal});
 
                     const syncedAlbums = syncResponse.data.medias || [];
 
@@ -122,6 +128,7 @@ const Home: React.FC = () => {
                         applySort(fetchedAlbums, selectedSort.value);
                     }
                 } catch (err: any) {
+                    if (controller.signal.aborted) return;
                     console.warn(
                         "⚠️ Sync échoué, affichage des résultats sans notes:",
                         err.response?.status,
@@ -133,11 +140,12 @@ const Home: React.FC = () => {
                 }
             }
         } catch (error: any) {
-            console.error("❌ Erreur recherche:", error.message);
-            Alert.alert(t("error"), t("error_load_details"));
+            if (controller.signal.aborted) return;
+            setSearchError(true);
             setAlbums([]);
         } finally {
-            setLoading(false);
+            request.current = null;
+            if (!controller.signal.aborted) setLoading(false);
         }
     };
 
@@ -153,229 +161,82 @@ const Home: React.FC = () => {
 
     return (
         <View style={[styles.container, {backgroundColor: theme.background}]}>
-            <StatusBar style={isDarkMode ? "light" : "dark"} backgroundColor={theme.background} translucent={false}/>
             <Header/>
-            <ScrollView
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.scroll}
-            >
-                <View style={styles.headerTextContainer}>
-                    <Text style={[styles.title, {color: theme.text}]}>{t("explore_title")}</Text>
-                    <Text style={[styles.subtitle, {color: theme.subText}]}>{t("explore_subtitle")}</Text>
+            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={styles.scroll}>
+                <View style={styles.heading}>
+                    <Text style={[styles.eyebrow, {color: theme.accent}]}>MELODIA · {t('mobile_explore').toUpperCase()}</Text>
+                    <Text style={[styles.title, {color: theme.text}]}>{t('explore_title')}</Text>
+                    <Text style={[styles.subtitle, {color: theme.subText}]}>{t('mobile_search_intro')}</Text>
                 </View>
-
                 <View style={[styles.filterCard, {backgroundColor: theme.card, borderColor: theme.border}]}>
-                    <View style={[styles.tabContainer, {backgroundColor: theme.inputBg}]}>
-                        <TouchableOpacity
-                            style={[styles.tab, searchMode === "artist" && styles.activeTab]}
-                            onPress={(): void => setSearchMode("artist")}
-                        >
-                            <Text
-                                style={[
-                                    styles.tabText,
-                                    {color: theme.subText},
-                                    searchMode === "artist" && styles.activeTabText,
-                                ]}
-                            >
-                                {t("search_artist_tab")}
-                            </Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={[styles.tab, searchMode === "album" && styles.activeTab]}
-                            onPress={(): void => setSearchMode("album")}
-                        >
-                            <Text
-                                style={[
-                                    styles.tabText,
-                                    {color: theme.subText},
-                                    searchMode === "album" && styles.activeTabText,
-                                ]}
-                            >
-                                {t("search_album_tab")}
-                            </Text>
-                        </TouchableOpacity>
+                    <View style={[styles.tabs, {backgroundColor: theme.surface}]}>
+                        {(['artist', 'album'] as const).map(mode => <TouchableOpacity key={mode} disabled={loading}
+                            accessibilityRole="tab" accessibilityState={{selected: searchMode === mode, disabled: loading}}
+                            onPress={() => setSearchMode(mode)} style={[styles.tab, searchMode === mode && {backgroundColor: theme.action}]}>
+                            <Text style={[styles.tabText, {color: searchMode === mode ? '#fff' : theme.subText}]}>{t(mode === 'artist' ? 'search_artist_tab' : 'search_album_tab')}</Text>
+                        </TouchableOpacity>)}
                     </View>
-
-                    <Text style={[styles.label, {color: theme.text}]}>{t("search_label")}</Text>
                     <View style={[styles.searchBar, {backgroundColor: theme.inputBg, borderColor: theme.border}]}>
-                        <Ionicons
-                            name="search-outline"
-                            size={20}
-                            color={theme.placeholder}
-                            style={{marginRight: 10}}
-                        />
-                        <TextInput
-                            placeholder={
-                                searchMode === "artist"
-                                    ? t("search_artist_placeholder")
-                                    : t("search_album_placeholder")
-                            }
-                            placeholderTextColor={theme.placeholder}
-                            style={[styles.searchInput, {color: theme.text}]}
-                            value={searchQuery}
-                            onChangeText={setSearchQuery}
-                            onSubmitEditing={handleSearch}
-                        />
+                        <Ionicons name="search-outline" size={21} color={theme.subText}/>
+                        <TextInput accessibilityLabel={t('search_label')} placeholder={t(searchMode === 'artist' ? 'search_artist_placeholder' : 'search_album_placeholder')}
+                            placeholderTextColor={theme.placeholder} style={[styles.searchInput, {color: theme.text}]}
+                            value={searchQuery} onChangeText={setSearchQuery} onSubmitEditing={handleSearch} returnKeyType="search" editable={!loading}/>
+                        <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('search_submit_btn')} accessibilityState={{disabled: loading || !searchQuery.trim(), busy: loading}}
+                            disabled={loading || !searchQuery.trim()} onPress={handleSearch} style={[styles.searchButton, {backgroundColor: theme.action, opacity: !searchQuery.trim() ? 0.4 : 1}]}>
+                            {loading ? <ActivityIndicator color="#fff"/> : <Ionicons name="arrow-forward" size={21} color="#fff"/>}
+                        </TouchableOpacity>
                     </View>
-
-                    <Text style={[styles.label, {color: theme.text}]}>{t("sort_label")}</Text>
-                    <TouchableOpacity
-                        style={[styles.dropdown, {backgroundColor: theme.inputBg, borderColor: theme.border}]}
-                        onPress={(): void => setIsSortOpen(!isSortOpen)}
-                    >
-                        <Text style={[styles.dropdownText, {color: theme.text}]}>{selectedSort.label}</Text>
-                        <Ionicons
-                            name={isSortOpen ? "chevron-up" : "chevron-down"}
-                            size={18}
-                            color={theme.placeholder}
-                        />
-                    </TouchableOpacity>
-
-                    {isSortOpen && (
-                        <View style={[styles.dropdownMenu, {backgroundColor: theme.inputBg, borderColor: theme.border}]}>
-                            {SORT_OPTIONS.map((item: { label: string; value: string }) => (
-                                <TouchableOpacity
-                                    key={item.value}
-                                    style={[styles.menuItem, {borderBottomColor: theme.border}]}
-                                    onPress={(): void => {
-                                        setSelectedSort(item);
-                                        applySort(albums, item.value);
-                                        setIsSortOpen(false);
-                                    }}
-                                >
-                                    <Text style={[styles.menuItemText, {color: theme.subText}]}>{item.label}</Text>
-                                    {selectedSort.value === item.value && (
-                                        <Ionicons name="checkmark" size={18} color="#4f46e5"/>
-                                    )}
-                                </TouchableOpacity>
-                            ))}
-                        </View>
-                    )}
-
-                    <TouchableOpacity
-                        style={styles.searchButton}
-                        onPress={handleSearch}
-                        disabled={loading}
-                    >
-                        {loading ? (
-                            <ActivityIndicator color="white"/>
-                        ) : (
-                            <>
-                                <Ionicons
-                                    name="search"
-                                    size={20}
-                                    color="white"
-                                    style={{marginRight: 8}}
-                                />
-                                <Text style={styles.searchButtonText}>{t("search_submit_btn")}</Text>
-                            </>
-                        )}
-                    </TouchableOpacity>
                 </View>
-
-                <Text style={[styles.resultsText, {color: theme.subText}]}>
-                    {t(albums.length === 1 ? "results_count" : "results_count_plural", {
-                        count: albums.length,
-                    })}
-                </Text>
-
-                <View style={styles.grid}>
-                    {albums.map((item) => (
-                        <View key={item.id} style={styles.albumColumn}>
-                            <AlbumCard
-                                id={item.id}
-                                title={item.album}
-                                artist={item.artist}
-                                cover={item.cover}
-                                rating={String(item.rating || 0)}
-                            />
-                        </View>
-                    ))}
+                <View style={styles.resultsHeader}>
+                    <Text style={[styles.resultsText, {color: theme.subText}]}>{hasSearched && !loading ? t(albums.length === 1 ? 'results_count' : 'results_count_plural', {count: albums.length}) : t('sort_label')}</Text>
+                    <View style={styles.sortOptions}>
+                        {SORT_OPTIONS.map(option => <TouchableOpacity key={option.value} disabled={loading} accessibilityRole="button"
+                            accessibilityState={{selected: selectedSort.value === option.value}} onPress={() => {setSelectedSort(option); applySort(albums, option.value);}}
+                            style={[styles.sortChip, {borderColor: selectedSort.value === option.value ? theme.accent : theme.border, backgroundColor: theme.card}]}>
+                            <Text style={{fontSize: 12, color: selectedSort.value === option.value ? theme.accent : theme.subText}}>{option.label}</Text>
+                        </TouchableOpacity>)}
+                    </View>
                 </View>
+                {loading ? <View style={styles.grid}>{[0,1,2,3].map(i => <View key={i} style={styles.column}><Skeleton style={{aspectRatio: 1}}/><Skeleton style={{height: 14, width: '75%', marginTop: 12}}/></View>)}</View>
+                : searchError ? <View style={[styles.empty, {borderColor: theme.border}]}>
+                    <Ionicons name="cloud-offline-outline" size={32} color={theme.accent}/>
+                    <Text style={[styles.emptyText, {color: theme.subText}]}>{t('mobile_load_error')}</Text>
+                    <TouchableOpacity accessibilityRole="button" onPress={handleSearch} style={styles.retry}><Text style={{color: theme.accent}}>{t('mobile_retry')}</Text></TouchableOpacity>
+                </View>
+                : albums.length ? <View style={styles.grid}>{albums.map(item => <View key={item.id} style={styles.column}>
+                    <AlbumCard id={item.id} title={item.album} artist={item.artist} cover={item.cover} rating={String(item.rating || 0)}/>
+                </View>)}</View>
+                : <View style={[styles.empty, {borderColor: theme.border}]}>
+                    <View style={[styles.emptyIcon, {backgroundColor: theme.accentSoft}]}><Ionicons name="disc-outline" size={42} color={theme.accent}/></View>
+                    <Text style={[styles.emptyText, {color: theme.subText}]}>{t(hasSearched ? 'mobile_no_results' : 'mobile_search_empty')}</Text>
+                </View>}
             </ScrollView>
         </View>
     );
 };
-
 const styles = StyleSheet.create({
     container: {flex: 1},
-    scroll: {padding: 20, paddingTop: 10},
-    headerTextContainer: {marginBottom: 25},
-    title: {fontSize: 32, fontWeight: "bold"},
-    subtitle: {fontSize: 16, marginTop: 5},
-    filterCard: {
-        borderRadius: 15,
-        padding: 20,
-        borderWidth: 1,
-    },
-    tabContainer: {
-        flexDirection: "row",
-        borderRadius: 10,
-        padding: 4,
-        marginBottom: 15,
-    },
-    tab: {flex: 1, paddingVertical: 10, alignItems: "center", borderRadius: 8},
-    activeTab: {backgroundColor: "#4f46e5"},
-    tabText: {fontWeight: "bold"},
-    activeTabText: {color: "white"},
-    label: {
-        fontSize: 14,
-        fontWeight: "600",
-        marginBottom: 8,
-        marginTop: 10,
-    },
-    searchBar: {
-        flexDirection: "row",
-        alignItems: "center",
-        borderRadius: 10,
-        paddingHorizontal: 15,
-        height: 45,
-        borderWidth: 1,
-    },
-    searchInput: {flex: 1},
-    dropdown: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        borderRadius: 10,
-        paddingHorizontal: 15,
-        height: 45,
-        borderWidth: 1,
-        marginBottom: 10,
-    },
-    dropdownText: {},
-    dropdownMenu: {
-        borderRadius: 10,
-        marginTop: 5,
-        borderWidth: 1,
-        overflow: "hidden",
-    },
-    menuItem: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        padding: 12,
-        borderBottomWidth: 1,
-    },
-    menuItemText: {fontSize: 14},
-    searchButton: {
-        flexDirection: "row",
-        backgroundColor: "#4f46e5",
-        height: 50,
-        borderRadius: 12,
-        justifyContent: "center",
-        alignItems: "center",
-        marginTop: 20,
-    },
-    searchButtonText: {color: "white", fontWeight: "bold", fontSize: 16},
-    resultsText: {marginVertical: 20},
-    grid: {
-        flexDirection: "row",
-        flexWrap: "wrap",
-        justifyContent: "space-between",
-    },
-    albumColumn: {
-        width: "48%",
-    },
+    scroll: {padding: 20, paddingBottom: 32, width: '100%', maxWidth: 800, alignSelf: 'center'},
+    heading: {marginBottom: 24, gap: 8},
+    eyebrow: {fontSize: 10, letterSpacing: 1.8, fontWeight: '700'},
+    title: {fontSize: 34, fontWeight: '700', letterSpacing: -1.2},
+    subtitle: {fontSize: 14, lineHeight: 22},
+    filterCard: {padding: 14, borderRadius: 22, borderWidth: 1, gap: 14},
+    tabs: {flexDirection: 'row', borderRadius: 12, padding: 4},
+    tab: {flex: 1, minHeight: 44, padding: 10, alignItems: 'center', justifyContent: 'center', borderRadius: 10},
+    tabText: {fontWeight: '600', fontSize: 13},
+    searchBar: {flexDirection: 'row', alignItems: 'center', paddingLeft: 12, paddingRight: 5, paddingVertical: 5, gap: 8, borderWidth: 1, borderRadius: 14},
+    searchInput: {flex: 1, minWidth: 0, fontSize: 14, minHeight: 44},
+    searchButton: {width: 44, height: 44, borderRadius: 10, alignItems: 'center', justifyContent: 'center'},
+    resultsHeader: {gap: 10, marginVertical: 22},
+    resultsText: {fontSize: 12},
+    sortOptions: {flexDirection: 'row', gap: 8, flexWrap: 'wrap'},
+    sortChip: {minHeight: 44, paddingHorizontal: 14, justifyContent: 'center', borderRadius: 12, borderWidth: 1},
+    grid: {flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 16},
+    column: {width: '48%'},
+    empty: {borderWidth: 1, borderStyle: 'dashed', borderRadius: 24, padding: 28, alignItems: 'center', gap: 18},
+    emptyIcon: {width: 80, height: 80, borderRadius: 40, alignItems: 'center', justifyContent: 'center'},
+    emptyText: {textAlign: 'center', fontSize: 15, lineHeight: 24, maxWidth: 260},
+    retry: {minHeight: 44, justifyContent: 'center'},
 });
-
 export default Home;

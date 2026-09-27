@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 15,
-        paddingTop: Platform.OS === 'ios' ? 50 : StatusBar.currentHeight ? StatusBar.currentHeight + 10 : 20,
+        paddingTop: 16,
         paddingBottom: 15,
     },
     headerTitle: {fontSize: 22, fontWeight: 'bold', flex: 1, textAlign: 'center'},

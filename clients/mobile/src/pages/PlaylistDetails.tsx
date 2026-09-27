@@ -1,3 +1,4 @@
+import {brand} from '../design/tokens';
 import React, {useState, useEffect} from "react";
 import {
     View,
@@ -18,11 +19,9 @@ import AlbumCard from "@/src/components/AlbumCard";
 import {useTranslation} from "react-i18next";
 import {useTheme} from "../context/ThemeContext";
 
-const {width: SCREEN_WIDTH} = Dimensions.get("window");
 
 const PADDING_HORIZONTAL = 10;
 const GAP = 6;
-const COLUMN_WIDTH: number = (SCREEN_WIDTH - PADDING_HORIZONTAL * 2 - GAP) / 2;
 
 const PlaylistDetails = () => {
     const {t} = useTranslation();
@@ -78,8 +77,8 @@ const PlaylistDetails = () => {
                 >
                     <AlbumCard
                         id={media?.id}
-                        title={content?.album?.name || content?.name}
-                        artist={content?.album?.artist || content?.artist}
+                        title={content?.album?.name || content?.name || media?.name || media?.title}
+                        artist={content?.album?.artist || content?.artist || media?.artist}
                         cover={content?.cover || media?.cover}
                         rating={String(media?.rating || 0)}
                     />
@@ -97,7 +96,6 @@ const PlaylistDetails = () => {
 
     return (
         <View style={[styles.container, {backgroundColor: theme.background}]}>
-            <StatusBar barStyle="light-content"/>
 
             <View style={styles.header}>
                 <BackButton/>
@@ -109,7 +107,7 @@ const PlaylistDetails = () => {
 
             {loading ? (
                 <View style={styles.center}>
-                    <ActivityIndicator size="large" color="#4f46e5"/>
+                    <ActivityIndicator size="large" color={theme.accent}/>
                 </View>
             ) : (
                 <FlatList
@@ -173,7 +171,7 @@ const styles = StyleSheet.create({
     },
 
     cardWrapper: {
-        width: COLUMN_WIDTH,
+        width: '48%',
         flex: 1,
         position: "relative",
     },

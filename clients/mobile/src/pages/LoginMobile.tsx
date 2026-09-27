@@ -1,4 +1,5 @@
-import {Router, useRouter} from "expo-router";
+import {brand} from '../design/tokens';
+import {useRouter} from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import * as SecureStore from "expo-secure-store";
 import React, {useState} from "react";
@@ -11,6 +12,8 @@ import {
     View,
     Image,
     Alert,
+    KeyboardAvoidingView,
+    Platform,
 } from "react-native";
 import {ButtonMobile} from "../components/ButtonMobile";
 import {InputMobile} from "../components/InputMobile";
@@ -22,7 +25,7 @@ import {useTranslation} from "react-i18next";
 import {useTheme} from "../context/ThemeContext";
 
 const LoginMobile: React.FC = () => {
-    const router: Router = useRouter();
+    const router = useRouter();
     const {t} = useTranslation();
     const {theme} = useTheme();
     const [email, setEmail] = useState("");
@@ -104,8 +107,8 @@ const LoginMobile: React.FC = () => {
     };
 
     return (
-        <View style={[styles.container, {backgroundColor: theme.background}]}>
-            <ScrollView contentContainerStyle={styles.scroll}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={[styles.container, {backgroundColor: theme.background}]}>
+            <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.scroll}>
                 <View style={styles.header}>
                     <Image
                         source={require("@/assets/images/logo.png")}
@@ -137,6 +140,7 @@ const LoginMobile: React.FC = () => {
                     title={isLoading ? t("login_loading") : t("login_submit_btn")}
                     onPress={handleLogin}
                     disabled={isLoading}
+                    loading={isLoading}
                 />
 
                 <View style={styles.separator}>
@@ -171,7 +175,7 @@ const LoginMobile: React.FC = () => {
                     </Text>
                 </TouchableOpacity>
             </ScrollView>
-        </View>
+        </KeyboardAvoidingView>
     );
 };
 
@@ -180,15 +184,20 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     scroll: {
-        padding: 25,
-        marginTop: 30,
+        padding: 24,
+        paddingTop: 36,
+        paddingBottom: 48,
+        width: '100%',
+        maxWidth: 520,
+        alignSelf: 'center',
     },
     header: {
         alignItems: "center",
     },
     logoImage: {
-        width: 80,
-        height: 80,
+        width: 56,
+        height: 56,
+        marginBottom: 24,
     },
     title: {
         fontSize: 28,
@@ -197,7 +206,7 @@ const styles = StyleSheet.create({
         textAlign: "center",
     },
     forgot: {
-        color: "#3b82f6",
+        color: brand.primary,
         textAlign: "right",
         marginBottom: 25,
     },
@@ -209,7 +218,7 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     link: {
-        color: "#3b82f6",
+        color: brand.primary,
         fontWeight: "bold",
     },
     separator: {

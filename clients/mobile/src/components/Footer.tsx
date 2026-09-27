@@ -1,73 +1,43 @@
-import React from 'react';
-import {View, StyleSheet, TouchableOpacity} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {View, Text, StyleSheet, TouchableOpacity, Keyboard, Platform} from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
-import {useRouter, usePathname, Router} from "expo-router";
+import {useRouter, usePathname} from 'expo-router';
+import {useTranslation} from 'react-i18next';
 import {useTheme} from '../context/ThemeContext';
+import {mobileTabs, hideMobileTabs, activeMobileTab} from '../design/navigation';
 
-const Footer: React.FC = () => {
-    const router: Router = useRouter();
-    const pathname: string = usePathname();
+
+export default function Footer() {
+    const router = useRouter();
+    const pathname = usePathname();
     const {theme} = useTheme();
-
+    const {t} = useTranslation();
+    const [keyboardOpen, setKeyboardOpen] = useState(false);
+    useEffect(() => {
+        const show = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow', () => setKeyboardOpen(true));
+        const hide = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide', () => setKeyboardOpen(false));
+        return () => { show.remove(); hide.remove(); };
+    }, []);
+    if (hideMobileTabs(pathname, keyboardOpen)) return null;
+    const active = activeMobileTab(pathname);
     return (
-        <View style={[styles.footer, {backgroundColor: theme.background, borderTopColor: theme.separator}]}>
-            <TouchableOpacity onPress={(): void => router.push('/')} style={styles.icon}>
-                <Ionicons
-                    name="home-outline"
-                    size={26}
-                    color={pathname === '/' ? '#6366f1' : theme.subText}
-                />
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={(): void => router.push('/feed')} style={styles.icon}>
-                <Ionicons
-                    name="rocket-outline"
-                    size={26}
-                    color={pathname === '/feed' ? '#ec4899' : theme.subText}
-                />
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={(): void => router.push('/stats')} style={styles.icon}>
-                <Ionicons
-                    name="stats-chart"
-                    size={26}
-                    color={pathname === '/stats' ? '#cbc13e' : theme.subText}
-                />
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={(): void => router.push('/library')} style={styles.icon}>
-                <Ionicons
-                    name="library-outline"
-                    size={26}
-                    color={pathname === '/library' ? '#c33131' : theme.subText}
-                />
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={(): void => router.push('/profile')} style={styles.icon}>
-                <Ionicons
-                    name="person-outline"
-                    size={26}
-                    color={pathname === '/restriction' ? '#6366f1' : pathname === '/profile' ? '#6366f1' : theme.subText}
-                />
-            </TouchableOpacity>
+        <View style={[styles.bar, {backgroundColor: theme.card, borderTopColor: theme.border}]}>
+            {mobileTabs.map(tab => {
+                const selected = active === tab.href;
+                return <TouchableOpacity key={tab.href} accessibilityRole="tab" accessibilityLabel={t(tab.label)} accessibilityState={{selected}}
+                    onPress={() => { if (!selected) router.navigate(tab.href); }} style={styles.tab} activeOpacity={0.7}>
+                    <View style={[styles.icon, selected && {backgroundColor: theme.accentSoft}]}>
+                        <Ionicons name={tab.icon} size={22} color={selected ? theme.accent : theme.subText}/>
+                    </View>
+                    <Text numberOfLines={1} style={[styles.label, {color: selected ? theme.accent : theme.subText}]}>{t(tab.label)}</Text>
+                </TouchableOpacity>;
+            })}
         </View>
     );
-};
-
+}
 const styles = StyleSheet.create({
-    footer: {
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-        alignItems: 'center',
-        paddingVertical: 15,
-        borderTopWidth: 0.5,
-    },
-    icon: {
-        alignSelf: 'center',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flex: 1,
-    }
-})
-
-export default Footer;
+    bar: {flexDirection: 'row', borderTopWidth: 1, paddingHorizontal: 6, paddingVertical: 8},
+    tab: {flex: 1, alignItems: 'center', justifyContent: 'center', minHeight: 52, gap: 4},
+    icon: {width: 48, height: 28, borderRadius: 10, alignItems: 'center', justifyContent: 'center'},
+    label: {fontSize: 10, fontWeight: '600'},
+});

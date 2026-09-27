@@ -1,0 +1,42 @@
+export const mobileDesignTranslations = {
+    fr: {
+        mobile_read_more: 'Lire la suite', mobile_read_less: 'Réduire', mobile_liked_review: 'a aimé une review',
+        mobile_explore: 'Explorer', mobile_feed: 'Communauté', mobile_library: 'Bibliothèque', mobile_stats: 'Stats', mobile_profile: 'Profil', mobile_messages: 'Messages',
+        mobile_search_intro: 'Votre prochaine découverte commence ici.', mobile_search_empty: 'Un artiste, un album, une nouvelle obsession.', mobile_no_results: 'Aucun album trouvé. Essayez un autre nom.',
+        mobile_retry: 'Réessayer', mobile_load_error: 'Impossible de charger le contenu. Réessayez dans un instant.', mobile_visibility: 'Visibilité',
+        mobile_playlist_intro: 'Une sélection qui vous ressemble. Choisissez sa pochette et son public.', mobile_remove_cover: 'Retirer la pochette', mobile_image_error: 'Choisissez une image de moins de 5 Mo.',
+        mobile_album_count_one: '{{count}} album', mobile_album_count_other: '{{count}} albums', mobile_page: 'Page {{page}} sur {{total}}', mobile_previous: 'Précédent', mobile_next: 'Suivant', mobile_updates: 'Actualités', mobile_mark_all: 'Tout marquer comme lu',
+    },
+    en: {
+        mobile_read_more: 'Read more', mobile_read_less: 'Show less', mobile_liked_review: 'liked a review',
+        mobile_explore: 'Explore', mobile_feed: 'Community', mobile_library: 'Library', mobile_stats: 'Stats', mobile_profile: 'Profile', mobile_messages: 'Messages',
+        mobile_search_intro: 'Your next discovery starts here.', mobile_search_empty: 'An artist, an album, a new favourite.', mobile_no_results: 'No albums found. Try another name.',
+        mobile_retry: 'Try again', mobile_load_error: 'Unable to load this content. Please try again.', mobile_visibility: 'Visibility',
+        mobile_playlist_intro: 'Make it yours. Pick a cover and choose who can see your playlist.', mobile_remove_cover: 'Remove cover', mobile_image_error: 'Choose an image smaller than 5 MB.',
+        mobile_album_count_one: '{{count}} album', mobile_album_count_other: '{{count}} albums', mobile_page: 'Page {{page}} of {{total}}', mobile_previous: 'Previous', mobile_next: 'Next', mobile_updates: 'Updates', mobile_mark_all: 'Mark all as read',
+    },
+    de: {
+        mobile_read_more: 'Weiterlesen', mobile_read_less: 'Weniger anzeigen', mobile_liked_review: 'hat eine Rezension gelikt',
+        mobile_explore: 'Entdecken', mobile_feed: 'Community', mobile_library: 'Bibliothek', mobile_stats: 'Statistik', mobile_profile: 'Profil', mobile_messages: 'Nachrichten',
+        mobile_search_intro: 'Deine nächste Entdeckung beginnt hier.', mobile_search_empty: 'Ein Künstler, ein Album, ein neuer Favorit.', mobile_no_results: 'Keine Alben gefunden. Versuche einen anderen Namen.',
+        mobile_retry: 'Erneut versuchen', mobile_load_error: 'Inhalt konnte nicht geladen werden. Bitte versuche es erneut.', mobile_visibility: 'Sichtbarkeit',
+        mobile_playlist_intro: 'Deine eigene Auswahl. Wähle ein Cover und die Sichtbarkeit.', mobile_remove_cover: 'Cover entfernen', mobile_image_error: 'Wähle ein Bild unter 5 MB.',
+        mobile_album_count_one: '{{count}} Album', mobile_album_count_other: '{{count}} Alben', mobile_page: 'Seite {{page}} von {{total}}', mobile_previous: 'Zurück', mobile_next: 'Weiter', mobile_updates: 'Neuigkeiten', mobile_mark_all: 'Alle als gelesen markieren',
+    },
+    it: {
+        mobile_read_more: 'Leggi di più', mobile_read_less: 'Mostra meno', mobile_liked_review: 'ha apprezzato una recensione',
+        mobile_explore: 'Esplora', mobile_feed: 'Community', mobile_library: 'Libreria', mobile_stats: 'Statistiche', mobile_profile: 'Profilo', mobile_messages: 'Messaggi',
+        mobile_search_intro: 'La tua prossima scoperta inizia qui.', mobile_search_empty: 'Un artista, un album, un nuovo preferito.', mobile_no_results: 'Nessun album trovato. Prova un altro nome.',
+        mobile_retry: 'Riprova', mobile_load_error: 'Impossibile caricare il contenuto. Riprova.', mobile_visibility: 'Visibilità',
+        mobile_playlist_intro: 'Una selezione tutta tua. Scegli una copertina e chi può vederla.', mobile_remove_cover: 'Rimuovi copertina', mobile_image_error: 'Scegli un’immagine inferiore a 5 MB.',
+        mobile_album_count_one: '{{count}} album', mobile_album_count_other: '{{count}} album', mobile_page: 'Pagina {{page}} di {{total}}', mobile_previous: 'Precedente', mobile_next: 'Successivo', mobile_updates: 'Novità', mobile_mark_all: 'Segna tutto come letto',
+    },
+    es: {
+        mobile_read_more: 'Leer más', mobile_read_less: 'Mostrar menos', mobile_liked_review: 'le gustó una reseña',
+        mobile_explore: 'Explorar', mobile_feed: 'Comunidad', mobile_library: 'Biblioteca', mobile_stats: 'Estadísticas', mobile_profile: 'Perfil', mobile_messages: 'Mensajes',
+        mobile_search_intro: 'Tu próximo descubrimiento empieza aquí.', mobile_search_empty: 'Un artista, un álbum, un nuevo favorito.', mobile_no_results: 'No se encontraron álbumes. Prueba otro nombre.',
+        mobile_retry: 'Reintentar', mobile_load_error: 'No se pudo cargar el contenido. Inténtalo de nuevo.', mobile_visibility: 'Visibilidad',
+        mobile_playlist_intro: 'Una selección a tu medida. Elige una portada y quién puede verla.', mobile_remove_cover: 'Quitar portada', mobile_image_error: 'Elige una imagen de menos de 5 MB.',
+        mobile_album_count_one: '{{count}} álbum', mobile_album_count_other: '{{count}} álbumes', mobile_page: 'Página {{page}} de {{total}}', mobile_previous: 'Anterior', mobile_next: 'Siguiente', mobile_updates: 'Novedades', mobile_mark_all: 'Marcar todo como leído',
+    },
+};

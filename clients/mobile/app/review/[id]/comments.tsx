@@ -12,7 +12,7 @@ import {
   Alert,
   EmitterSubscription,
 } from "react-native";
-import { Router, useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import apiClient from "../../../src/api/client";
 import { AuthGuardWrapper } from "@/src/components/AuthGuardMapper";
@@ -45,7 +45,7 @@ interface Review {
 
 export default function CommentsScreen() {
   const { id } = useLocalSearchParams();
-  const router: Router = useRouter();
+  const router = useRouter();
   const { theme } = useTheme();
   const { t } = useTranslation();
   const inputRef = useRef<TextInput>(null);

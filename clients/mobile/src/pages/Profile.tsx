@@ -1,3 +1,4 @@
+import {brand} from '../design/tokens';
 import React, {useState, useEffect, useRef} from "react";
 import {
     View,
@@ -12,7 +13,6 @@ import {
 import {
     useRouter,
     useLocalSearchParams,
-    Router,
     UnknownOutputParams,
 } from "expo-router";
 import {Ionicons} from "@expo/vector-icons";
@@ -31,7 +31,7 @@ import {useTheme} from "../context/ThemeContext";
 
 const getRatingStyle = (rating: number) => {
     if (rating >= 4.5) return { bg: "rgba(16,185,129,0.12)", border: "rgba(16,185,129,0.25)", color: "#10b981" };
-    if (rating >= 3.5) return { bg: "rgba(59,130,246,0.12)", border: "rgba(59,130,246,0.25)", color: "#3b82f6" };
+    if (rating >= 3.5) return { bg: "rgba(59,130,246,0.12)", border: "rgba(59,130,246,0.25)", color: brand.primary };
     if (rating >= 2.5) return { bg: "rgba(245,158,11,0.12)", border: "rgba(245,158,11,0.25)", color: "#f59e0b" };
     if (rating >= 1.5) return { bg: "rgba(249,115,22,0.12)", border: "rgba(249,115,22,0.25)", color: "#f97316" };
     return { bg: "rgba(244,63,94,0.12)", border: "rgba(244,63,94,0.25)", color: "#f43f5e" };
@@ -63,7 +63,7 @@ const formatReviewItem = (item: any, username: string) => {
 
 const ProfileScreen = () => {
     const {t} = useTranslation();
-    const router: Router = useRouter();
+    const router = useRouter();
     const {theme} = useTheme();
     const params: UnknownOutputParams = useLocalSearchParams();
     const externalUserIdRaw: string | string[] = params.id;
@@ -415,7 +415,7 @@ const ProfileScreen = () => {
     if (loading) {
         return (
             <View style={[styles.loaderContainer, {backgroundColor: theme.background}]}>
-                <ActivityIndicator size="large" color="#4A90E2"/>
+                <ActivityIndicator size="large" color={theme.accent}/>
             </View>
         );
     }
@@ -470,7 +470,7 @@ const ProfileScreen = () => {
                                         position: "absolute",
                                         bottom: 0,
                                         right: 0,
-                                        backgroundColor: "#4A90E2",
+                                        backgroundColor: brand.primary,
                                         borderRadius: 15,
                                         padding: 6,
                                         zIndex: 10,
@@ -554,7 +554,7 @@ const ProfileScreen = () => {
 
                         {userProfil?.favorite_band && (
                             <View style={styles.favBandRow}>
-                                <Ionicons name="musical-notes" size={15} color="#3b82f6"/>
+                                <Ionicons name="musical-notes" size={15} color={theme.accent}/>
                                 <Text style={[styles.favBandLabel, {color: theme.subText}]}>
                                     {t("label_favorite_band")} :{" "}
                                     <Text style={[styles.favBandValue, {color: theme.text}]}>
@@ -636,7 +636,7 @@ const ProfileScreen = () => {
                                                 {imageUri ? (
                                                     <Image source={{uri: imageUri}} style={styles.playlistImage}/>
                                                 ) : (
-                                                    <Ionicons name="musical-notes-outline" size={28} color="#4A90E2"/>
+                                                    <Ionicons name="musical-notes-outline" size={28} color={theme.accent}/>
                                                 )}
                                             </View>
 
@@ -712,7 +712,7 @@ const ProfileScreen = () => {
                                                     {/* Header: album + rating badge */}
                                                     <View style={styles.activityHeader}>
                                                         <View style={{flex: 1, marginRight: 8}}>
-                                                            <Text style={[styles.activityAlbumName, {color: "#4A90E2"}]} numberOfLines={1}>
+                                                            <Text style={[styles.activityAlbumName, {color: brand.primary}]} numberOfLines={1}>
                                                                 {item.album}
                                                             </Text>
                                                             <Text style={[styles.activityArtistName, {color: theme.subText}]} numberOfLines={1}>
@@ -797,7 +797,7 @@ const ProfileScreen = () => {
                                         disabled={loadingMore}
                                     >
                                         {loadingMore
-                                            ? <ActivityIndicator size="small" color="#4A90E2"/>
+                                            ? <ActivityIndicator size="small" color={theme.accent}/>
                                             : <Text style={styles.loadMoreText}>{t("load_more")}</Text>
                                         }
                                     </TouchableOpacity>
@@ -837,14 +837,14 @@ const styles = StyleSheet.create({
         flex: 1,
         borderRadius: 55,
         overflow: "hidden",
-        backgroundColor: "#4A90E2",
+        backgroundColor: brand.primary,
         justifyContent: "center",
         alignItems: "center",
     },
     fullImage: {width: "100%", height: "100%"},
     profileLetter: {color: "white", fontSize: 36, fontWeight: "bold"},
     contentPadding: {paddingHorizontal: 20, paddingTop: 10},
-    userName: {fontSize: 26, fontWeight: "800"},
+    userName: {fontSize: 30, fontWeight: "700", letterSpacing: -0.8},
     handle: {fontSize: 16, marginBottom: 10},
     statsRow: {flexDirection: "row", marginBottom: 15, gap: 20},
     statItem: {flexDirection: "row", alignItems: "baseline"},
@@ -859,7 +859,7 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         marginBottom: 15,
     },
-    followButton: {backgroundColor: "#4A90E2", borderColor: "#4A90E2"},
+    followButton: {backgroundColor: brand.primary, borderColor: brand.primary},
     followingButton: {backgroundColor: "transparent"},
     editButtonText: {
         marginLeft: 8,
@@ -875,7 +875,7 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
     },
     tabItem: {paddingVertical: 15, paddingHorizontal: 15},
-    tabItemActive: {borderBottomWidth: 2, borderBottomColor: "#4A90E2"},
+    tabItemActive: {borderBottomWidth: 2, borderBottomColor: brand.primary},
     tabText: {fontSize: 15, fontWeight: "600"},
     tabTextActive: {},
     sectionPadding: {paddingHorizontal: 20, paddingTop: 20},
@@ -1023,7 +1023,7 @@ const styles = StyleSheet.create({
         paddingVertical: 14,
     },
     loadMoreText: {
-        color: "#4A90E2",
+        color: brand.primary,
         fontWeight: "700",
         fontSize: 13,
     },

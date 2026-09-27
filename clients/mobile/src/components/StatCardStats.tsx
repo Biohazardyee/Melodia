@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
     checkboxContainer: {
         position: "absolute",
         top: 12,
-        left: 120,
+        right: 12,
         zIndex: 1,
     },
     cardHeader: {

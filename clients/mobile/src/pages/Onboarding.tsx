@@ -1,3 +1,4 @@
+import {brand} from '../design/tokens';
 import React, {useState, useRef, useEffect} from "react";
 import {
     View,
@@ -6,43 +7,24 @@ import {
     TouchableOpacity,
     Alert,
     ActivityIndicator,
+    ScrollView,
+    KeyboardAvoidingView,
+    Platform,
 } from "react-native";
 import {LinearGradient} from "expo-linear-gradient";
 import {Ionicons} from "@expo/vector-icons";
-import {Router, useRouter} from "expo-router";
+import {useRouter} from "expo-router";
 import apiClient from "../api/client";
 import {InputMobile} from "../components/InputMobile";
 import * as SecureStore from "expo-secure-store";
 import {jwtDecode} from "jwt-decode";
+import {useTheme} from '../context/ThemeContext';
 import {useTranslation} from "react-i18next";
 
-const {t} = useTranslation();
-
-const slides = [
-
-    {
-        id: 1,
-        title: t("onboarding_title_1"),
-        text: t("onboarding_text_1"),
-    },
-    {
-        id: 2,
-        title: t("onboarding_title_2"),
-        text: t("onboarding_text_2"),
-    },
-    {
-        id: 3,
-        title: t("onboarding_title_3"),
-        text: t("onboarding_text_3"),
-    },
-    {
-        id: 4,
-        title: t("onboarding_title_4"),
-        text: t("onboarding_text_4"),
-    },
-];
-
 export default function Onboarding() {
+    const {t} = useTranslation();
+    const {theme} = useTheme();
+    const slides = [1,2,3,4].map(id => ({id, title: t(`onboarding_title_${id}`), text: t(`onboarding_text_${id}`)}));
 
     const [currentIndex, setCurrentIndex] = useState(0);
     const [favorite_band, setFavoriteBand] = useState("");
@@ -52,8 +34,10 @@ export default function Onboarding() {
     const [isSearching, setIsSearching] = useState(false);
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
-    const searchTimeout = useRef<any>(null);
-    const router: Router = useRouter();
+    const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const searchRequest = useRef<AbortController | null>(null);
+    useEffect(() => () => {if (searchTimeout.current) clearTimeout(searchTimeout.current); searchRequest.current?.abort();}, []);
+    const router = useRouter();
 
     useEffect((): void => {
         const getUserId: () => Promise<void> = async (): Promise<void> => {
@@ -70,11 +54,14 @@ export default function Onboarding() {
         setFavoriteBand(text);
         if (searchTimeout.current) clearTimeout(searchTimeout.current);
 
+        searchRequest.current?.abort();
+        const controller = new AbortController();
+        searchRequest.current = controller;
         if (text.length > 2) {
             setIsSearching(true);
             searchTimeout.current = setTimeout(async (): Promise<void> => {
                 try {
-                    const response = await apiClient.get(`/api/search?query=${text}`);
+                    const response = await apiClient.get(`/api/search?query=${encodeURIComponent(text)}`, {signal: controller.signal});
                     const albums =
                         response.data.searchResults?.results?.albummatches?.album || [];
                     const uniqueArtists: unknown[] = [
@@ -83,12 +70,13 @@ export default function Onboarding() {
                     setSuggestions(uniqueArtists.map((name: unknown): { name: unknown } => ({name})).slice(0, 5));
                     setShowSuggestions(true);
                 } catch (error) {
-                    console.error("Erreur recherche:", error);
+                    if (!controller.signal.aborted) setSuggestions([]);
                 } finally {
-                    setIsSearching(false);
+                    if (!controller.signal.aborted) setIsSearching(false);
                 }
             }, 300);
         } else {
+            setIsSearching(false);
             setSuggestions([]);
             setShowSuggestions(false);
         }
@@ -109,7 +97,7 @@ export default function Onboarding() {
     };
 
     const handleFinish: () => Promise<void> = async (): Promise<void> => {
-        if (!favorite_band) {
+        if (!favorite_band.trim() || isLoading) {
             Alert.alert(t("onboarding_missing_artist_title"), t("onboarding_missing_artist_text"));
             return;
         }
@@ -117,7 +105,7 @@ export default function Onboarding() {
 
         try {
 
-            await apiClient.patch("/users/profile", {favorite_band});
+            await apiClient.patch("/users/profile", {favorite_band: favorite_band.trim()});
             router.replace("/");
         } catch (error: any) {
             console.error("Erreur save artist:", error.response?.data);
@@ -129,14 +117,15 @@ export default function Onboarding() {
 
     return (
         <LinearGradient
-            colors={["#000000", "#2D1B4E", "#ad46ff"]}
+            colors={[theme.background, theme.card, theme.surface]}
             locations={[0, 0.6, 1]}
             style={styles.container}
         >
-            <View style={{flex: 1}}>
+            <KeyboardAvoidingView style={{flex: 1}} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+            <ScrollView contentContainerStyle={{flexGrow: 1, paddingBottom: 24}} keyboardShouldPersistTaps="handled">
                 <View style={styles.top}>
                     <LinearGradient
-                        colors={["#6366f1", "#ec4899"]}
+                        colors={[brand.primary, "#ec4899"]}
                         start={{x: 0, y: 0}}
                         end={{x: 1, y: 1}}
                         style={styles.logo}
@@ -146,10 +135,10 @@ export default function Onboarding() {
                 </View>
 
                 <View style={styles.content}>
-                    <Text style={styles.title}>{slides[currentIndex].title}</Text>
+                    <Text style={[styles.title, {color: theme.text}]}>{slides[currentIndex].title}</Text>
 
                     {currentIndex < 3 ? (
-                        <Text style={styles.description}>{slides[currentIndex].text}</Text>
+                        <Text style={[styles.description, {color: theme.subText}]}>{slides[currentIndex].text}</Text>
                     ) : (
                         <View style={styles.searchSection}>
                             <InputMobile
@@ -164,10 +153,10 @@ export default function Onboarding() {
                             />
 
                             {showSuggestions && (
-                                <View style={styles.suggestionsContainer}>
+                                <View style={[styles.suggestionsContainer, {backgroundColor: theme.card, borderColor: theme.border}]}>
                                     {isSearching ? (
                                         <ActivityIndicator
-                                            color="#6366f1"
+                                            color={theme.accent}
                                             style={{padding: 10}}
                                         />
                                     ) : (
@@ -185,7 +174,7 @@ export default function Onboarding() {
                                                     size={18}
                                                     color="#94a3b8"
                                                 />
-                                                <Text style={styles.suggestionText}>{item.name}</Text>
+                                                <Text style={[styles.suggestionText, {color: theme.text}]}>{item.name}</Text>
                                             </TouchableOpacity>
                                         ))
                                     )}
@@ -198,7 +187,7 @@ export default function Onboarding() {
                 <View style={styles.footer}>
                     <TouchableOpacity
                         onPress={handlePrev}
-                        style={[styles.navButton, currentIndex === 0 && {opacity: 0}]}
+                        accessibilityLabel={t("mobile_previous")} accessibilityRole="button" style={[styles.navButton, {backgroundColor: theme.action}, currentIndex === 0 && {opacity: 0}]}
                         disabled={currentIndex === 0}
                     >
                         <Ionicons name="arrow-back" size={28} color="white"/>
@@ -220,7 +209,7 @@ export default function Onboarding() {
 
                     <TouchableOpacity
                         onPress={handleNext}
-                        style={styles.navButton}
+                        accessibilityLabel={t("mobile_next")} accessibilityRole="button" style={[styles.navButton, {backgroundColor: theme.action}]}
                         disabled={isLoading}
                     >
                         {isLoading ? (
@@ -238,7 +227,8 @@ export default function Onboarding() {
                         )}
                     </TouchableOpacity>
                 </View>
-            </View>
+            </ScrollView>
+            </KeyboardAvoidingView>
         </LinearGradient>
     );
 }
@@ -286,10 +276,7 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: "#334155",
         overflow: "hidden",
-        position: "absolute",
-        top: 80,
-        left: 0,
-        right: 0,
+
         elevation: 5,
         zIndex: 100,
     },
@@ -312,6 +299,7 @@ const styles = StyleSheet.create({
     navButton: {
         width: 50,
         height: 50,
+        borderRadius: 16,
         justifyContent: "center",
         alignItems: "center",
     },

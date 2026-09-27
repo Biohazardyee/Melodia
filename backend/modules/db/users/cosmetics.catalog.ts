@@ -21,6 +21,7 @@ export const COSMETICS: CosmeticItem[] = [
     {id: "border_toxic", name: "Toxique", price: 200, type: "avatar_border"},
     {id: "theme_crimson", name: "Thème Cramoisi", price: 500, type: "theme"},
     {id: "theme_cyan", name: "Thème Givre", price: 500, type: "theme"},
+    {id: "theme_amber", name: "Thème Ambre", price: 500, type: "theme"},
     {id: "font_michroma", name: "Police Michroma", price: 90, type: "font"},
     {id: "font_pixel", name: "Police Pixel", price: 90, type: "font"},
     {id: "font_bebas", name: "Police Bebas", price: 110, type: "font"},
@@ -44,6 +45,8 @@ export const COSMETICS: CosmeticItem[] = [
     {id: "pattern_grid", name: "Motif Grille", price: 150, type: "pattern"},
     {id: "pattern_waves", name: "Motif Vagues", price: 170, type: "pattern"},
     {id: "pattern_diagonal", name: "Motif Diagonales", price: 150, type: "pattern"},
+    {id: "pattern_halo", name: "Motif Halo", price: 200, type: "pattern"},
+    {id: "pattern_vinyl", name: "Motif Vinyle", price: 200, type: "pattern"},
 ];
 
 export function getCosmeticById(id: string): CosmeticItem | undefined {

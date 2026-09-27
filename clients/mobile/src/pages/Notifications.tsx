@@ -1,505 +1,138 @@
-import React, {useState, useEffect, useMemo} from "react";
-import {
-    View,
-    Text,
-    StyleSheet,
-    ScrollView,
-    TouchableOpacity,
-    ActivityIndicator,
-    RefreshControl,
-    Image,
-} from "react-native";
-import * as SecureStore from "expo-secure-store";
-import {Ionicons} from "@expo/vector-icons";
-import Header from "@/src/components/Header";
-import apiClient from "../api/client";
-import {Router, useRouter} from "expo-router";
-import {getValidSource} from "@/helpers/helpers";
-import {useTranslation} from "react-i18next";
-import {useTheme} from "../context/ThemeContext";
+import React, {useCallback, useRef, useState} from 'react';
+import {View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, Image} from 'react-native';
+import {Ionicons} from '@expo/vector-icons';
+import {useRouter, useFocusEffect} from 'expo-router';
+import {useTranslation} from 'react-i18next';
+import Header from '../components/Header';
+import Skeleton from '../components/Skeleton';
+import {AuthGuardWrapper} from '../components/AuthGuardMapper';
+import {useTheme} from '../context/ThemeContext';
+import apiClient from '../api/client';
 
 export interface AppNotification {
-    id: string;
-    is_read: boolean;
-    action: string;
-    type?: string;
-    content?: string;
-    related_user_id?: string;
-    created_at: string;
-    sender?: {username: string; initial?: string; profile_image?: string};
-    related_user?: {username: string; profile_image?: string};
+    id: string; is_read: boolean; action: string; created_at: string; related_user_id?: string;
+    related_user?: {username: string; pseudo?: string; profile_picture?: string; profile_image?: string};
 }
-
-type Tab = "all" | "unread" | "mentions";
-
-type ActionConfig = {
-    iconName: keyof typeof Ionicons.glyphMap;
-    badgeBg: string;
-    iconColor: string;
-    accentColor: string;
+type Filter = 'all' | 'unread' | 'updates';
+interface Inbox {notifications: AppNotification[]; page: number; totalPages: number; total: number; unreadCount: number}
+const emptyInbox: Inbox = {notifications: [], page: 1, totalPages: 1, total: 0, unreadCount: 0};
+const actionKeys: Record<string, string> = {
+    new_follow: 'action_started_following', like_added: 'action_like_added', comment_added: 'action_commented_review',
+    recommendation: 'action_recommendation', new_message: 'action_new_message',
 };
-
-const ACTION_CONFIG: Record<string, ActionConfig> = {
-    like_added:     {iconName: "heart",          badgeBg: "rgba(244,63,94,0.18)",   iconColor: "#f43f5e", accentColor: "#f43f5e"},
-    comment_added:  {iconName: "chatbubble",     badgeBg: "rgba(16,185,129,0.18)",  iconColor: "#10b981", accentColor: "#10b981"},
-    review_added:   {iconName: "star",           badgeBg: "rgba(245,158,11,0.18)",  iconColor: "#f59e0b", accentColor: "#f59e0b"},
-    new_message:    {iconName: "mail",           badgeBg: "rgba(59,130,246,0.18)",  iconColor: "#3b82f6", accentColor: "#3b82f6"},
-    new_follow:     {iconName: "person-add",     badgeBg: "rgba(139,92,246,0.18)",  iconColor: "#8b5cf6", accentColor: "#8b5cf6"},
-    recommendation: {iconName: "sparkles",       badgeBg: "rgba(6,182,212,0.18)",   iconColor: "#06b6d4", accentColor: "#06b6d4"},
+const icons: Record<string, keyof typeof Ionicons.glyphMap> = {
+    new_follow: 'person-add-outline', like_added: 'heart-outline', comment_added: 'chatbubble-outline',
+    recommendation: 'sparkles-outline', new_message: 'mail-outline', badge_earned: 'ribbon-outline', review_added: 'star-outline',
 };
-
-const DEFAULT_CONFIG: ActionConfig = {
-    iconName: "notifications-outline",
-    badgeBg: "rgba(100,116,139,0.18)",
-    iconColor: "#64748b",
-    accentColor: "#64748b",
-};
-
-const getConfig = (action: string): ActionConfig => ACTION_CONFIG[action] ?? DEFAULT_CONFIG;
-
 export default function Notifications() {
-    const [filter, setFilter] = useState<Tab>("all");
-    const [notifications, setNotifications] = useState<AppNotification[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [refreshing, setRefreshing] = useState(false);
-    const [userId, setUserId] = useState<string | null>(null);
-    const router: Router = useRouter();
-    const {t} = useTranslation();
-    const {theme, isDarkMode} = useTheme();
-
-    useEffect((): void => {
-        const fetchUserId = async (): Promise<void> => {
-            const storedId = await SecureStore.getItemAsync("userId");
-            if (storedId) setUserId(storedId);
-        };
-        fetchUserId();
-    }, []);
-
-    const fetchNotifications = async (): Promise<void> => {
-        if (!userId) return;
-        try {
-            const response = await apiClient.get(`/notifications/user/${userId}`);
-            setNotifications(response.data.notifications || []);
-        } catch (error) {
-            console.error("Erreur notifications:", error);
-        } finally {
-            setIsLoading(false);
-            setRefreshing(false);
-        }
-    };
-
-    useEffect((): void => {
-        if (userId) fetchNotifications();
-    }, [userId]);
-
-    const onRefresh = (): void => {
-        setRefreshing(true);
-        fetchNotifications();
-    };
-
-    const markAllAsRead = async (): Promise<void> => {
-        const unread = notifications.filter((n) => !n.is_read);
-        if (!unread.length) return;
-        try {
-            setNotifications((prev) => prev.map((n) => ({...n, is_read: true})));
-            await Promise.all(unread.map((n) => apiClient.put(`/notifications/${n.id}`, {is_read: true})));
-        } catch (error) {
-            console.error("Erreur mark as read:", error);
-            fetchNotifications();
-        }
-    };
-
-    const getActionText = (action: string): string => {
-        const actionMap: Record<string, string> = {
-            new_follow:    "action_started_following",
-            like_added:    "action_like_added",
-            comment_added: "action_commented_review",
-            recommendation:"action_recommendation",
-            new_message:   "action_new_message",
-        };
-        return t(actionMap[action] ?? action);
-    };
-
-    const formatTime = (dateStr: string): string => {
-        const date = new Date(dateStr);
-        const now = new Date();
-        const yesterday = new Date(now);
-        yesterday.setDate(yesterday.getDate() - 1);
-        const time = date.toLocaleTimeString([], {hour: "2-digit", minute: "2-digit"});
-        if (date.toDateString() === now.toDateString()) return time;
-        if (date.toDateString() === yesterday.toDateString()) return `${t("yesterday")}, ${time}`;
-        return date.toLocaleDateString([], {day: "numeric", month: "short"});
-    };
-
-    const unreadCount = useMemo(
-        () => notifications.filter((n) => !n.is_read).length,
-        [notifications],
-    );
-
-    const filteredNotifications = useMemo((): AppNotification[] => {
-        const sorted = [...notifications].sort(
-            (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-        );
-        if (filter === "unread") return sorted.filter((n) => !n.is_read);
-        if (filter === "mentions") return sorted.filter((n) => n.action === "mention" || n.action === "recommendation");
-        return sorted;
-    }, [notifications, filter]);
-
-    const isToday = (dateStr: string): boolean =>
-        new Date(dateStr).toDateString() === new Date().toDateString();
-
-    const todayNotifs = filteredNotifications.filter((n) => isToday(n.created_at));
-    const earlierNotifs = filteredNotifications.filter((n) => !isToday(n.created_at));
-
-    const tabs: {key: Tab; label: string}[] = [
-        {key: "all",      label: t("tab_all")},
-        {key: "unread",   label: t("tab_unread")},
-        {key: "mentions", label: t("tab_mentions")},
-    ];
-
-    const renderCard = (item: AppNotification) => {
-        const config = getConfig(item.action);
-        const displayUser = item.related_user?.username || item.sender?.username || t("user_system", "Système");
-        const userInitial = displayUser.charAt(0).toUpperCase();
-        const userProfilePic = item.related_user?.profile_image || item.sender?.profile_image;
-        const imageSource = getValidSource(userProfilePic);
-
-        return (
-            <TouchableOpacity
-                key={item.id}
-                onPress={async () => {
-                    if (!item.is_read) {
-                        try {
-                            setNotifications((prev) => prev.map((n) => n.id === item.id ? {...n, is_read: true} : n));
-                            await apiClient.put(`/notifications/${item.id}`, {is_read: true});
-                        } catch (e) {
-                            console.error("Erreur marquage:", e);
-                        }
-                    }
-                    if (item.related_user_id) {
-                        router.push({pathname: "/profile", params: {id: item.related_user_id}});
-                    }
-                }}
-                activeOpacity={0.75}
-                style={[
-                    styles.card,
-                    {
-                        backgroundColor: item.is_read ? theme.card : theme.surface,
-                        borderColor: theme.border,
-                        borderLeftColor: config.accentColor,
-                    },
-                    !item.is_read && {
-                        shadowColor: config.accentColor,
-                        shadowOpacity: 0.08,
-                        shadowRadius: 8,
-                        shadowOffset: {width: 0, height: 2},
-                        elevation: 3,
-                    },
-                ]}
-            >
-                {/* Avatar + badge */}
-                <View style={styles.avatarWrapper}>
-                    {imageSource ? (
-                        <Image source={imageSource} style={styles.avatar}/>
-                    ) : (
-                        <View style={[styles.avatar, {backgroundColor: theme.surface}]}>
-                            <Text style={[styles.avatarInitial, {color: config.accentColor}]}>{userInitial}</Text>
-                        </View>
-                    )}
-                    <View style={[styles.actionBadge, {backgroundColor: config.badgeBg, borderColor: theme.background}]}>
-                        <Ionicons name={config.iconName} size={10} color={config.iconColor}/>
-                    </View>
-                </View>
-
-                {/* Body */}
-                <View style={styles.body}>
-                    <Text
-                        style={[styles.messageText, {color: item.is_read ? theme.subText : theme.text}]}
-                        numberOfLines={2}
-                    >
-                        <Text style={[styles.username, {color: item.is_read ? theme.subText : theme.text, opacity: item.is_read ? 0.9 : 1}]}>
-                            {displayUser}{" "}
-                        </Text>
-                        {item.content || getActionText(item.action)}
-                    </Text>
-                    <Text style={[styles.timeText, {color: item.is_read ? theme.placeholder : config.accentColor}]}>
-                        {formatTime(item.created_at)}
-                    </Text>
-                </View>
-
-                {/* Unread dot */}
-                {!item.is_read && (
-                    <View style={[styles.unreadDot, {backgroundColor: config.accentColor, shadowColor: config.accentColor}]}/>
-                )}
-            </TouchableOpacity>
-        );
-    };
-
-    return (
-        <View style={[styles.container, {backgroundColor: theme.background}]}>
-            <Header/>
-            <ScrollView
-                contentContainerStyle={styles.scrollContent}
-                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#3b82f6"/>}
-                showsVerticalScrollIndicator={false}
-            >
-                {/* Header */}
-                <View style={styles.pageHeader}>
-                    <View style={styles.titleRow}>
-                        <View style={styles.bellWrapper}>
-                            <Ionicons name="notifications" size={22} color="#fff"/>
-                            {unreadCount > 0 && (
-                                <View style={styles.bellBadge}>
-                                    <Text style={styles.bellBadgeText}>{unreadCount > 99 ? "99+" : unreadCount}</Text>
-                                </View>
-                            )}
-                        </View>
-                        <View>
-                            <Text style={[styles.pageTitle, {color: theme.text}]}>{t("notifications_title")}</Text>
-                            <Text style={[styles.pageSubtitle, {color: theme.subText}]}>
-                                {unreadCount > 0
-                                    ? t(unreadCount === 1 ? "unread_count_one" : "unread_count_other", {count: unreadCount})
-                                    : t("no_notifications")}
-                            </Text>
-                        </View>
-                    </View>
-
-                    {unreadCount > 0 && (
-                        <TouchableOpacity
-                            onPress={markAllAsRead}
-                            style={[styles.markAllBtn, {backgroundColor: theme.surface, borderColor: theme.border}]}
-                            activeOpacity={0.7}
-                        >
-                            <Ionicons name="checkmark-done" size={15} color="#3b82f6"/>
-                        </TouchableOpacity>
-                    )}
-                </View>
-
-                {/* Tabs */}
-                <View style={[styles.tabBar, {borderBottomColor: theme.border}]}>
-                    {tabs.map(({key, label}) => {
-                        const isActive = filter === key;
-                        const count = key === "unread" ? unreadCount : 0;
-                        return (
-                            <TouchableOpacity
-                                key={key}
-                                style={styles.tabItem}
-                                onPress={() => setFilter(key)}
-                                activeOpacity={0.7}
-                            >
-                                <View style={styles.tabLabelRow}>
-                                    <Text style={[styles.tabLabel, {color: isActive ? "#3b82f6" : theme.subText, fontWeight: isActive ? "700" : "500"}]}>
-                                        {label}
-                                    </Text>
-                                    {count > 0 && (
-                                        <View style={styles.tabBadge}>
-                                            <Text style={styles.tabBadgeText}>{count}</Text>
-                                        </View>
-                                    )}
-                                </View>
-                                {isActive && <View style={styles.tabUnderline}/>}
-                            </TouchableOpacity>
-                        );
-                    })}
-                </View>
-
-                {/* Content */}
-                {isLoading ? (
-                    <ActivityIndicator size="large" color="#3b82f6" style={{marginTop: 60}}/>
-                ) : filteredNotifications.length === 0 ? (
-                    <View style={styles.emptyState}>
-                        <View style={[styles.emptyIcon, {backgroundColor: theme.surface}]}>
-                            <Ionicons name="notifications-off-outline" size={32} color={theme.subText}/>
-                        </View>
-                        <Text style={[styles.emptyText, {color: theme.subText}]}>{t("no_notifications")}</Text>
-                    </View>
-                ) : (
-                    <>
-                        {todayNotifs.length > 0 && (
-                            <View style={styles.section}>
-                                <View style={styles.sectionHeader}>
-                                    <Text style={[styles.sectionLabel, {color: theme.subText}]}>{t("today").toUpperCase()}</Text>
-                                    <View style={[styles.sectionLine, {backgroundColor: theme.border}]}/>
-                                    <Text style={[styles.sectionCount, {color: theme.subText}]}>{todayNotifs.length}</Text>
-                                </View>
-                                {todayNotifs.map(renderCard)}
-                            </View>
-                        )}
-
-                        {earlierNotifs.length > 0 && (
-                            <View style={styles.section}>
-                                <View style={styles.sectionHeader}>
-                                    <Text style={[styles.sectionLabel, {color: theme.subText}]}>{t("notif_earlier").toUpperCase()}</Text>
-                                    <View style={[styles.sectionLine, {backgroundColor: theme.border}]}/>
-                                    <Text style={[styles.sectionCount, {color: theme.subText}]}>{earlierNotifs.length}</Text>
-                                </View>
-                                {earlierNotifs.map(renderCard)}
-                            </View>
-                        )}
-                    </>
-                )}
-            </ScrollView>
-        </View>
-    );
+    return <AuthGuardWrapper><InboxScreen/></AuthGuardWrapper>;
 }
-
+function InboxScreen() {
+    const {theme} = useTheme();
+    const {t, i18n} = useTranslation();
+    const router = useRouter();
+    const [filter, setFilter] = useState<Filter>('all');
+    const [page, setPage] = useState(1);
+    const [inbox, setInbox] = useState<Inbox>(emptyInbox);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
+    const [busy, setBusy] = useState<string | null>(null);
+    const request = useRef<AbortController | null>(null);
+    const mutation = useRef(false);
+    const list = useRef<FlatList<AppNotification>>(null);
+    const load = useCallback(async () => {
+        request.current?.abort();
+        const controller = new AbortController();
+        request.current = controller;
+        setLoading(true); setError(false);
+        try {
+            const response = await apiClient.get('/notifications/inbox', {params: {page, limit: 12, filter}, signal: controller.signal});
+            if (!controller.signal.aborted) setInbox(response.data);
+        } catch {
+            if (!controller.signal.aborted) setError(true);
+        } finally {
+            if (!controller.signal.aborted) setLoading(false);
+        }
+    }, [page, filter]);
+    useFocusEffect(useCallback(() => {load(); return () => request.current?.abort();}, [load]));
+    const markRead = async (item?: AppNotification) => {
+        if (mutation.current) return;
+        mutation.current = true; setBusy(item?.id || 'all');
+        try {
+            if (!item) await apiClient.put('/notifications/read-all');
+            else if (!item.is_read) await apiClient.put('/notifications/' + item.id, {is_read: true});
+            // Refetch counts and let the API clamp the last unread page after removals.
+            await load();
+            if (item?.action === 'new_message') router.push('/conversations');
+            else if (item?.related_user_id) router.push({pathname: '/profile', params: {id: item.related_user_id}});
+        } catch {Alert.alert(t('error'), t('mobile_load_error'));}
+        finally {mutation.current = false; setBusy(null);}
+    };
+    const changePage = (value: number) => {setPage(value); list.current?.scrollToOffset({offset: 0, animated: true});};
+    return <View style={[styles.screen, {backgroundColor: theme.background}]}>
+        <Header/>
+        <FlatList ref={list} data={loading || error ? [] : inbox.notifications} keyExtractor={item => item.id}
+            contentContainerStyle={styles.content} refreshing={loading} onRefresh={load}
+            ListHeaderComponent={<>
+                <Text style={[styles.eyebrow, {color: theme.accent}]}>{t('mobile_feed').toUpperCase()}</Text>
+                <Text style={[styles.title, {color: theme.text}]}>{t('notifications_title')}</Text>
+                <View style={styles.summary}>
+                    <Text style={{color: theme.subText, flex: 1}}>{t(inbox.unreadCount === 1 ? 'unread_count_one' : 'unread_count_other', {count: inbox.unreadCount})}</Text>
+                    <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('mobile_mark_all')} disabled={!inbox.unreadCount || !!busy || loading}
+                        onPress={() => markRead()} style={[styles.iconButton, {backgroundColor: theme.accentSoft, opacity: inbox.unreadCount ? 1 : 0.4}]}>
+                        <Ionicons name="checkmark-done-outline" size={22} color={theme.accent}/>
+                    </TouchableOpacity>
+                </View>
+                <View style={[styles.filters, {backgroundColor: theme.surface}]}>
+                    {(['all','unread','updates'] as const).map(value => <TouchableOpacity key={value} accessibilityRole="tab" accessibilityState={{selected: filter === value}}
+                        disabled={!!busy} onPress={() => {setFilter(value); setPage(1);}} style={[styles.filter, filter === value && {backgroundColor: theme.card}]}>
+                        <Text style={{fontSize: 12, fontWeight: '600', color: filter === value ? theme.accent : theme.subText}}>{t(value === 'all' ? 'tab_all' : value === 'unread' ? 'tab_unread' : 'mobile_updates')}</Text>
+                    </TouchableOpacity>)}
+                </View>
+            </>}
+            ListEmptyComponent={loading ? <View style={{gap: 12}}>{[0,1,2,3].map(i => <Skeleton key={i} style={{height: 88, borderRadius: 18}}/>)}</View>
+                : <View style={[styles.empty, {borderColor: theme.border}]}>
+                    <Ionicons name={error ? 'cloud-offline-outline' : 'notifications-off-outline'} size={36} color={theme.accent}/>
+                    <Text style={{color: theme.subText, textAlign: 'center', lineHeight: 22}}>{t(error ? 'mobile_load_error' : 'no_notifications')}</Text>
+                    {error && <TouchableOpacity accessibilityRole="button" onPress={load} style={styles.iconButton}><Text style={{color: theme.accent}}>{t('mobile_retry')}</Text></TouchableOpacity>}
+                </View>}
+            renderItem={({item}) => {
+                const user = item.related_user;
+                const name = user?.pseudo || user?.username || t('user_system');
+                const photo = user?.profile_picture || user?.profile_image;
+                return <TouchableOpacity accessibilityRole="button" disabled={!!busy} onPress={() => markRead(item)}
+                    style={[styles.card, {backgroundColor: theme.card, borderColor: item.is_read ? theme.border : theme.accent}]}>
+                    <View style={[styles.avatar, {backgroundColor: theme.accentSoft}]}>
+                        {photo ? <Image source={{uri: photo.startsWith('data:') || /^https?:/.test(photo) ? photo : 'data:image/jpeg;base64,' + photo}} style={styles.photo}/> : <Ionicons name={icons[item.action] || 'notifications-outline'} size={22} color={theme.accent}/>}
+                    </View>
+                    <View style={{flex: 1, gap: 6}}>
+                        <Text style={{color: theme.text, lineHeight: 21, fontSize: 14}}><Text style={{fontWeight: '700'}}>{name} </Text>{t(actionKeys[item.action] || 'notifications_title')}</Text>
+                        <Text style={{color: theme.subText, fontSize: 11}}>{new Date(item.created_at).toLocaleString(i18n.language, {day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'})}</Text>
+                    </View>
+                    {!item.is_read && <View style={[styles.dot, {backgroundColor: theme.accent}]}/>}
+                </TouchableOpacity>;
+            }}
+            ListFooterComponent={!loading && !error && inbox.totalPages > 1 ? <View style={styles.pagination}>
+                <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('mobile_previous')} disabled={inbox.page <= 1 || !!busy} onPress={() => changePage(inbox.page - 1)}
+                    style={[styles.iconButton, {backgroundColor: theme.card, opacity: inbox.page <= 1 ? 0.35 : 1}]}><Ionicons name="chevron-back" size={22} color={theme.text}/></TouchableOpacity>
+                <Text style={{color: theme.subText, fontSize: 12}}>{t('mobile_page', {page: inbox.page, total: inbox.totalPages})}</Text>
+                <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('mobile_next')} disabled={inbox.page >= inbox.totalPages || !!busy} onPress={() => changePage(inbox.page + 1)}
+                    style={[styles.iconButton, {backgroundColor: theme.card, opacity: inbox.page >= inbox.totalPages ? 0.35 : 1}]}><Ionicons name="chevron-forward" size={22} color={theme.text}/></TouchableOpacity>
+            </View> : null}
+        />
+    </View>;
+}
 const styles = StyleSheet.create({
-    container: {flex: 1},
-    scrollContent: {paddingBottom: 40},
-
-    // Header
-    pageHeader: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        paddingHorizontal: 20,
-        paddingTop: 16,
-        paddingBottom: 20,
-    },
-    titleRow: {flexDirection: "row", alignItems: "center", gap: 14},
-    bellWrapper: {
-        width: 48,
-        height: 48,
-        borderRadius: 14,
-        backgroundColor: "#3b82f6",
-        justifyContent: "center",
-        alignItems: "center",
-        shadowColor: "#3b82f6",
-        shadowOpacity: 0.35,
-        shadowRadius: 10,
-        shadowOffset: {width: 0, height: 4},
-        elevation: 6,
-    },
-    bellBadge: {
-        position: "absolute",
-        top: -4,
-        right: -4,
-        minWidth: 18,
-        height: 18,
-        borderRadius: 9,
-        backgroundColor: "#ef4444",
-        justifyContent: "center",
-        alignItems: "center",
-        paddingHorizontal: 4,
-    },
-    bellBadgeText: {color: "#fff", fontSize: 10, fontWeight: "800"},
-    pageTitle: {fontSize: 22, fontWeight: "800", letterSpacing: 0.3},
-    pageSubtitle: {fontSize: 13, marginTop: 2},
-    markAllBtn: {
-        width: 38,
-        height: 38,
-        borderRadius: 10,
-        borderWidth: 1,
-        justifyContent: "center",
-        alignItems: "center",
-    },
-
-    // Tabs
-    tabBar: {
-        flexDirection: "row",
-        borderBottomWidth: 1,
-        marginHorizontal: 20,
-        marginBottom: 20,
-    },
-    tabItem: {
-        flex: 1,
-        alignItems: "center",
-        paddingBottom: 10,
-        position: "relative",
-    },
-    tabLabelRow: {flexDirection: "row", alignItems: "center", gap: 6},
-    tabLabel: {fontSize: 13},
-    tabBadge: {
-        backgroundColor: "#3b82f6",
-        borderRadius: 8,
-        minWidth: 18,
-        height: 18,
-        paddingHorizontal: 4,
-        justifyContent: "center",
-        alignItems: "center",
-    },
-    tabBadgeText: {color: "#fff", fontSize: 10, fontWeight: "800"},
-    tabUnderline: {
-        position: "absolute",
-        bottom: 0,
-        left: 8,
-        right: 8,
-        height: 2,
-        backgroundColor: "#3b82f6",
-        borderRadius: 2,
-    },
-
-    // Section
-    section: {paddingHorizontal: 20, marginBottom: 8},
-    sectionHeader: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 10,
-        marginBottom: 12,
-        marginTop: 8,
-    },
-    sectionLabel: {fontSize: 11, fontWeight: "700", letterSpacing: 1.2},
-    sectionLine: {flex: 1, height: 1},
-    sectionCount: {fontSize: 11, fontWeight: "600"},
-
-    // Card
-    card: {
-        flexDirection: "row",
-        alignItems: "center",
-        padding: 14,
-        borderRadius: 14,
-        marginBottom: 10,
-        borderWidth: 1,
-        borderLeftWidth: 3,
-        gap: 12,
-    },
-    avatarWrapper: {position: "relative", width: 44, height: 44},
-    avatar: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-        justifyContent: "center",
-        alignItems: "center",
-    },
-    avatarInitial: {fontSize: 16, fontWeight: "800"},
-    actionBadge: {
-        position: "absolute",
-        bottom: -2,
-        right: -2,
-        width: 20,
-        height: 20,
-        borderRadius: 10,
-        justifyContent: "center",
-        alignItems: "center",
-        borderWidth: 2,
-    },
-    body: {flex: 1},
-    messageText: {fontSize: 14, lineHeight: 20},
-    username: {fontWeight: "700"},
-    timeText: {fontSize: 12, marginTop: 3, fontWeight: "500"},
-    unreadDot: {
-        width: 8,
-        height: 8,
-        borderRadius: 4,
-        shadowOpacity: 0.6,
-        shadowRadius: 4,
-        shadowOffset: {width: 0, height: 0},
-        elevation: 2,
-    },
-
-    // Empty
-    emptyState: {
-        alignItems: "center",
-        justifyContent: "center",
-        paddingTop: 80,
-        gap: 16,
-    },
-    emptyIcon: {
-        width: 72,
-        height: 72,
-        borderRadius: 36,
-        justifyContent: "center",
-        alignItems: "center",
-    },
-    emptyText: {fontSize: 14, textAlign: "center", maxWidth: 220, lineHeight: 20},
+    screen: {flex: 1}, content: {padding: 20, paddingBottom: 32},
+    eyebrow: {fontSize: 10, fontWeight: '700', letterSpacing: 1.6, marginBottom: 8},
+    title: {fontSize: 30, fontWeight: '700', letterSpacing: -0.8},
+    summary: {flexDirection: 'row', alignItems: 'center', gap: 12, marginVertical: 16},
+    iconButton: {minWidth: 44, minHeight: 44, padding: 10, borderRadius: 14, alignItems: 'center', justifyContent: 'center'},
+    filters: {flexDirection: 'row', padding: 4, borderRadius: 14, marginBottom: 24},
+    filter: {flex: 1, minHeight: 44, padding: 8, alignItems: 'center', justifyContent: 'center', borderRadius: 10},
+    card: {flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, borderWidth: 1, borderRadius: 18, marginBottom: 12},
+    avatar: {width: 44, height: 44, borderRadius: 15, alignItems: 'center', justifyContent: 'center', overflow: 'hidden'},
+    photo: {width: 44, height: 44}, dot: {width: 6, height: 6, borderRadius: 3},
+    empty: {padding: 32, alignItems: 'center', gap: 18, borderRadius: 22, borderStyle: 'dashed', borderWidth: 1},
+    pagination: {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, paddingTop: 12},
 });

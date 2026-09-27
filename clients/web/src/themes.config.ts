@@ -1,4 +1,4 @@
-export type Theme = "light" | "dark" | "crimson" | "cyan";
+export type Theme = "light" | "dark" | "crimson" | "cyan" | "amber";
 
 export interface PremiumThemeDef {
     value: Theme; // valeur appliquée (classe `theme-<value>`)
@@ -12,6 +12,15 @@ export interface PremiumThemeDef {
 
 /** Thèmes payants. Pour en ajouter un : une entrée ici + les overrides CSS + l'entrée catalogue. */
 export const PREMIUM_THEMES: PremiumThemeDef[] = [
+    {
+        value: "amber",
+        cosmeticId: "theme_amber",
+        labelKey: "theme_amber",
+        labelFallback: "Ambre",
+        accentClass: "text-amber-300",
+        previewGradient: "radial-gradient(ellipse at 90% 0%, #93632b 0%, transparent 65%), linear-gradient(135deg, #17120e, #35271b)",
+        swatches: ["#17120e", "#35271b", "#edc080"],
+    },
     {
         value: "crimson",
         cosmeticId: "theme_crimson",

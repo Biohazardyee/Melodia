@@ -1,4 +1,5 @@
-import React, {useState, useEffect} from "react";
+import {brand} from '../design/tokens';
+import React, {useState, useEffect, useRef} from "react";
 import {
     View,
     Text,
@@ -12,12 +13,10 @@ import {
     KeyboardAvoidingView,
     Platform,
 } from "react-native";
-import {SafeAreaView} from "react-native-safe-area-context";
 import {Ionicons} from "@expo/vector-icons";
 import {
     useRouter,
     useLocalSearchParams,
-    Router,
     UnknownOutputParams,
 } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
@@ -25,31 +24,45 @@ import * as SecureStore from "expo-secure-store";
 import {jwtDecode} from "jwt-decode";
 import {useTranslation} from "react-i18next";
 import apiClient from "../api/client";
-import * as FileSystem from "expo-file-system/legacy";
 import {useTheme} from "../context/ThemeContext";
+import {playlistDraft, validPlaylistName, PLAYLIST_NAME_LIMIT} from '../design/playlistDraft';
 
 const CreatePlaylist = () => {
     const {t} = useTranslation();
-    const {theme, isDarkMode} = useTheme();
-    const router: Router = useRouter();
+    const {theme} = useTheme();
+    const router = useRouter();
     const params: UnknownOutputParams = useLocalSearchParams();
 
     const [name, setName] = useState((params.title as string) || "");
     const [image, setImage] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+    const [loadingPlaylist, setLoadingPlaylist] = useState(params.isEditing === 'true');
+    const [loadError, setLoadError] = useState(false);
+    const [imageChanged, setImageChanged] = useState(false);
+    const saving = useRef(false);
 
     const isEditing: boolean = params.isEditing === "true";
     const isPublicParam: boolean = params.is_public === "true";
     const [isPublic, setIsPublic] = useState<boolean>(isPublicParam);
 
     const pickImage = async (): Promise<void> => {
+        try {
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ["images"],
             allowsEditing: true,
             aspect: [1, 1],
             quality: 0.5,
+            base64: true,
         });
-        if (!result.canceled) setImage(result.assets[0].uri);
+        if (!result.canceled) {
+            const asset = result.assets[0];
+            if ((asset.fileSize || 0) > 5 * 1024 * 1024 || !asset.base64 || asset.base64.length > 7 * 1024 * 1024) {
+                Alert.alert(t('error'), t('mobile_image_error')); return;
+            }
+            setImage(`data:${asset.mimeType || 'image/jpeg'};base64,${asset.base64}`);
+            setImageChanged(true);
+        }
+        } catch { Alert.alert(t('error'), t('mobile_image_error')); }
     };
 
     useEffect((): void => {
@@ -62,7 +75,10 @@ const CreatePlaylist = () => {
                 setIsPublic(playlist.is_public);
                 setImage(playlist.image_url || null);
             } catch (e) {
-                console.error(e);
+                setLoadError(true);
+                Alert.alert(t('error'), t('mobile_load_error'));
+            } finally {
+                setLoadingPlaylist(false);
             }
         };
         loadPlaylist();
@@ -73,7 +89,8 @@ const CreatePlaylist = () => {
     }, []);
 
     const handleSave = async (): Promise<void> => {
-        if (!name.trim()) return;
+        if (!validPlaylistName(name) || saving.current || loadingPlaylist || loadError) return;
+        saving.current = true;
         try {
             setLoading(true);
             const token = await SecureStore.getItemAsync("userToken");
@@ -81,20 +98,13 @@ const CreatePlaylist = () => {
             const decoded: any = jwtDecode(token);
             const userId = decoded.id;
 
-            let base64Image: string | undefined;
-            if (image) {
-                base64Image = image.startsWith("data:image")
-                    ? image
-                    : `data:image/jpeg;base64,${await FileSystem.readAsStringAsync(image, {encoding: FileSystem.EncodingType.Base64})}`;
-            }
+            const data = playlistDraft(name, isPublic, image, imageChanged);
 
             if (isEditing) {
-                const updateData: any = {name: name.trim(), is_public: isPublic};
-                if (base64Image) updateData.image_url = base64Image;
-                await apiClient.put(`/playlists/${params.id}`, updateData);
+                await apiClient.put(`/playlists/${params.id}`, data);
                 Alert.alert(t("success"), t("playlist_update_success"));
             } else {
-                await apiClient.post("/playlists", {name: name.trim(), user_id: userId, is_public: isPublic, image_url: base64Image});
+                await apiClient.post("/playlists", {...data, user_id: userId});
                 Alert.alert(t("success"), t("playlist_create_success"));
             }
             router.replace("/library");
@@ -102,14 +112,15 @@ const CreatePlaylist = () => {
             console.error("Erreur sauvegarde playlist:", e);
             Alert.alert(t("error"), e.response?.data?.message || t("playlist_save_error"));
         } finally {
+            saving.current = false;
             setLoading(false);
         }
     };
 
-    const canSave = !!name.trim() && !loading;
+    const canSave = validPlaylistName(name) && !loading && !loadingPlaylist && !loadError;
 
     return (
-        <SafeAreaView style={[styles.safe, {backgroundColor: theme.background}]}>
+        <View style={[styles.safe, {backgroundColor: theme.background}]}>
             <KeyboardAvoidingView style={{flex: 1}} behavior={Platform.OS === "ios" ? "padding" : "height"}>
                 <ScrollView
                     contentContainerStyle={styles.scroll}
@@ -118,7 +129,7 @@ const CreatePlaylist = () => {
                 >
                     {/* Top bar */}
                     <View style={styles.topBar}>
-                        <TouchableOpacity onPress={() => router.back()} style={[styles.closeBtn, {backgroundColor: theme.surface}]} hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
+                        <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('back')} disabled={loading} onPress={() => router.canGoBack() ? router.back() : router.replace('/library')} style={[styles.closeBtn, {backgroundColor: theme.surface}]} hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
                             <Ionicons name="close" size={20} color={theme.text}/>
                         </TouchableOpacity>
                     </View>
@@ -127,91 +138,105 @@ const CreatePlaylist = () => {
                     <Text style={[styles.pageTitle, {color: theme.text}]}>
                         {isEditing ? t("edit_playlist") : t("new_playlist")}
                     </Text>
+                    <Text style={{color: theme.subText, lineHeight: 22, marginBottom: 24}}>{t('mobile_playlist_intro')}</Text>
+                    {loadingPlaylist && <ActivityIndicator color={theme.accent} style={{marginBottom: 16}}/>}
+                    {loadError && <Text style={{color: theme.danger, marginBottom: 16}}>{t('mobile_load_error')}</Text>}
 
                     {/* Image picker */}
-                    <TouchableOpacity onPress={pickImage} activeOpacity={0.85} style={styles.imageWrapper}>
+                    <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('add_cover')} disabled={loading || loadingPlaylist || loadError} onPress={pickImage} activeOpacity={0.85} style={styles.imageWrapper}>
                         <View style={[styles.imagePicker, {backgroundColor: theme.surface}]}>
                             {image ? (
                                 <Image source={{uri: image}} style={styles.pickerImage}/>
                             ) : (
                                 <View style={styles.pickerPlaceholder}>
                                     <View style={styles.musicIconBg}>
-                                        <Ionicons name="musical-notes" size={40} color="#6C5CE7"/>
+                                        <Ionicons name="musical-notes" size={40} color={theme.accent}/>
                                     </View>
                                     <Text style={[styles.pickerHint, {color: theme.subText}]}>{t("add_cover")}</Text>
                                 </View>
                             )}
                         </View>
-                        <View style={[styles.cameraBadge, {backgroundColor: "#6C5CE7", borderColor: theme.background}]}>
+                        <View style={[styles.cameraBadge, {backgroundColor: brand.primary, borderColor: theme.background}]}>
                             <Ionicons name="camera" size={14} color="#fff"/>
                         </View>
                     </TouchableOpacity>
+
+                    {image && <TouchableOpacity accessibilityRole="button" disabled={loading || loadingPlaylist || loadError} onPress={() => {setImage(null); setImageChanged(true);}} style={{minHeight: 44, alignItems: 'center', marginBottom: 16}}><Text style={{color: theme.accent}}>{t('mobile_remove_cover')}</Text></TouchableOpacity>}
 
                     {/* Name input */}
                     <View style={styles.section}>
                         <Text style={[styles.sectionLabel, {color: theme.subText}]}>
                             {t("playlist_name_placeholder", "Nom de la playlist").toUpperCase()}
                         </Text>
-                        <View style={[styles.inputCard, {backgroundColor: theme.surface, borderColor: name ? "#6C5CE7" : theme.border}]}>
-                            <Ionicons name="pencil-outline" size={18} color={name ? "#6C5CE7" : theme.placeholder} style={{marginRight: 10}}/>
+                        <View style={[styles.inputCard, {backgroundColor: theme.surface, borderColor: name ? theme.accent : theme.border}]}>
+                            <Ionicons name="pencil-outline" size={18} color={name ? theme.accent : theme.placeholder} style={{marginRight: 10}}/>
                             <TextInput
                                 style={[styles.input, {color: theme.text}]}
                                 placeholder={t("playlist_name_placeholder")}
                                 placeholderTextColor={theme.placeholder}
                                 value={name}
-                                onChangeText={setName}
-                                autoFocus={!isEditing}
+                                onChangeText={value => setName(value.slice(0, PLAYLIST_NAME_LIMIT))}
+                                accessibilityLabel={t('playlist_name_placeholder')}
+                                editable={!loading && !loadingPlaylist && !loadError}
+                                maxLength={PLAYLIST_NAME_LIMIT}
                                 returnKeyType="done"
                             />
                         </View>
+                        <Text style={{color: theme.subText, textAlign: 'right', marginTop: 8}}>{name.length}/30</Text>
                     </View>
 
                     {/* Visibility */}
                     <View style={styles.section}>
                         <Text style={[styles.sectionLabel, {color: theme.subText}]}>
-                            {t("tab_all", "Visibilité").toUpperCase()}
+                            {t("mobile_visibility").toUpperCase()}
                         </Text>
                         <View style={styles.visRow}>
                             <TouchableOpacity
+                                accessibilityRole="radio"
+                                accessibilityState={{checked: isPublic}}
+                                disabled={loading || loadingPlaylist || loadError}
                                 style={[
                                     styles.visCard,
-                                    {backgroundColor: theme.surface, borderColor: isPublic ? "#6C5CE7" : theme.border},
+                                    {backgroundColor: theme.surface, borderColor: isPublic ? theme.accent : theme.border},
                                     isPublic && styles.visCardActive,
                                 ]}
                                 onPress={() => setIsPublic(true)}
                                 activeOpacity={0.75}
                             >
                                 <View style={[styles.visIconBg, {backgroundColor: isPublic ? "rgba(108,92,231,0.15)" : theme.background}]}>
-                                    <Ionicons name="globe-outline" size={22} color={isPublic ? "#6C5CE7" : theme.subText}/>
+                                    <Ionicons name="globe-outline" size={22} color={isPublic ? theme.accent : theme.subText}/>
                                 </View>
-                                <Text style={[styles.visTitle, {color: isPublic ? "#6C5CE7" : theme.text}]}>
+                                <Text style={[styles.visTitle, {color: isPublic ? theme.accent : theme.text}]}>
                                     {t("playlist_public")}
                                 </Text>
                                 {isPublic && (
                                     <View style={styles.visCheck}>
-                                        <Ionicons name="checkmark-circle" size={16} color="#6C5CE7"/>
+                                        <Ionicons name="checkmark-circle" size={16} color={theme.accent}/>
                                     </View>
                                 )}
                             </TouchableOpacity>
 
                             <TouchableOpacity
+                                accessibilityRole="radio"
+                                accessibilityState={{checked: !isPublic}}
+                                disabled={loading || loadingPlaylist || loadError}
                                 style={[
                                     styles.visCard,
-                                    {backgroundColor: theme.surface, borderColor: !isPublic ? "#6C5CE7" : theme.border},
+                                    {backgroundColor: theme.surface, borderColor: !isPublic ? theme.accent : theme.border},
                                     !isPublic && styles.visCardActive,
                                 ]}
                                 onPress={() => setIsPublic(false)}
                                 activeOpacity={0.75}
                             >
                                 <View style={[styles.visIconBg, {backgroundColor: !isPublic ? "rgba(108,92,231,0.15)" : theme.background}]}>
-                                    <Ionicons name="lock-closed-outline" size={22} color={!isPublic ? "#6C5CE7" : theme.subText}/>
+                                    <Ionicons name="lock-closed-outline" size={22} color={!isPublic ? theme.accent : theme.subText}/>
                                 </View>
-                                <Text style={[styles.visTitle, {color: !isPublic ? "#6C5CE7" : theme.text}]}>
+                                <Text style={[styles.visTitle, {color: !isPublic ? theme.accent : theme.text}]}>
                                     {t("playlist_private")}
                                 </Text>
                                 {!isPublic && (
                                     <View style={styles.visCheck}>
-                                        <Ionicons name="checkmark-circle" size={16} color="#6C5CE7"/>
+                                        <Ionicons name="checkmark-circle" size={16} color={theme.accent}/>
                                     </View>
                                 )}
                             </TouchableOpacity>
@@ -220,6 +245,8 @@ const CreatePlaylist = () => {
 
                     {/* Create button */}
                     <TouchableOpacity
+                        accessibilityRole="button"
+                        accessibilityState={{disabled: !canSave, busy: loading}}
                         style={[styles.createBtn, {opacity: canSave ? 1 : 0.4}]}
                         onPress={handleSave}
                         disabled={!canSave}
@@ -238,7 +265,7 @@ const CreatePlaylist = () => {
                     </TouchableOpacity>
                 </ScrollView>
             </KeyboardAvoidingView>
-        </SafeAreaView>
+        </View>
     );
 };
 
@@ -253,8 +280,8 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     closeBtn: {
-        width: 36,
-        height: 36,
+        width: 44,
+        height: 44,
         borderRadius: 18,
         justifyContent: "center",
         alignItems: "center",
@@ -262,7 +289,7 @@ const styles = StyleSheet.create({
     pageTitle: {
         fontSize: 28,
         fontWeight: "800",
-        marginBottom: 28,
+        marginBottom: 12,
         letterSpacing: -0.5,
     },
 
@@ -273,17 +300,17 @@ const styles = StyleSheet.create({
         position: "relative",
     },
     imagePicker: {
-        width: 160,
-        height: 160,
+        width: 190,
+        height: 190,
         borderRadius: 20,
         overflow: "hidden",
         justifyContent: "center",
         alignItems: "center",
-        shadowColor: "#6C5CE7",
-        shadowOpacity: 0.25,
+        shadowColor: brand.primary,
+        shadowOpacity: 0,
         shadowRadius: 16,
         shadowOffset: {width: 0, height: 6},
-        elevation: 8,
+        elevation: 0,
     },
     pickerImage: {width: "100%", height: "100%"},
     pickerPlaceholder: {alignItems: "center", gap: 12},
@@ -341,7 +368,7 @@ const styles = StyleSheet.create({
         position: "relative",
     },
     visCardActive: {
-        shadowColor: "#6C5CE7",
+        shadowColor: brand.primary,
         shadowOpacity: 0.15,
         shadowRadius: 8,
         shadowOffset: {width: 0, height: 3},
@@ -359,18 +386,18 @@ const styles = StyleSheet.create({
 
     // Create button
     createBtn: {
-        backgroundColor: "#6C5CE7",
+        backgroundColor: brand.primary,
         borderRadius: 16,
         paddingVertical: 16,
         flexDirection: "row",
         justifyContent: "center",
         alignItems: "center",
         marginTop: 8,
-        shadowColor: "#6C5CE7",
-        shadowOpacity: 0.35,
+        shadowColor: brand.primary,
+        shadowOpacity: 0,
         shadowRadius: 12,
         shadowOffset: {width: 0, height: 4},
-        elevation: 6,
+        elevation: 0,
     },
     createBtnText: {color: "#fff", fontWeight: "800", fontSize: 16},
 });

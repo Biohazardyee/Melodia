@@ -1,4 +1,7 @@
 import i18n from 'i18next';
+import {cosmeticsTranslations} from './cosmetics.translations';
+import {playlistTranslations} from './playlist.translations';
+import {notificationTranslations} from './notifications.translations';
 import {journalTranslations} from './journal.translations';
 import {messageTranslations} from './messages.translations';
 import { initReactI18next } from 'react-i18next';
@@ -3082,8 +3085,20 @@ const resources = {
   }
 };
 
+for (const language of Object.keys(cosmeticsTranslations) as Array<keyof typeof cosmeticsTranslations>) {
+  Object.assign(resources[language].translation, cosmeticsTranslations[language]);
+}
+
 for (const language of Object.keys(journalTranslations) as Array<keyof typeof journalTranslations>) {
   Object.assign(resources[language].translation, journalTranslations[language]);
+}
+
+for (const language of Object.keys(playlistTranslations) as Array<keyof typeof playlistTranslations>) {
+  Object.assign(resources[language].translation, playlistTranslations[language]);
+}
+
+for (const language of Object.keys(notificationTranslations) as Array<keyof typeof notificationTranslations>) {
+  Object.assign(resources[language].translation, notificationTranslations[language]);
 }
 
 for (const language of Object.keys(messageTranslations) as Array<keyof typeof messageTranslations>) {

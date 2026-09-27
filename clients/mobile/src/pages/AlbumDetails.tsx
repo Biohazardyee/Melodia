@@ -1,4 +1,6 @@
 import React, {useState, useEffect, useCallback} from "react";
+import {brand} from '../design/tokens';
+import CoverImage from '../components/CoverImage';
 import {
     StyleSheet,
     Text,
@@ -27,7 +29,6 @@ import {AxiosResponse} from "axios";
 import {useTheme} from "../context/ThemeContext";
 import {useTranslation} from "react-i18next";
 
-const {width} = Dimensions.get("window");
 
 type TabType = "Reviews" | "Similar";
 
@@ -418,7 +419,7 @@ const AlbumDetails = () => {
                 contentContainerStyle={styles.scrollContent}
             >
                 <View style={styles.imageContainer}>
-                    <Image source={getValidSource(cover)} style={styles.coverImage}/>
+                    <CoverImage uri={Array.isArray(cover) ? cover[0] : cover} style={styles.coverImage}/>
                 </View>
 
                 <View style={styles.paddingContent}>
@@ -894,7 +895,7 @@ const styles = StyleSheet.create({
     center: {justifyContent: "center", alignItems: "center"},
     scrollContent: {paddingBottom: 60},
     imageContainer: {padding: 20, alignItems: "center"},
-    coverImage: {width: width - 40, height: width - 40, borderRadius: 20},
+    coverImage: {width: '100%', maxWidth: 440, aspectRatio: 1, alignSelf: 'center', borderRadius: 24},
     paddingContent: {paddingHorizontal: 20},
     badgeRow: {marginTop: 15, flexDirection: "row"},
     badge: {
@@ -928,7 +929,7 @@ const styles = StyleSheet.create({
         gap: 10,
     },
     primaryButton: {
-        backgroundColor: "#ec4899",
+        backgroundColor: brand.primary,
         padding: 16,
         borderRadius: 14,
         alignItems: "center",
@@ -1027,7 +1028,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
     },
-    checkboxActive: {backgroundColor: "#ec4899", borderColor: "#ec4899"},
+    checkboxActive: {backgroundColor: brand.primary, borderColor: brand.primary},
     createPlaylistBtn: {
         flexDirection: "row",
         alignItems: "center",
@@ -1035,9 +1036,9 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
         marginTop: 8,
     },
-    createPlaylistText: {color: "#00ffa3", fontSize: 16, fontWeight: "bold"},
+    createPlaylistText: {color: brand.primary, fontSize: 16, fontWeight: "600"},
     confirmBtn: {
-        backgroundColor: "#ec4899",
+        backgroundColor: brand.primary,
         padding: 16,
         borderRadius: 14,
         alignItems: "center",

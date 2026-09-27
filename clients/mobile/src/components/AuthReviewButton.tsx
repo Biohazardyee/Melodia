@@ -1,8 +1,9 @@
+import {brand} from '../design/tokens';
 import React from 'react';
 import {TouchableOpacity, Text, StyleSheet, View} from 'react-native';
 import {LinearGradient} from 'expo-linear-gradient';
 import {Ionicons} from "@expo/vector-icons";
-import {Router, useRouter} from 'expo-router';
+import {useRouter} from 'expo-router';
 import {useTranslation} from 'react-i18next';
 
 interface AuthReviewButtonProps {
@@ -11,7 +12,7 @@ interface AuthReviewButtonProps {
 }
 
 export const AuthReviewButton: React.FC<AuthReviewButtonProps> = ({onPress, isLoggedIn}: AuthReviewButtonProps) => {
-    const router: Router = useRouter();
+    const router = useRouter();
     const {t} = useTranslation();
 
     if (!isLoggedIn) {
@@ -22,7 +23,7 @@ export const AuthReviewButton: React.FC<AuthReviewButtonProps> = ({onPress, isLo
                 activeOpacity={0.8}
             >
                 <LinearGradient
-                    colors={['#6366f1', '#ec4899']}
+                    colors={[brand.primary, '#ec4899']}
                     start={{x: 0, y: 0}}
                     end={{x: 1, y: 1}}
                     style={styles.gradientBorder}
@@ -72,14 +73,14 @@ const styles = StyleSheet.create({
     },
 
     authButton: {
-        backgroundColor: '#4f46e5',
+        backgroundColor: brand.primary,
         height: 55,
         borderRadius: 15,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         marginVertical: 15,
-        shadowColor: "#6366f1",
+        shadowColor: brand.primary,
         shadowOffset: {width: 0, height: 4},
         shadowOpacity: 0.3,
         shadowRadius: 5,

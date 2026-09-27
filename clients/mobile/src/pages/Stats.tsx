@@ -1,3 +1,4 @@
+import {brand} from '../design/tokens';
 import React, {useEffect, useState} from "react";
 import {
     View,
@@ -9,7 +10,7 @@ import {
 import {PieChart} from "react-native-gifted-charts";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import {Ionicons} from "@expo/vector-icons";
-import {Router, useRouter} from "expo-router";
+import {useRouter} from "expo-router";
 import Header from "@/src/components/Header";
 import {AuthGuardWrapper} from "../components/AuthGuardMapper";
 import StatCardStats from "../components/StatCardStats";
@@ -20,7 +21,7 @@ import {useTranslation} from "react-i18next";
 import {useTheme} from "../context/ThemeContext";
 
 const Stats = () => {
-    const router: Router = useRouter();
+    const router = useRouter();
     const {t} = useTranslation();
     const {theme} = useTheme();
     const [loading, setLoading] = useState(true);
@@ -63,7 +64,7 @@ const Stats = () => {
 
     const pieData: { value: number; color: string }[] = [
         {value: stats.listened, color: "#00ffa3"},
-        {value: stats.later, color: "#3b82f6"},
+        {value: stats.later, color: brand.primary},
         {value: stats.favorite, color: "#fbbf24"},
         {value: stats.disliked, color: "#f43f5e"},
     ];
@@ -78,7 +79,7 @@ const Stats = () => {
     if (loading) {
         return (
             <View style={[styles.container, {backgroundColor: theme.background, justifyContent: "center"}]}>
-                <ActivityIndicator size="large" color="#3b82f6"/>
+                <ActivityIndicator size="large" color={theme.accent}/>
             </View>
         );
     }
@@ -112,7 +113,7 @@ const Stats = () => {
                             title={t("status_listening")}
                             count={stats.later.toString()}
                             icon="playlist-music"
-                            color="#3b82f6"
+                            color={theme.accent}
                             onPress={(): void =>
                                 router.push({
                                     pathname: "/statDetails",
@@ -148,7 +149,7 @@ const Stats = () => {
 
                     <View style={[styles.chartBox, {backgroundColor: theme.card}]}>
                         <View style={styles.chartHeaderRow}>
-                            <Ionicons name="stats-chart" size={20} color="#3b82f6"/>
+                            <Ionicons name="stats-chart" size={20} color={theme.accent}/>
                             <Text style={[styles.chartHeaderText, {color: theme.text}]}>
                                 {t("stats_detail_title")}
                             </Text>
@@ -163,7 +164,7 @@ const Stats = () => {
                                     data={pieData}
                                     innerCircleColor={theme.card}
                                     centerLabelComponent={() => (
-                                        <Icon name="music" size={50} color="#ad46ff"/>
+                                        <Icon name="music" size={50} color={theme.accent}/>
                                     )}
                                 />
                             ) : (
@@ -174,7 +175,7 @@ const Stats = () => {
                         </View>
                         <View style={styles.legendGrid}>
                             <Legend item={t("status_completed")} color="#00ffa3"/>
-                            <Legend item={t("status_listening")} color="#3b82f6"/>
+                            <Legend item={t("status_listening")} color={theme.accent}/>
                             <Legend item={t("status_wishlist")} color="#fbbf24"/>
                             <Legend item={t("status_dropped")} color="#f43f5e"/>
                         </View>

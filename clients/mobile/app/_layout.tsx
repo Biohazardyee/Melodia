@@ -1,6 +1,7 @@
 import "@/src/i18n"; 
 import { useEffect, useState } from "react";
-import { Stack } from "expo-router";
+import { Stack, usePathname } from "expo-router";
+import {StatusBar} from 'expo-status-bar';
 import { StyleSheet, View } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import {
@@ -8,7 +9,6 @@ import {
   SafeAreaProvider,
   EdgeInsets,
 } from "react-native-safe-area-context";
-import * as Notifications from "expo-notifications";
 import Footer from "@/src/components/Footer";
 import { ThemeProvider, useTheme } from "../src/context/ThemeContext";
 import { usePushNotifications } from "../src/hook/usePushNotifications";
@@ -23,18 +23,10 @@ export default function RootLayout() {
   );
 }
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
-
 function LayoutContent() {
   const insets: EdgeInsets = useSafeAreaInsets();
-  const { theme } = useTheme();
+  const { theme, isDarkMode } = useTheme();
+  const pathname = usePathname();
   const [userId, setUserId] = useState<string | null>(null);
   const [isReady, setIsReady] = useState<boolean>(false);
 
@@ -44,13 +36,13 @@ function LayoutContent() {
 
   useEffect((): void => {
     const checkUser = async (): Promise<void> => {
-      const storedId = await SecureStore.getItemAsync("userId");
-      if (storedId) {
+      try {
+        const storedId = await SecureStore.getItemAsync("userId");
         setUserId(storedId);
-      }
+      } catch { setUserId(null); }
     };
     checkUser();
-  }, []);
+  }, [pathname]);
 
   usePushNotifications(userId);
 
@@ -65,8 +57,9 @@ function LayoutContent() {
         },
       ]}
     >
+      <StatusBar style={isDarkMode ? 'light' : 'dark'}/>
       <View style={{ flex: 1 }}>
-        <Stack screenOptions={{ headerShown: false }}>
+        <Stack screenOptions={{ headerShown: false, contentStyle: {backgroundColor: theme.background} }}>
           <Stack.Screen name="index" />
         </Stack>
       </View>

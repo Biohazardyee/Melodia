@@ -1,4 +1,5 @@
-import {Router, useRouter} from "expo-router";
+import {brand} from '../design/tokens';
+import {useRouter} from "expo-router";
 import React from "react";
 import {
     ScrollView,
@@ -8,6 +9,8 @@ import {
     View,
     Image,
     Alert,
+    KeyboardAvoidingView,
+    Platform,
 } from "react-native";
 import * as WebBrowser from "expo-web-browser";
 import * as AuthSession from "expo-auth-session";
@@ -25,7 +28,7 @@ import {useTheme} from "../context/ThemeContext";
 WebBrowser.maybeCompleteAuthSession();
 
 const RegisterMobile: React.FC = () => {
-    const router: Router = useRouter();
+    const router = useRouter();
     const {t} = useTranslation();
     const {theme} = useTheme();
 
@@ -112,8 +115,8 @@ const RegisterMobile: React.FC = () => {
     };
 
     return (
-        <View style={[styles.container, {backgroundColor: theme.background}]}>
-            <ScrollView contentContainerStyle={styles.scroll}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={[styles.container, {backgroundColor: theme.background}]}>
+            <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.scroll}>
                 <View style={styles.header}>
                     <Image
                         source={require("@/assets/images/logo.png")}
@@ -178,6 +181,7 @@ const RegisterMobile: React.FC = () => {
                     style={{marginTop: 10}}
                     onPress={handleRegister}
                     disabled={isLoading}
+                    loading={isLoading}
                 />
 
                 <View style={styles.separator}>
@@ -209,7 +213,7 @@ const RegisterMobile: React.FC = () => {
                     </Text>
                 </TouchableOpacity>
             </ScrollView>
-        </View>
+        </KeyboardAvoidingView>
     );
 };
 
@@ -218,11 +222,16 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     scroll: {
-        padding: 25,
+        padding: 24,
+        paddingTop: 32,
+        paddingBottom: 48,
+        width: '100%',
+        maxWidth: 520,
+        alignSelf: 'center',
     },
     logoImage: {
-        width: 80,
-        height: 80,
+        width: 56,
+        height: 56,
     },
     header: {
         alignItems: "center",
@@ -249,7 +258,7 @@ const styles = StyleSheet.create({
         marginTop: -10,
         marginBottom: 10,
         borderWidth: 1,
-        borderColor: "#3b82f6",
+        borderColor: brand.primary,
         overflow: "hidden",
     },
     suggestionItem: {
@@ -281,7 +290,7 @@ const styles = StyleSheet.create({
     },
     footerText: {},
     link: {
-        color: "#3b82f6",
+        color: brand.primary,
         fontWeight: "bold",
     },
 });

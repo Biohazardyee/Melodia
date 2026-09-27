@@ -1,15 +1,16 @@
+import {brand} from '../design/tokens';
 import React from 'react';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import {LinearGradient} from 'expo-linear-gradient';
 import {Ionicons} from "@expo/vector-icons";
-import {Router, useRouter} from 'expo-router';
+import {useRouter} from 'expo-router';
 import {ButtonMobile} from '@/src/components/ButtonMobile';
 import Header from "@/src/components/Header";
 import {useTranslation} from "react-i18next";
 import {useTheme} from "@/src/context/ThemeContext";
 
 export default function AutGuard() {
-    const router: Router = useRouter();
+    const router = useRouter();
     const {t} = useTranslation();
     const {theme} = useTheme();
 
@@ -18,7 +19,7 @@ export default function AutGuard() {
             <Header/>
             <View style={styles.content}>
                 <LinearGradient
-                    colors={['#6366f1', '#ec4899']}
+                    colors={[brand.primary, '#ec4899']}
                     start={{x: 0, y: 0}}
                     end={{x: 1, y: 1}}
                     style={styles.icon}
@@ -44,7 +45,7 @@ export default function AutGuard() {
                         onPress={(): void => router.push('/register')}
                     >
                         <LinearGradient
-                            colors={['#6366f1', '#ec4899']}
+                            colors={[brand.primary, '#ec4899']}
                             start={{x: 0, y: 0}}
                             end={{x: 1, y: 1}}
                             style={styles.outlineGradient}

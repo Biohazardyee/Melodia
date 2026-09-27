@@ -1,32 +1,30 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useState} from 'react';
+import {useFocusEffect} from 'expo-router';
 import {ActivityIndicator, View} from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 import AutGuard from '../components/AuthGuard';
+import {useTheme} from '../context/ThemeContext';
 
 
 export const AuthGuardWrapper = ({children}: { children: React.ReactNode }) => {
+    const {theme} = useTheme();
     const [isLoading, setIsLoading] = useState(true);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-    useEffect((): void => {
-        checkAuth();
-    }, []);
-
-    const checkAuth: () => Promise<void> = async (): Promise<void> => {
-        try {
-            const token: string | null = await SecureStore.getItemAsync("userToken");
-            setIsAuthenticated(!!token);
-        } catch (e) {
-            setIsAuthenticated(false);
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    useFocusEffect(useCallback(() => {
+        let active = true;
+        setIsLoading(true);
+        SecureStore.getItemAsync('userToken')
+            .then(token => {if (active) setIsAuthenticated(!!token);})
+            .catch(() => {if (active) setIsAuthenticated(false);})
+            .finally(() => {if (active) setIsLoading(false);});
+        return () => {active = false;};
+    }, []));
 
     if (isLoading) {
         return (
-            <View style={{flex: 1, justifyContent: 'center', backgroundColor: '#1C1C28'}}>
-                <ActivityIndicator color="#ec4899" size="large"/>
+            <View style={{flex: 1, justifyContent: 'center', backgroundColor: theme.background}}>
+                <ActivityIndicator color={theme.accent} size="large"/>
             </View>
         );
     }

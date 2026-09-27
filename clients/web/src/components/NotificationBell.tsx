@@ -3,7 +3,6 @@ import { Bell } from "lucide-react";
 import { NavigateFunction, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
-import { jwtDecode } from "jwt-decode";
 import apiClient from "../api/client";
 import { useSocket } from "../context/SocketContext";
 import { AxiosResponse } from "axios";
@@ -19,15 +18,10 @@ export const NotificationBell: React.FC = () => {
     if (!token) return;
 
     try {
-      const decoded: any = jwtDecode(token);
-      const userId = decoded.id || decoded.userId;
-
       const res: AxiosResponse = await apiClient.get(
-          `/notifications/user/${userId}`,
+          "/notifications/inbox", {params: {limit: 1}},
       );
-      const list = res.data.notifications || [];
-      const count = list.filter((n: any) => !n.is_read).length;
-      setUnreadCount(count);
+      setUnreadCount(res.data.unreadCount);
     } catch (e) {
       console.error("Impossible de charger le compteur de notifications", e);
     }

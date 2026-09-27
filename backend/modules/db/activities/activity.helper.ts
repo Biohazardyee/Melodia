@@ -178,6 +178,7 @@ export const mapToFeedItem = (act: any, feedType: string): FeedItem => {
     media_id: media?.id || act.media_id || review?.media_id,
     review_id: review?.id || act.review_id,
     rating: review?.rating || act.rating_from_user,
+    title: review?.title,
     content: review?.content,
     likes_count: review?._count?.likes || 0,
     comments_count: review?._count?.comments || 0,

@@ -9,7 +9,7 @@ import {
     Alert,
     StatusBar
 } from "react-native";
-import {Router, useRouter} from "expo-router";
+import {useRouter} from "expo-router";
 import {Ionicons} from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -17,6 +17,9 @@ import BackButton from "../components/BackButton";
 import {useTheme} from "../context/ThemeContext";
 import * as SecureStore from "expo-secure-store";
 import {useTranslation} from "react-i18next";
+import apiClient from '../api/client';
+import * as FileSystem from 'expo-file-system/legacy';
+import * as Sharing from 'expo-sharing';
 
 
 type SettingRowProps = {
@@ -45,7 +48,9 @@ const SettingRow = ({
     <TouchableOpacity
         style={[styles.row, {borderBottomColor: theme.border}]}
         onPress={onPress}
-        disabled={type === "switch"}
+        accessible={type !== 'switch'}
+        accessibilityRole={type === 'switch' ? undefined : 'button'}
+        accessibilityLabel={type === 'switch' ? undefined : title}
         activeOpacity={0.7}
     >
         <View
@@ -77,6 +82,7 @@ const SettingRow = ({
         )}
         {type === "switch" && (
             <Switch
+                accessibilityLabel={title}
                 trackColor={{false: "#3e3e3e", true: theme.accent}}
                 thumbColor={value ? "#fff" : "#f4f3f4"}
                 onValueChange={onValueChange}
@@ -87,12 +93,29 @@ const SettingRow = ({
 );
 
 const Settings = () => {
-    const router: Router = useRouter();
+    const router = useRouter();
 
     const {isDarkMode, toggleTheme, theme} = useTheme();
     const {t} = useTranslation();
 
     const [notifications, setNotifications] = useState(true);
+    const [exporting, setExporting] = useState(false);
+    const exportData = async () => {
+        if (exporting) return;
+        setExporting(true);
+        let uri: string | null = null;
+        try {
+            if (!FileSystem.cacheDirectory || !await Sharing.isAvailableAsync()) throw new Error('Sharing unavailable');
+            const response = await apiClient.get('/users/export');
+            uri = FileSystem.cacheDirectory + 'melodia-export-' + Date.now() + '.json';
+            await FileSystem.writeAsStringAsync(uri, JSON.stringify(response.data, null, 2));
+            await Sharing.shareAsync(uri, {mimeType: 'application/json', UTI: 'public.json'});
+        } catch {Alert.alert(t('error'), t('mobile_load_error'));}
+        finally {
+            if (uri) await FileSystem.deleteAsync(uri, {idempotent: true}).catch(() => {});
+            setExporting(false);
+        }
+    };
 
     useEffect((): void => {
         const loadNotifs: () => Promise<void> = async (): Promise<void> => {
@@ -190,8 +213,9 @@ const Settings = () => {
                     <SettingRow
                         theme={theme}
                         icon="download-outline"
-                        title={t("settings_export_data")}
+                        title={exporting ? t('msg_loading_music') : t("settings_export_data")}
                         type="action"
+                        onPress={exportData}
                     />
                 </View>
 
@@ -242,11 +266,12 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         marginLeft: 5,
     },
-    section: {borderRadius: 15, overflow: "hidden"},
+    section: {borderRadius: 20, overflow: "hidden"},
     row: {
         flexDirection: "row",
         alignItems: "center",
-        padding: 15,
+        padding: 18,
+        minHeight: 72,
         borderBottomWidth: 1,
     },
     iconContainer: {
@@ -259,7 +284,7 @@ const styles = StyleSheet.create({
         marginRight: 15,
     },
     rowTextContainer: {flex: 1},
-    rowTitle: {fontSize: 16, fontWeight: "500"},
+    rowTitle: {fontSize: 15, fontWeight: "600"},
     rowSubtitle: {fontSize: 13, marginTop: 2},
     versionText: {
         textAlign: "center",

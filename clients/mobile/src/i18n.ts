@@ -1,4 +1,5 @@
 import i18n from 'i18next';
+import {mobileDesignTranslations} from './design/translations';
 import {messageTranslations} from './messages.translations';
 import { initReactI18next } from 'react-i18next';
 import { getLocales } from 'expo-localization';
@@ -2194,6 +2195,10 @@ const getSavedLanguage = (): string => {
     return 'fr';
   }
 };
+
+for (const language of Object.keys(mobileDesignTranslations) as Array<keyof typeof mobileDesignTranslations>) {
+  Object.assign(resources[language].translation, mobileDesignTranslations[language]);
+}
 
 for (const language of Object.keys(messageTranslations) as Array<keyof typeof messageTranslations>) {
   Object.assign(resources[language].translation, messageTranslations[language]);

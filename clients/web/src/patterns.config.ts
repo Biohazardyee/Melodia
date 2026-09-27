@@ -14,6 +14,8 @@ export const PROFILE_PATTERNS: ProfilePatternDef[] = [
     {id: "pattern_grid", name: "Motif Grille", className: "cosmetic-pattern_grid"},
     {id: "pattern_waves", name: "Motif Vagues", className: "cosmetic-pattern_waves"},
     {id: "pattern_diagonal", name: "Motif Diagonales", className: "cosmetic-pattern_diagonal"},
+    {id: "pattern_halo", name: "Motif Halo", className: "cosmetic-pattern_halo"},
+    {id: "pattern_vinyl", name: "Motif Vinyle", className: "cosmetic-pattern_vinyl"},
 ];
 
 export const PROFILE_PATTERN_IDS: string[] = PROFILE_PATTERNS.map((p) => p.id);

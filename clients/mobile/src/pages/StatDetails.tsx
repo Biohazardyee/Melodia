@@ -1,3 +1,4 @@
+import {brand} from '../design/tokens';
 import React, {useEffect, useState} from "react";
 import {
     View,
@@ -9,6 +10,7 @@ import {
 import {useLocalSearchParams} from "expo-router";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import Header from "@/src/components/Header";
+import BackButton from "@/src/components/BackButton";
 import AlbumCard from "@/src/components/AlbumCard";
 import apiClient from "../api/client";
 import * as SecureStore from "expo-secure-store";
@@ -34,7 +36,7 @@ const StatDetails: React.FC = () => {
             title: t("status_listening"),
             subtitle: t("stats_detail_title"),
             icon: "playlist-music",
-            color: "#3b82f6",
+            color: brand.primary,
         },
         favorite: {
             title: t("status_wishlist"),
@@ -96,6 +98,7 @@ const StatDetails: React.FC = () => {
     return (
         <View style={[styles.container, {backgroundColor: theme.background}]}>
             <Header/>
+            <View style={styles.backRow}><BackButton fallback="/stats"/></View>
             <ScrollView
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.scroll}
@@ -119,7 +122,7 @@ const StatDetails: React.FC = () => {
                 ) : (
                     <View style={styles.grid}>
                         {albums.map((item) => (
-                            <AlbumCard
+                            <View key={item.displayId} style={styles.gridCell}><AlbumCard
                                 key={item.displayId}
                                 id={item.dbId}
                                 title={item.album}
@@ -127,7 +130,7 @@ const StatDetails: React.FC = () => {
                                 rating={String(item.rating)}
                                 cover={item.cover}
                                 genre="Musique"
-                            />
+                            /></View>
                         ))}
                     </View>
                 )}
@@ -138,10 +141,12 @@ const StatDetails: React.FC = () => {
 
 const styles = StyleSheet.create({
     container: {flex: 1},
+    backRow: {paddingHorizontal: 20, paddingBottom: 12},
+    gridCell: {width: '48%'},
     scroll: {padding: 20, paddingTop: 10},
     headerTextContainer: {marginBottom: 25},
     headerTitle: {flexDirection: "row", alignItems: "center", gap: 10},
-    title: {fontSize: 28, fontWeight: "bold"},
+    title: {fontSize: 28, fontWeight: "bold", flex: 1},
     subtitle: {fontSize: 16, marginTop: 5},
     grid: {
         flexDirection: "row",
