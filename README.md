@@ -198,6 +198,26 @@ CLOUDFLARE_TUNNEL_TOKEN=your_token
 
 ## Déploiement Docker
 
+### Lancement local
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.local.yml up --build -d db api frontend
+```
+
+Le web est disponible sur http://localhost:5173 et l'API sur http://localhost:3000.
+Cette configuration attend PostgreSQL, applique les migrations Prisma, puis démarre
+l'API. Le tunnel Cloudflare n'est pas démarré. Les données PostgreSQL sont conservées.
+L'URL de l'API web est passée au build Vite.
+
+Dans `backend/.env`, renseigner `GMAIL_USER` et `GMAIL_APP_PASSWORD` pour les emails
+de vérification et de réinitialisation, ainsi que `SPOTIFY_CLIENT_ID`,
+`SPOTIFY_CLIENT_SECRET` et `SPOTIFY_CALLBACK_URL` pour Spotify.
+Les callbacks Google et Discord locaux doivent être autorisés chez ces fournisseurs :
+`http://localhost:3000/api/oauth/auth/google/callback` et
+`http://localhost:3000/api/oauth/auth/discord/callback`.
+
+### Lancement avec Cloudflare
+
 ```bash
 # Construire et lancer tous les services
 docker compose up --build -d

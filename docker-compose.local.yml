@@ -1,0 +1,24 @@
+# docker compose -f docker-compose.yml -f docker-compose.local.yml up --build -d db api frontend
+services:
+  db:
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  api:
+    environment:
+      PORT: "3000"
+      FRONTEND_URL: http://localhost:5173
+      GOOGLE_CALLBACK_URL: http://localhost:3000/api/oauth/auth/google/callback
+      DISCORD_CALLBACK_URL: http://localhost:3000/api/oauth/auth/discord/callback
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["sh", "-c", "npx prisma migrate deploy && node dist/bin/www.js"]
+  frontend:
+    build:
+      args:
+        VITE_API_URL: http://localhost:3000
+    ports:
+      - "5173:80"

@@ -24,6 +24,7 @@ import AlbumTrackList from "../components/AlbumTrackList";
 import CoverImage from "../components/CoverImage";
 import { useAlbumReviews } from "../hooks/useAlbumReviews";
 import { useGoBack } from "../hooks/useGoBack";
+import {useAlbumSeo} from '../components/Seo';
 
 type TabType = "Commentaires" | "Albums";
 
@@ -78,6 +79,7 @@ const AlbumDetails: React.FC = () => {
 
     const [loading, setLoading] = useState(true);
     const [albumData, setAlbumData] = useState<any>(null);
+    useAlbumSeo(albumData, loading);
 
     const [activeTab, setActiveTab] = useState<TabType>("Commentaires");
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);

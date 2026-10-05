@@ -38,6 +38,7 @@ import AdminRoute from "./components/AdminRoute.tsx"; // ✅ 1. Importation du n
 const AuthCallback = lazy(() => import("./pages/AuthCallback.tsx"));
 import {ToastContainer} from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Seo from './components/Seo';
 
 const AuthRedirectListener: React.FC = (): null => {
     const navigate: NavigateFunction = useNavigate();
@@ -57,6 +58,7 @@ const App: React.FC = () => {
     const {t} = useTranslation();
     return (
         <Router>
+            <Seo/>
             {import.meta.env.VITE_QA_METRICS === "true" && <LocalPerformancePanel/>}
             <AuthRedirectListener></AuthRedirectListener>
             <ThemeGuard/>
